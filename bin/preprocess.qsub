@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#$ -o $HOME/cluster/output
+#$ -e $HOME/cluster/error
+
+cd /data1/scratch/FC143/s_2/preprocess
+~/projects/RNAseq/bin/preprocess_fq.sh
+

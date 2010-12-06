@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#$ -o $HOME/cluster/output
+#$ -e $HOME/cluster/error
+
+~/projects/RNAseq/bin/RNAseq_process_data.sh /data1/scratch/FC143/s_3
+
