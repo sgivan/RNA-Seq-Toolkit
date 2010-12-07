@@ -1,19 +1,32 @@
 #!/bin/bash
 #
 # run this script from directory containing flowcell directories; ie, the one containing all the FCXXX directories
-# then, invoke like FGMG_process_data.sh FC???/s_? > & FGMG_process_agg_data.log &
-export PATH=~/projects/RNAseq/bin:$PATH
+# then, invoke like FGMG_process_data.sh FC???/s_? 
+#export PATH=/ircf/sgivan/projects/RNAseq/bin:$PATH
+export PATH=/ircf/sgivan/projects/RNAseq/bin:$PATH
 #
 # initialize variables using default values
 #run_type='full'
-run_type='partial'
-rd=`pwd`
+#run_type='partial'
+#rd=`pwd`
 
 function help_messg () {
-    echo "invoke script with one of the following options:"
-    echo "--full [will run full analysis, including short read preprocessing]"
-    echo "--partial [will skip preprocessing steps]"
-    echo "--aggregate [will use an aggregate junctions file and skips preprocessing]"
+    echo "invoke script with one of the following options [default value]:"
+    echo "--full (will run full analysis, including short read preprocessing)"
+    echo "--partial (will skip preprocessing steps)"
+    echo "--aggregate (use transcripts.gtf for gene models and skip preprocessing)"
+    echo "--mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
+    echo "--min_intron_length [50] (minimum intron length)"
+    echo "--max_intron_length [25000] (maximum intron length)"
+    echo "--agg_transcripts (generate gtf file of empirical transcripts)"
+    echo "--refseq [refseq] (name of file containing reference DNA seqeunce)"
+    echo "--threads [8] (number of threads to use)"
+    echo "--library_type [fr-unstranded] (library type as defined in TopHat manual)"
+#    echo "--use_aggregates"
+    echo "--seonly (use if NOT working with paired-end sequence data)"
+    echo "--adapter (provide the adapter sequence to remove)"
+    echo "--indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
+    echo "--toolpath [.] (provide path to directory containing RNAseq tools)"
     echo "-h [print this help message]"
     echo ""
 }
@@ -35,6 +48,8 @@ function mk_agg_txpts () {
 #
 #}
 
+run_type='partial'
+rd=`pwd`
 mate_inner_distance=165
 min_intron_length=50
 ##max_intron_length_I=10000
@@ -49,9 +64,12 @@ seonly=0
 adapter='NULL'
 indexpath="$rd/index/"
 
+# edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
+toolpath='.'
+
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
-TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P: --long full,aggregate,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath: -- "$@"`
+TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T: --long full,aggregate,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath: -- "$@"`
 
 if [ $? != 0 ] ; then echo "Terminating..." ; exit 1 ; fi
 
@@ -75,6 +93,7 @@ while true ; do
         -e|--seonly) seonly=1 ; shift ;;
         -A|--adapter) adapter=$2 ; shift 2 ;;
         -P|--indexpath) indexpath=$2 ; shift 2 ;;
+        -T|--toolpath) toolpath=$2 ; shift 2 ;;
         -h) help_messg ; exit ;;
         --) shift ; break ;;
         *) break ;;
@@ -85,7 +104,8 @@ done
 echo "run type is '$run_type'"
 flags="--mate_inner_distance $mate_inner_distance --min_intron_length $min_intron_length --max_intron_length $max_intron_length --procs $threads --librarytype $library_type --indexpath $indexpath/"
 echo "flags: $flags"
-#exit
+#export PATH="$toolpath:$PATH"
+#echo "PATH '$PATH'"
 
 if [[ $seonly -eq 1 ]]
 then
