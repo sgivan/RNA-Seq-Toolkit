@@ -103,9 +103,14 @@ while (<MASTER>) {
   chomp($line);
   print "$line\n" if ($debug);
 
-  if ($line =~ /([\@\+])(\S+)/) {
+#  if ($line =~ /([\@\+])(\S+)/) {
+  if ($line =~ /([\@\+])(\S*)/) {
     my ($type,$id,$string);
-    $id = $2;
+    if ($2) {
+        $id = $2
+    } else {
+        $id = '';
+    }
 
     #
     # each sequence should have DNA string and quality string
