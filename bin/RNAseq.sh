@@ -32,7 +32,8 @@ librarytype=fr-unstranded
 # files made with bowtie-build, which is specified by BOWTIE_INDEXES, below
 #
 
-fasta_file=maize # actual file should be have .fa suffix
+#fasta_file=maize # actual file should be have .fa suffix
+fasta_file='refseq' # actual file should be have .fa suffix
 
 #
 # BOWTIE_INDEXES contains the path to the directory containing the reference index files
@@ -113,7 +114,7 @@ cufflinkscmd="$cufflinks -I $max_intron_length_I --library-type $librarytype -r 
 if [ $run_type = full ]
 then
     echo "preprocess_fq.sh"
-    preprocess_fq.sh --indexpath $BOWTIE_INDEXES
+    preprocess_fq.sh --indexpath $BOWTIE_INDEXES -t $procs
     
     if [[ $seonly -eq 0 ]] # then these are paired-end data
     then
