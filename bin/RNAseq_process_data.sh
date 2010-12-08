@@ -2,8 +2,8 @@
 #
 # run this script from directory containing flowcell directories; ie, the one containing all the FCXXX directories
 # then, invoke like FGMG_process_data.sh FC???/s_? 
+export PATH=~givans/projects/RNAseq/bin:$PATH
 #export PATH=/ircf/sgivan/projects/RNAseq/bin:$PATH
-export PATH=/ircf/sgivan/projects/RNAseq/bin:$PATH
 #
 # initialize variables using default values
 #run_type='full'
@@ -102,7 +102,7 @@ done
 #for arg do echo '--> '"\`$arg'" ; done
 
 echo "run type is '$run_type'"
-flags="--mate_inner_distance $mate_inner_distance --min_intron_length $min_intron_length --max_intron_length $max_intron_length --procs $threads --librarytype $library_type --indexpath $indexpath/"
+flags="--refseq $refseq --mate_inner_distance $mate_inner_distance --min_intron_length $min_intron_length --max_intron_length $max_intron_length --procs $threads --librarytype $library_type --indexpath $indexpath/"
 echo "flags: $flags"
 #export PATH="$toolpath:$PATH"
 #echo "PATH '$PATH'"
