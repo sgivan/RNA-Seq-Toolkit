@@ -37,10 +37,10 @@ function mk_agg_txpts () {
     mkdir -p merged_aggregates
     cd merged_aggregates
     samtools merge all_merged.bam ../*/merged/merged.bam
-    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../$refseq all_merged.bam"
-    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../$refseq all_merged.bam
+    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
+    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
     cd ..
-    ln -s merged_aggregates/transcripts.gtf ./
+    ln -sf merged_aggregates/transcripts.gtf ./
 #    ln -s merged_aggregates/aggregate_junctions.txt ./
 }
 
