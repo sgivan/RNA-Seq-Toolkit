@@ -102,7 +102,7 @@ pe_extra_cmd="-r $mate_inner_distance_r -o pe_tophat_out $fasta_file read_1 read
 singles_extra_cmd="-o singles_tophat_out $fasta_file read_1.1,read_2.1 "
 # 
 #cufflinkscmd="$cufflinks -m $mate_inner_distance_r -I $max_intron_length_I "
-cufflinkscmd="$cufflinks -I $max_intron_length_I --library-type $librarytype -r ../../refseq -p $procs"
+cufflinkscmd="$cufflinks -I $max_intron_length_I --library-type $librarytype -r ../../$refseq -p $procs"
 
 #
 # END OF USER-DEFINED VARIABLES
