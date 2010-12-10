@@ -18,8 +18,26 @@ tophat=tophat # because it's in my $PATH
 #cufflinks=/home/cgrb/givans/bin/cufflinks # full path to cufflinks
 cufflinks=cufflinks 
 
-bioclass=`pwd | sed -r 's/.+\/(.+)\/(.+)/\1/'`
-lane=`pwd | sed -r 's/.+\/(.+)\/(.+)/\2/' | sed 's/_//'`
+osname=`uname -s`
+echo "osname '$osname'"
+
+case "$osname" in
+
+    Linux)
+            bioclass=`pwd | sed -r 's/.+\/(.+)\/(.+)/\1/'` ;
+            lane=`pwd | sed -r 's/.+\/(.+)\/(.+)/\2/' | sed 's/_//'` ;;
+
+    Darwin)
+            bioclass=`pwd | sed -E 's/.+\/(.+)\/(.+)/\1/'` ;
+            lane=`pwd | sed -E 's/.+\/(.+)\/(.+)/\2/' | sed 's/_//'` ;;
+
+    *)
+            bioclass=`pwd | sed -r 's/.+\/(.+)\/(.+)/\1/'` ;
+            lane=`pwd | sed -r 's/.+\/(.+)\/(.+)/\2/' | sed 's/_//'` ;;
+
+esac
+#echo "bioclass = $bioclass"
+#echo "lane = $lane"
 
 #
 # librarytype contains the "library type", as defined in the tophat documentation:
