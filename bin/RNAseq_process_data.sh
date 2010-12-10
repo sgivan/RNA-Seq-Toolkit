@@ -2,8 +2,8 @@
 #
 # run this script from directory containing flowcell directories; ie, the one containing all the FCXXX directories
 # then, invoke like FGMG_process_data.sh FC???/s_? 
-export PATH=~givans/projects/RNAseq/bin:$PATH
-#export PATH=/ircf/sgivan/projects/RNAseq/bin:$PATH
+#export PATH=~givans/projects/RNAseq/bin:$PATH
+export PATH=/ircf/sgivan/projects/RNAseq/bin:$PATH
 #
 # initialize variables using default values
 #run_type='full'
@@ -14,7 +14,7 @@ function help_messg () {
     echo "invoke script with one of the following options [default value]:"
     echo "--full (will run full analysis, including short read preprocessing)"
     echo "--partial (will skip preprocessing steps)"
-    echo "--aggregate (use transcripts.gtf for gene models and skip preprocessing)"
+    echo "--transcripts (use transcripts.gtf for gene models and skip preprocessing)"
     echo "--mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
     echo "--min_intron_length [50] (minimum intron length)"
     echo "--max_intron_length [25000] (maximum intron length)"
@@ -27,28 +27,41 @@ function help_messg () {
     echo "--adapter (provide the adapter sequence to remove)"
     echo "--indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
     echo "--toolpath [.] (provide path to directory containing RNAseq tools)"
-    echo "-h [print this help message]"
+    echo "--help [print this help message]"
     echo ""
 }
 
 function mk_agg_txpts () {
     cd $rd
-    echo "generating aggregate transcripts file"
-    mkdir -p merged_aggregates
-    cd merged_aggregates
-    samtools merge all_merged.bam ../*/merged/merged.bam
-    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
-    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
+    echo "generating transcripts file"
+    mkdir -p transcripts
+    cd transcripts
+    echo "cuffcompare -s ../index/$refseq.fa ../*/cufflinks/transcripts.gtf"
+    cuffcompare -s ../index/$refseq.fa ../*/cufflinks/transcripts.gtf
+#    samtools merge all_merged.bam ../*/merged/merged.bam
+#    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
+#    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
     cd ..
-    ln -sf merged_aggregates/transcripts.gtf ./
-#    ln -s merged_aggregates/aggregate_junctions.txt ./
+    ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
 }
+
+#function mk_agg_txpts () {
+#    cd $rd
+#    echo "generating aggregate transcripts file"
+#    mkdir -p merged_aggregates
+#    cd merged_aggregates
+#    samtools merge all_merged.bam ../*/merged/merged.bam
+#    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
+#    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
+#    cd ..
+#    ln -sf merged_aggregates/transcripts.gtf ./
+#}
 
 #function mk_agg_jncts {
 #
 #}
 
-run_type='partial'
+run_type='NULL'
 rd=`pwd`
 mate_inner_distance=165
 min_intron_length=50
@@ -69,7 +82,7 @@ toolpath='.'
 
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
-TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T: --long full,aggregate,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath: -- "$@"`
+TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T: --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath: -- "$@"`
 
 if [ $? != 0 ] ; then echo "Terminating..." ; exit 1 ; fi
 
@@ -80,7 +93,7 @@ while true ; do
     case "$1" in
         -f|--full) run_type='full' ; shift ;;
         -p|--partial) run_type='partial' ; shift ;;
-        -a|--aggregate) run_type='aggregate' ; shift ;;
+        -a|--transcripts) run_type='transcripts' ; shift ;;
         -r|--mate_inner_distance) mate_inner_distance=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length=$2 ; shift 2 ;;
@@ -94,7 +107,7 @@ while true ; do
         -A|--adapter) adapter=$2 ; shift 2 ;;
         -P|--indexpath) indexpath=$2 ; shift 2 ;;
         -T|--toolpath) toolpath=$2 ; shift 2 ;;
-        -h) help_messg ; exit ;;
+        -h|--help) help_messg ; exit ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -142,19 +155,23 @@ do
             echo "RNAseq.sh $flags --full" ;
             RNAseq.sh $flags --full ;;
 
-        aggregate)
+        transcripts)
 
-            # for aggregate junction runs
+            # for transcripts runs
             # must have already run script with --agg_transcripts flag
-            mkdir non-aggregate
+            mkdir -p non-aggregate
             echo "moving old output files to 'non-aggregate'"
-            mv pe_tophat* singles_tophat* non-aggregate/
+            mv cufflinks pe_tophat* singles_tophat* non-aggregate/
             echo "creating symbolic link to transcript.gtf"
             ln -sf ../transcripts.gtf ./
             more_flags=""
             echo "running tophat"
-            echo "RNAseq.sh --aggregate $flags $more_flags" ;
-            RNAseq.sh --aggregate $flags $more_flags ;;
+            echo "RNAseq.sh --transcripts $flags $more_flags" ;
+            RNAseq.sh --transcripts $flags $more_flags ;;
+
+        *)
+            echo "RNAeq.sh $flags"
+            RNAseq.sh $flags ;;
 
     esac
     cd $rd
