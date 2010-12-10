@@ -84,8 +84,20 @@ adapter_seq='NULL'
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
+case "$osname" in
 
-TEMP=`getopt -o pafhr:i:I:P:l:sA: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq: -- "$@"`
+    Linux)
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq: -- "$@"`
+            ;;
+
+    Darwin)
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A: $*`
+            ;;
+
+        *)
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq: -- "$@"`
+            ;;
+esac
 
 if [ $? != 0 ] ; then echo "Terminating..." ; exit 1 ; fi
 
@@ -100,12 +112,12 @@ while true ; do
         -r|--mate_inner_distance) mate_inner_distance_r=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length_i=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length_I=$2 ; shift 2 ;;
-        -P|--procs) procs=$2 ; shift 2 ;;
+        -t|--procs) procs=$2 ; shift 2 ;;
         -l|--librarytype) librarytype=$2 ; shift 2 ;;
-        -s|--seonly) seonly=1 ; shift ;;
+        -e|--seonly) seonly=1 ; shift ;;
         -A|--adapter_seq) adapter_seq=$2 ; shift 2 ;;
-        --indexpath) BOWTIE_INDEXES=$2 ; shift 2 ;;
-        --refseq) fasta_file=$2 ; shift 2 ;;
+        -P|--indexpath) BOWTIE_INDEXES=$2 ; shift 2 ;;
+        -s|--refseq) fasta_file=$2 ; shift 2 ;;
         -h) help_messg ; exit ;;
         --) shift ; break ;;
         *) break ;;
@@ -139,7 +151,8 @@ cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$
 if [ $run_type = full ]
 then
     echo "preprocess_fq.sh"
-    preprocess_fq.sh --indexpath $BOWTIE_INDEXES -t $procs
+    #preprocess_fq.sh --indexpath $BOWTIE_INDEXES -t $procs
+    preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs
     
     if [[ $seonly -eq 0 ]] # then these are paired-end data
     then
