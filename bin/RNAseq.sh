@@ -91,7 +91,7 @@ case "$osname" in
             ;;
 
     Darwin)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A: $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A: $*`
             ;;
 
         *)
