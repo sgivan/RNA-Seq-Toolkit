@@ -1,6 +1,7 @@
 #!/bin/bash
 #export PATH="~/projects/RNAseq/bin/:$PATH"
 wd=`pwd`
+osname=`uname -s`
 export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 #echo $PATH
 #exit
@@ -27,7 +28,20 @@ function help_messg {
 
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
-TEMP=`getopt -o q:l:p:t:hi:f: --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter: -- "$@"`
+case "$osname" in
+
+    Linux)
+        TEMP=`getopt -o q:l:p:t:hi:f: --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter: -- "$@"`
+        ;;
+
+    Darwin)
+        TEMP=`getopt -o q:l:p:t:hi:f: $*`
+        ;;
+
+    *)
+        TEMP=`getopt -o q:l:p:t:hi:f: --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter: -- "$@"`
+        ;;
+esac
 
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 
