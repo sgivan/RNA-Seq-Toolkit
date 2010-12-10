@@ -176,8 +176,8 @@ done
 echo "run type is '$run_type'"
 #flags="--refseq $refseq --mate_inner_distance $mate_inner_distance --min_intron_length $min_intron_length --max_intron_length $max_intron_length --procs $threads --librarytype $library_type --indexpath $indexpath/" # change to work with MacOSX, below
 flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/"
-echo "flags: $flags"
-exit
+#echo "flags: $flags"
+#exit
 
 if [[ $seonly -eq 1 ]]
 then
