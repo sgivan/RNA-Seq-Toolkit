@@ -1,7 +1,9 @@
 #!/bin/bash
-export PATH="~/projects/RNAseq/bin/:$PATH"
-#export BOWTIE_INDEXES=/dbase/genomes/maize/for_filter/
+#export PATH="~/projects/RNAseq/bin/:$PATH"
 wd=`pwd`
+export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
+#echo $PATH
+#exit
 #
 # initialize variables with default values
 # which can be superseded with clo's

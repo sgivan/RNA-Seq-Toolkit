@@ -6,9 +6,9 @@
 # copyright Scott Givan, The University of Missouri, November 11, 2011.
 #
 # set path to find RNAseq scripts
-
-export PATH="$HOME/ircf/sgivan/projects/RNAseq/bin:~/bin:$PATH"
-
+wd=`pwd`
+#export PATH="$HOME/ircf/sgivan/projects/RNAseq/bin:~/bin:$PATH"
+export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 #
 # some variables to set ...
 #

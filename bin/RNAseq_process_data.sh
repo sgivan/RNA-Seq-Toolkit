@@ -2,13 +2,11 @@
 #
 # run this script from directory containing flowcell directories; ie, the one containing all the FCXXX directories
 # then, invoke like FGMG_process_data.sh FC???/s_? 
+wd=`pwd`
 #export PATH=~givans/projects/RNAseq/bin:$PATH
-export PATH=/ircf/sgivan/projects/RNAseq/bin:$PATH
+#export PATH=/ircf/sgivan/projects/RNAseq/bin:$PATH
+export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 #
-# initialize variables using default values
-#run_type='full'
-#run_type='partial'
-#rd=`pwd`
 
 function help_messg () {
     echo "invoke script with one of the following options [default value]:"
@@ -32,7 +30,7 @@ function help_messg () {
 }
 
 function mk_agg_txpts () {
-    cd $rd
+    cd $wd
     echo "generating transcripts file"
     mkdir -p transcripts
     cd transcripts
@@ -46,7 +44,7 @@ function mk_agg_txpts () {
 }
 
 #function mk_agg_txpts () {
-#    cd $rd
+#    cd $wd
 #    echo "generating aggregate transcripts file"
 #    mkdir -p merged_aggregates
 #    cd merged_aggregates
@@ -62,7 +60,6 @@ function mk_agg_txpts () {
 #}
 
 run_type='NULL'
-rd=`pwd`
 mate_inner_distance=165
 min_intron_length=50
 ##max_intron_length_I=10000
@@ -75,7 +72,7 @@ library_type='fr-unstranded'
 use_aggregates=0
 seonly=0
 adapter='NULL'
-indexpath="$rd/index/"
+indexpath="$wd/index/"
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -136,8 +133,8 @@ fi
 for dir 
 do
 	echo `date`
-	#echo $rd/$dir
-	#cd $rd/$dir
+	#echo $wd/$dir
+	#cd $wd/$dir
     echo $dir
     cd $dir
 
@@ -174,7 +171,7 @@ do
             RNAseq.sh $flags ;;
 
     esac
-    cd $rd
+    cd $wd
 done
 
 if [ $aggregate_junctions = 1 ]
