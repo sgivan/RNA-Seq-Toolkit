@@ -1,0 +1,3 @@
+bin/RNAseq_process_data.sh --threads 4 --agg_transcripts --full s_?
+bin/RNAseq_process_data.sh --threads 4 --transcripts s_?
+cuffdiff -o cuffdiff -N -p 4 -r index/refseq.fa --library-type fr-unstranded transcripts.gtf s_?/merged/merged.bam
