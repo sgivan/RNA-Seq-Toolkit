@@ -226,7 +226,7 @@ do
             # must have already run script with --agg_transcripts flag
             mkdir -p non-aggregate
             echo "moving old output files to 'non-aggregate'"
-            mv cufflinks pe_tophat* singles_tophat* non-aggregate/
+            mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
             echo "creating symbolic link to transcript.gtf"
             ln -sf ../transcripts.gtf ./
             more_flags=""
