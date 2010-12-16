@@ -97,13 +97,16 @@ rm *.sam
 #rm set?_qt_qf_sf.fq
 rm set?_qt_qf.fq
 echo "creating symlinks to final files"
-#mv set1.fq set1_input.fq
-#mv set2.fq set2_input.fq
-#ln -sf set1_final.fq set1.fq
-#ln -sf set2_final.fq set2.fq
+#
+# why are the following lines commented?
+# uncommenting because adapter_trim.pl will use set1.fq and set2.fq as input files
+#
+mv set1.fq set1_input.fq
+mv set2.fq set2_input.fq
+ln -sf set1_qt_qf_sf.fq set1.fq
+ln -sf set2_qt_qf_sf.fq set2.fq
 cd ..
-#ln -sf preprocess/set1_final_matched.fq ./set1.fq
-#ln -sf preprocess/set2_final_matched.fq ./set2.fq
-ln -sf preprocess/set1_qt_qf_sf.fq set1.fq
-ln -sf preprocess/set2_qt_qf_sf.fq set2.fq
-
+#ln -sf preprocess/set1_qt_qf_sf.fq set1.fq
+#ln -sf preprocess/set2_qt_qf_sf.fq set2.fq
+ln -sf preprocess/set1.fq ./
+ln -sf preprocess/set2.fq ./
