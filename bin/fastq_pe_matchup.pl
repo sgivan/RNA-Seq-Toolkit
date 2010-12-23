@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 #
+use 5.8.8;
 use strict;
 use Getopt::Long;
 use Data::Dumper;
@@ -40,7 +41,8 @@ $debug_max = 0;
 if ($debug) {
 #    print "read_1 = $read_1\nread_2 = $read_2\nread_1_out = $read_1_out\nread_2_out = $read_2_out\nmaxN = $maxN\n";
     print "read_1 = $read_1\nread_2 = $read_2\nread_1_out = $read_1_out\nread_2_out = $read_2_out\n\n";
-    $debug_max = 200000;
+    #$debug_max = 200000;
+    $debug_max = 2e10;
 }
 
 my ($infile1_size,$infile2_size,$followsize) = (0,0,0);
@@ -96,74 +98,31 @@ print "using '$masterfile' as master (smaller) fastq file\n" if ($verbose);
 # proceed with building content hash for smaller fastq file
 #
 
-my (%master,%follow,%temp,$lastID);
-open(MASTER,$masterfile) or die "can't open '$masterfile': $!";
+my ($MASTER,%master,%follow,%temp,$lastID);
+open($MASTER,$masterfile) or die "can't open '$masterfile': $!";
 
 my ($linecnt,$seqcnt) = (0,0);
-while (<MASTER>) {
+
+while (my $read1 = _fastq_in($MASTER)) {
   ++$linecnt;
-  my $line;
-  $line = $_;
   last if (++$seqcnt > $debug_max && $debug);
-  chomp($line);
-  print "$line\n" if ($debug);
+  my $id = $read1->[0];
 
-  if ($line =~ /([\@\+])(\S*)/) {
-    my ($type,$id,$string);
-    if ($2) {
-        $id = $2
-    } else {
-        $id = '';
-    }
+  if ($id) {
+    my ($type,$string);
 
-    #
-    # each sequence should have DNA string and quality string
-    # sequence lines are preceded by lines starting with @
-    # quality lines are preceded by lines starting with +
-    #
-    if ($1 eq '@') {
-      $type = 'seq';
-    } else {
-      $type = 'qual';
-    }
+        $master{$id} = {
+                            seq     =>  $read1->[1],
+                            qual    =>  $read1->[3],
+                            };
 
-    #
-    # if this is a new ID, save current %temp and start building new one
-    #
-    if ($id ne $lastID) {
-    
-#      if ($debug) {
-#        print "\n\n\%temp:\n";
-#        print Dumper(\%temp), "\n\n";
-#      }
-
-      # this should not save %temp unless both qual and seq are defined
-      #
-      $master{$lastID} = {%temp} if (defined($temp{qual}) && defined($temp{seq}));
-      $lastID = $id;  # set $lastID to current ID
-      %temp = ();     # clear %temp
-    }
-
-    #
-    # collect next line of text from input fastq file
-    # we should already know what to expect, based on $type determined above
-    #
-    $string = <MASTER>;
-    chomp($string);
-#    print "string = '$string'\n" if ($debug);
-    #
-
-    $temp{$type} = $string;
-    
   } else { # end of if ($line =~ /([\@\+])(\S+)/)
-    print "don't know what to do with this line: '$line'\n";
+#    print "don't know what to do with this line: '$line'\n";
+    last;
   }
-} continue { # end of while (<MASTER>) loop
 
-    $master{$lastID} = {%temp};
-
-}
-close(MASTER);
+} # end of while loop 
+close($MASTER);
 #
 # now I should have a large %master of contents of smaller fastq file
 #
@@ -217,7 +176,7 @@ while (my $read2 = _fastq_in($FOLLOW)) {
     print "reached end of follower file\n" if ($debug);
     last;
   }
-  print "seqid: '$seqid'\n" if ($debug);
+#  print "seqid: '$seqid'\n" if ($debug);
   my $seqid_tr = $seqid;
  
 
@@ -271,6 +230,10 @@ while (my($key,$value) = each(%master)) {
 }
 
 close($NOMATE) or warn("can't close $masterfile.nomate.fq properly: $!");
+close($FOLLOW) or warn();
+close($FOLLOWOUT) or warn();
+close($FOLLOW_NOMATE) or warn();
+close($MASTEROUT) or warn();
 
 sub _fastq_in {
     my $fh = shift;
