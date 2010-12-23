@@ -4,10 +4,10 @@ use strict;
 use Getopt::Long;
 use Data::Dumper;
 #use lib '/local/cluster/dev/lib/perl5/site_perl/5.8.8';
-use Bio::SeqIO;
-use Bio::Seq::Quality;
+#use Bio::SeqIO;
+#use Bio::Seq::Quality;
 
-my ($read_1,$read_2,$debug,$help,$verbose,$read_1_out,$read_2_out,$maxN,$nomaxN,$smaller,$dump);
+my ($read_1,$read_2,$debug,$help,$verbose,$read_1_out,$read_2_out,$maxN,$nomaxN,$smaller,$dump,$debug_max);
 
 GetOptions(
             "read_1=s"        =>  \$read_1,
@@ -17,7 +17,7 @@ GetOptions(
             "debug"           =>  \$debug,
             "verbose"         =>  \$verbose,
             "help"            =>  \$help,
-            "maxN=i"            =>  \$maxN, # crude quality filter; max allowable number of N's in read
+#            "maxN=i"            =>  \$maxN, # crude quality filter; max allowable number of N's in read
             "nomaxN"          =>    \$nomaxN, # don't use maxN filter
             "smaller=s"       =>  \$smaller, # to specify which file is shorter (not yet implemented)
             "dump"            =>  \$dump, # print Data::Dumper output
@@ -33,14 +33,17 @@ $read_2 = 'infile2' unless ($read_2);
 $read_1_out = $read_1 . ".matched.fq" unless ($read_1_out);
 #$read_2_out = $read_2 . ".out.fq" unless ($read_2_out);
 $read_2_out = $read_2 . ".matched.fq" unless ($read_2_out);
-$maxN = 4 unless ($maxN);
+#$maxN = 4 unless ($maxN);
 $verbose = 1 if ($debug);
+$debug_max = 0;
 
 if ($debug) {
-    print "read_1 = $read_1\nread_2 = $read_2\nread_1_out = $read_1_out\nread_2_out = $read_2_out\nmaxN = $maxN\n";
+#    print "read_1 = $read_1\nread_2 = $read_2\nread_1_out = $read_1_out\nread_2_out = $read_2_out\nmaxN = $maxN\n";
+    print "read_1 = $read_1\nread_2 = $read_2\nread_1_out = $read_1_out\nread_2_out = $read_2_out\n\n";
+    $debug_max = 200000;
 }
 
-my ($infile1_size,$infile2_size) = (0,0);
+my ($infile1_size,$infile2_size,$followsize) = (0,0,0);
 print "determining relative size of input files\n" if ($verbose);
 if (!$smaller) { # must determine fastq file contains fewer sequences if not explicitly passed via --smaller
   if (-e $read_1) {
@@ -76,12 +79,14 @@ if ($smaller) {
   $masterfile = $read_2;
   $master_matched_filename = $read_2_out;
   $followfile = $read_1;
+  $followsize = $infile1_size;
   $follower_matched_filename = $read_1_out;
 } else {
   print "$read_2 has more sequences ($infile2_size > $infile1_size)\n" if ($debug);
   $masterfile = $read_1;
   $master_matched_filename = $read_1_out;
   $followfile = $read_2;
+  $followsize = $infile2_size;
   $follower_matched_filename = $read_2_out;
 }
 
@@ -99,11 +104,10 @@ while (<MASTER>) {
   ++$linecnt;
   my $line;
   $line = $_;
-  last if (++$seqcnt > 24 && $debug);
+  last if (++$seqcnt > $debug_max && $debug);
   chomp($line);
   print "$line\n" if ($debug);
 
-#  if ($line =~ /([\@\+])(\S+)/) {
   if ($line =~ /([\@\+])(\S*)/) {
     my ($type,$id,$string);
     if ($2) {
@@ -128,10 +132,10 @@ while (<MASTER>) {
     #
     if ($id ne $lastID) {
     
-      if ($debug) {
-        print "\n\n\%temp:\n";
-        print Dumper(\%temp), "\n\n";
-      }
+#      if ($debug) {
+#        print "\n\n\%temp:\n";
+#        print Dumper(\%temp), "\n\n";
+#      }
 
       # this should not save %temp unless both qual and seq are defined
       #
@@ -146,37 +150,19 @@ while (<MASTER>) {
     #
     $string = <MASTER>;
     chomp($string);
-    print "string = '$string'\n" if ($debug);
+#    print "string = '$string'\n" if ($debug);
     #
-    # do some basic QC checks
-    # in future, I should write seqs that fail to their own file
-    #
-    my $copy = $string;
-    my $Ns = $copy =~ tr/N/N/;
-    $maxN = (length($copy) + 1) if ($nomaxN);
-    if ($type eq 'seq' && $Ns >= $maxN) { # only do this for DNA sequence lines
-      print "$id has too many N's, skipping\n" if ($verbose);
-      --$seqcnt;
-      #
-      # if we are skipping this sequence, must also skip the following quality lines
-      #
-      <MASTER>;
-      <MASTER>;
-      %temp = (); # and erase %temp to start new
-      next;       # re-evaluate loop
-    } elsif ($type eq 'seq') {
-      print "$id is good, continuing\n" if ($debug);
-    }
-    #
-    # save data to %temp
-    #
+
     $temp{$type} = $string;
     
-#    $master{$id}{$type} = $string;
   } else { # end of if ($line =~ /([\@\+])(\S+)/)
     print "don't know what to do with this line: '$line'\n";
   }
-} # end of while (<MASTER>) loop
+} continue { # end of while (<MASTER>) loop
+
+    $master{$lastID} = {%temp};
+
+}
 close(MASTER);
 #
 # now I should have a large %master of contents of smaller fastq file
@@ -193,15 +179,6 @@ print "-" x 50, "\n";
 
 }
 
-# print "'", $master{'HWI-EAS121:2:1:2:1808#0/2'}{'seq'}, "'\n";
-# print "'", $master{'HWI-EAS121:2:1:2:1808#0/2'}{'qual'}, "'\n";
-# 
-# print "'", $master{'HWI-EAS121:2:1:11:363#0/2'}{'seq'}, "'\n";
-# print "'", $master{'HWI-EAS121:2:1:11:363#0/2'}{'qual'}, "'\n";
-# # 'CAGTGGTATCAACGCAGAGTACTTTTTTTTTTTTTTTTTTTTTTTTTNNTTTTTNTTTTTTTTTTTGGGGGGTGTTTGTT'
-# # '\bb`aba`]_b``_PZba`G_Qaaaaab_Zabbbaabbbbba`aaa]DD]]QHFDMPKRPNTWZY[FFFNZLHLFMPMNH'
-# 
-
 #
 # open follower input fastq file
 # and output files that will contain:
@@ -211,35 +188,18 @@ print "-" x 50, "\n";
 #
 print "opening second fastq file\n" if ($verbose);
 
-my $follow = Bio::SeqIO->new(
-                                -file     =>  $followfile,
-                                -format   =>  'fastq',
-                              );
+my $FOLLOW;
+open($FOLLOW,$followfile) or die "can't open $followfile: $!";
 
-my $followout = Bio::SeqIO->new(
-#                             -file      =>  ">$followfile" . ".out.fq",
-#                             -file      =>  ">$followfile" . ".matched.fq",
-                             -file      =>  ">$follower_matched_filename",
-                             -format    =>  'fastq',
-                          );
+print "opening output fastq files\n" if ($verbose);
+my $FOLLOWOUT;
+open($FOLLOWOUT,">$follower_matched_filename") or die "can't open $follower_matched_filename: $!";
 
-my $masterout = Bio::SeqIO->new(
-#                              -file     =>  ">$masterfile" . ".out.fq",
-#                              -file     =>  ">$masterfile" . ".matched.fq",
-                              -file     =>  ">$master_matched_filename",
-                              -format   =>  'fastq',
-                            );
+my $MASTEROUT;
+open($MASTEROUT,">$master_matched_filename") or die "can't open $master_matched_filename: $!";
 
-# my $master_nomate = Bio::SeqIO->new(
-#                                     -file   =>  ">$masterfile" . ".nomate",
-#                                     -format =>  'fastq',
-#                                   );
-
-
-my $follow_nomate = Bio::SeqIO->new(
-                                -file     =>    ">$followfile" . ".nomate.fq",
-                                -format   =>    'fastq',
-                                );
+my $FOLLOW_NOMATE;
+open($FOLLOW_NOMATE,">$followfile" . ".nomate.fq") or die "can't open $followfile" . ".nomate.fq: $!";
 
 my ($out1_cnt,$out2_cnt,$loop_cnt) = (0,0,0);
 #
@@ -247,18 +207,19 @@ my ($out1_cnt,$out2_cnt,$loop_cnt) = (0,0,0);
 # in master file and print them to a file.
 # Also, print reads in follower file that don't have mates to their own file
 #
-while (my $read2 = $follow->next_seq()) {
-  last if (++$loop_cnt >= 2000 && $debug);
-  my $seqid = $read2->id();
+print "stepping through follower file\n" if ($verbose);
+
+while (my $read2 = _fastq_in($FOLLOW)) {
+  last if (++$loop_cnt >= $debug_max && $debug);
+  my $seqid = $read2->[0];
+#  last if (!$seqid);
+  if (!$seqid) {
+    print "reached end of follower file\n" if ($debug);
+    last;
+  }
+  print "seqid: '$seqid'\n" if ($debug);
   my $seqid_tr = $seqid;
  
-  my $seq = $read2->seq();
-  #
-  # Apply the same QC as for master seqs
-  #
-  my $Ns = $seq =~ tr/N/N/;
-  $maxN = (length($seq) + 1) if ($nomaxN);
-  next if ($Ns >= $maxN);
 
 #
 #   Sequence ID's are suffixed with either /1 or /2, depending on
@@ -267,43 +228,31 @@ while (my $read2 = $follow->next_seq()) {
 #   file containing the matching mate pair so it will have the
 #   opposite suffix.
 #
-#  print "\$seqid_tr starts as '$seqid_tr'\n" if ($debug);
-  if ($seqid_tr =~ /\/1/) {
-    $seqid_tr =~ s/\/1/\/2/;
-  } else {
-    $seqid_tr =~ s/\/2/\/1/;
-  }
+
+    my $digit = substr($seqid_tr,-1,1,"");
+    if ($digit == 1) {
+        $seqid_tr .= "2";
+    } else {
+        $seqid_tr .= "1";
+    }
+
 
 #  print "checking for '$seqid_tr'\n" if ($debug);
 
   if ($master{$seqid_tr}) { # if a mate is in %master, print it to mate file
-    $followout->write_fastq($read2);
-    if ($debug) {
-      my $quals = $read2->qual();
-      print "writing to '$followfile':\n\@$seqid\n", $read2->seq(), "\n\+$seqid\n@$quals\n";
-    }
+    _fastq_out($read2->[0],$read2->[1],$read2->[3],$FOLLOWOUT);
+
+#    if ($debug) {
+#      my $quals = $read2->qual();
+#      print "writing to '$followfile':\n\@$seqid\n", $read2->seq(), "\n\+$seqid\n@$quals\n";
+#    }
     ++$master{$seqid_tr}->{mate}; # remember that this master sequence had a mate
 
-    my @quals = split(//, $master{$seqid_tr}->{qual});
-    print "quals : @quals\n" if ($debug);
-    #
-    # Illumina quality values are weird
-    # translate them to standard values
-    #
-    @quals = map(ord() - 33, @quals);
-    print "quals2: @quals\n" if ($debug);
+    _fastq_out($seqid_tr,$master{$seqid_tr}->{seq},$master{$seqid_tr}->{qual},$MASTEROUT);
 
-    my $seq1 = Bio::Seq::Quality->new(
-                                    -seq      =>  $master{$seqid_tr}->{seq},
- #                                   -qual     =>  $master{$seqid_tr}->{qual},
-                                    -qual     =>  \@quals,
-                                    -id       =>  $seqid_tr,
-                                    );
-    $masterout->write_fastq($seq1);
 
-   last if (++$out2_cnt >= 5 && $debug);
   } else {  # else print it to the nomate file
-    $follow_nomate->write_fastq($read2);
+    _fastq_out($read2->[0],$read2->[1],$read2->[3],$FOLLOW_NOMATE);
   }
 } # end of while (my $read2 = $follow->next_seq())
 
@@ -312,15 +261,45 @@ while (my $read2 = $follow->next_seq()) {
 #
 # order doesn't matter here
 #
-open(NOMATE, ">$masterfile" . ".nomate.fq") or die "can't open $masterfile.nomate.fq: $!";
+my $NOMATE;
+open($NOMATE, ">$masterfile" . ".nomate.fq") or die "can't open $masterfile.nomate.fq: $!";
 while (my($key,$value) = each(%master)) {
   if (!$value->{mate}) {
-    print NOMATE "\@$key\n", $value->{seq}, "\n\+$key\n", $value->{qual}, "\n";
+    _fastq_out($key,$value->{seq}, $value->{qual},$NOMATE);
   
   }
 }
 
-close(NOMATE) or warn("can't close $masterfile.nomate.fq properly: $!");
+close($NOMATE) or warn("can't close $masterfile.nomate.fq properly: $!");
+
+sub _fastq_in {
+    my $fh = shift;
+    my $id = <$fh>;
+    my $seq = <$fh>;
+    my $id2 = <$fh>;
+    my $qual = <$fh>;
+
+#   trim first character from ID's
+    substr($id,0,1,"");
+    substr($id2,0,1,"");
+
+    my @seqdata = ($id,$seq,$id2,$qual);
+#    print "@seqdata\n";
+#    exit();
+    chomp(@seqdata);
+    return [@seqdata];
+}
+
+sub _fastq_out {
+    my $id = shift;
+#    my $hashref = shift;
+    my $seqstring = shift;
+    my $qualstring = shift;
+    my $filehandle = shift;
+
+    print $filehandle "\@$id\n$seqstring\n\+$id\n$qualstring\n";
+    return 1;
+}
 
 sub _help {
 print <<HELP;
@@ -332,7 +311,6 @@ print <<HELP;
             "debug"           =>  \$debug,
             "verbose"         =>  \$verbose,
             "help"            =>  \$help,
-            "maxN"            =>  \$maxN, # crude quality filter; max allowable number of N's in read
             "smaller=s"       =>  \$smaller, # to specify which file is shorter (not yet implemented)
             "dump"            =>  \$dump, # print Data::Dumper output
 
