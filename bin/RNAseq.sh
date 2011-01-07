@@ -150,9 +150,8 @@ cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$
 
 if [ $run_type = full ]
 then
-    echo "preprocess_fq.sh"
-    #preprocess_fq.sh --indexpath $BOWTIE_INDEXES -t $procs
-    preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs
+#    echo "preprocess_fq.sh"
+#    preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs
     
     if [[ $seonly -eq 0 ]] # then these are paired-end data
     then
@@ -160,7 +159,7 @@ then
         if [[ $adapter_seq != 'NULL' ]] # then we want to remove adapter sequence
         then
             echo "removing adapter sequence '$adapter_seq'"
-            cd preprocess
+#            cd preprocess
             echo "adapter_trim.pl --infile set1.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.1longs.txt | adapter_trim.pl --infile - --outfile set1_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.1shorts.txt"
             adapter_trim.pl --infile set1.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.1longs.txt | adapter_trim.pl --infile - --outfile set1_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.1shorts.txt
             echo "adapter_trim.pl --infile set2.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.2longs.txt | adapter_trim.pl --infile - --outfile set2_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.2shorts.txt" 
@@ -168,8 +167,12 @@ then
             echo "linking new files"
             ln -sf set1_noadapters.fq set1.fq
             ln -sf set2_noadapters.fq set2.fq
-            cd ..
+#            cd ..
         fi
+#
+        echo "preprocess_fq.sh"
+        preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs
+#
         echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN"
         fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN
         echo "linking new files"
@@ -182,11 +185,11 @@ then
         if [[ $adapter_seq != 'NULL' ]] # then we want to remove adapter sequence
         then
             echo "removing adapter sequence '$adapter_seq'"
-            cd preprocess
+#            cd preprocess
             echo "adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
             adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
             ln -sf set1_noadapters.fq set1.fq
-            cd ..
+#            cd ..
             ln -sf preprocess/set1.fq ./
         fi 
         ln -sf set1.fq read_1.1
@@ -229,7 +232,8 @@ else # maybe this should be a separate if clause
     fi
 fi
 
-if [[ $run_type = full ]]
+#if [[ $run_type = full ]] # not sure why this is just for full runs
+if [[ $run_type = full ]] || [[ $run_type = partial ]]
 then
 
 #    mkdir -p merged

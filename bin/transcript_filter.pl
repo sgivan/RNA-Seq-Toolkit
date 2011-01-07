@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-my ($debug,$infile,$min_length,$max_length,$outfails,$failsfile,$cumulative);
+my ($debug,$infile,$min_length,$max_length,$outfails,$failsfile,$cumulative,$help);
 
 GetOptions(
 
@@ -14,11 +14,24 @@ GetOptions(
     "outfails"          =>  \$outfails,
     "cumulative"        =>  \$cumulative,
     "debug"             =>  \$debug,
+    "help"              =>  \$help,
 );
 
 $infile = "-" unless ($infile);
 $min_length ||= 500;
 $max_length ||= 1e6;
+
+if ($help) {
+    print "usage: transcript_filter.pl --file infile_name\n";
+    print "options:\n \
+    \t--file infile_name or - \
+    \t--min_length integer \
+    \t--max_length integer \
+    \t--outfails \
+    \t--cumulative \
+    \t--debug\n\n";
+    exit;
+}
 
 open(IN,$infile) or die "can't open $infile: $!";
 if ($outfails) {
