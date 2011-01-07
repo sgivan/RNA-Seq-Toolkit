@@ -67,11 +67,11 @@ echo "min_qual min_length percent_high_quality bowtie_threads indexpath = $min_q
 #
 echo "creating preprocess directory in $wd"
 mkdir -p preprocess
-mv set1.fq set1_input.fq
-mv set2.fq set2_input.fq
+#mv set1.fq set1_input.fq
+#mv set2.fq set2_input.fq
 cd preprocess
-ln -sf ../set1_input.fq ./set1.fq
-ln -sf ../set2_input.fq ./set2.fq
+ln -sf ../set1.fq ./set1.fq
+ln -sf ../set2.fq ./set2.fq
 echo "quality trimming and filtering"
 echo "fastq_quality_trimmer -i set1.fq -t $min_qual -l $min_length -v 2> set1_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
 fastq_quality_trimmer -i set1.fq -t $min_qual -l $min_length -v 2> set1_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
@@ -100,9 +100,9 @@ echo "creating symlinks to final files"
 #
 # why are the following lines commented?
 # uncommenting because adapter_trim.pl will use set1.fq and set2.fq as input files
-#
-mv set1.fq set1_input.fq
-mv set2.fq set2_input.fq
+# however, now adapter_trim.pl runs before preprocess_fq.sh, so re-comment
+#mv set1.fq set1_input.fq
+#mv set2.fq set2_input.fq
 ln -sf set1_qt_qf_sf.fq set1.fq
 ln -sf set2_qt_qf_sf.fq set2.fq
 cd ..
