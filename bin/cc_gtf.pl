@@ -5,12 +5,13 @@ use warnings qw/all/;
 use Getopt::Long;
 use Bio::Tools::GFF;
 
-my ($trackingfile,$inputgtf,$verbose,$debug,$help,$mincoverage);
+my ($trackingfile,$inputgtf,$verbose,$debug,$help,$mincoverage,$Rfile);
 
 GetOptions (
     "tracking=s"        =>  \$trackingfile,
     "gtf=s"             =>  \$inputgtf,
     "mincov=f"          =>  \$mincoverage,
+    "Rfile"             =>  \$Rfile,
     "verbose"           =>  \$verbose,
     "debug"             =>  \$debug,
     "help"              =>  \$help,
@@ -23,6 +24,8 @@ print <<HELP;
 
 --tracking      input tracking file
 --gtf           input GTF file
+--mincov        minimum coverage value to accept
+--Rfile         generate tab-delimited statistics per transcript
 --verbose
 --debug
 --help
@@ -76,8 +79,11 @@ close(TRACK) or warn "can't close $trackingfile properl: $!";;
 
 open (GTF,$inputgtf) or die "can't open $inputgtf: $!";
 
-my $OUT;
 open(OUT,">out.gtf") or die "can't open out.gtf: $!";
+if ($Rfile) {
+    open(R,">Rout.txt") or die "can't open Rout.txt: $!";
+    print R "TCONS\texons\tlength\tcoverage\n";
+}
 
 my ($tid,$start,$stop,@buff,$cnt,$ltid,$lattrs);
 
@@ -110,12 +116,14 @@ while (<GTF>) {
 
 close(GTF) or warn "can't close $inputgtf properly: $!";
 close(OUT) or warn "can't close out.gtf properly: $!";
+close(R) or warn "can't close Rout.txt: $!" if ($Rfile);
 
 sub pout {
     my ($buff,$start,$stop,$tid) = @_;
 
     my @transcript = @{$buff[0]};
-
+    my $exoncnt = scalar(@$buff);
+    my $length = $stop - $start + 1;
     #
     # implement a coverage filter
     #
@@ -126,14 +134,19 @@ sub pout {
     $transcript[2] = 'transcript';
     $transcript[3] = $start;
     $transcript[4] = $stop;
-    $transcript[8] .= " cov \"$coverage{$tid}\";";
-
+    $transcript[8] .= " cov \"$coverage{$tid}\"; exons \"$exoncnt\"; length \"$length\";";
     $transcript[8] .= "\n";
+
+
+    if ($Rfile) {
+        print R "$tid\t$exoncnt\t$length\t$coverage{$tid}\n";
+    }
+
     print "\n" if ($debug);
     unshift(@buff,[@transcript]);
     foreach my $lref (@buff) {
         print join "\t", ("out:",@$lref) if ($debug);
-        print OUT join "\t", ("out:",@$lref);
+        print OUT join "\t", (@$lref);
     }
     print "\n" if ($debug);
 
