@@ -139,7 +139,8 @@ singles_extra_cmd="-o singles_tophat_out $fasta_file read_1.1,read_2.1 "
 # 
 #cufflinkscmd="$cufflinks -m $mate_inner_distance_r -I $max_intron_length_I "
 #cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i */accepted_hits.bam"
-cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+#cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $wd/index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -276,7 +277,8 @@ then
 #    fi
     echo "running cufflinks"
     #cufflinks_extra_cmd="--GTF ../transcripts.gtf -L $bioclass$lane merged.bam"
-    cufflinks_extra_cmd="--GTF ../transcripts.gtf"
+    #cufflinks_extra_cmd="--GTF ../transcripts.gtf"
+    cufflinks_extra_cmd="--GTF transcripts.gtf"
     echo $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
     $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
     #cd ..
