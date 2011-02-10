@@ -85,8 +85,8 @@ function mk_agg_txpts () {
     echo "generating transcripts file"
     mkdir -p transcripts
     cd transcripts
-    echo "cuffcompare -s ../index/$refseq.fa ../*/cufflinks/transcripts.gtf"
-    cuffcompare -s ../index/$refseq.fa ../*/cufflinks/transcripts.gtf
+    echo "cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
+    cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
 #    samtools merge all_merged.bam ../*/merged/merged.bam
 #    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
 #    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
