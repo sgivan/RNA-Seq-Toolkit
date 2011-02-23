@@ -3,7 +3,12 @@
 use strict;
 use warnings qw/all/;
 use Getopt::Long;
-use Bio::Tools::GFF;
+
+#
+# This script takes several output files from cuffcompare and generates
+# a GTF file that can subsequently be used as a reference file for
+# other analyses
+#
 
 my ($trackingfile,$inputgtf,$verbose,$debug,$help,$mincoverage,$Rfile);
 
