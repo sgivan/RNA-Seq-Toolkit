@@ -226,8 +226,6 @@ else # maybe this should be a separate if clause
             $tophatcmd $singles_extra_cmd $@ > singles_tophat.stdout 2>&1
         fi
             
-    fi
-fi
 
 if [[ $run_type = full ]]
 then

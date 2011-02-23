@@ -15,6 +15,7 @@ percent_high_quality=90
 bowtie_threads=8
 BOWTIE_INDEXES='index'
 filter='filter'
+leave_temp=0
 #
 function help_messg {
     echo "invoke script like this:"
@@ -31,15 +32,15 @@ function help_messg {
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o q:l:p:t:hi:f: --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter: -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:c --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt q:l:p:t:hi:f: $*`
+        TEMP=`getopt q:l:p:t:hi:f:c $*`
         ;;
 
     *)
-        TEMP=`getopt -o q:l:p:t:hi:f: --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter: -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:c --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp -- "$@"`
         ;;
 esac
 
@@ -57,6 +58,7 @@ while true ; do
         -i|--indexpath) BOWTIE_INDEXES=$2 ; shift 2 ;;
         -f|--filter) filter=$2 ; shift 2 ;;
         -h|help) help_messg ; exit ;;
+        -c|leave_temp) leave_temp=1; shift ;;
 #        --) shift ; break ;;
         *) break ;;
     esac
@@ -92,10 +94,14 @@ bowtie -q --solexa1.3-quals --un set2_qt_qf_sf.fq --threads $bowtie_threads $fil
 cat set2_qt_qf_bwt.log
 fi
 
+if [[ leave_temp -eq 1 ]]
+then
 echo "removing temporary files"
 rm *.sam
 #rm set?_qt_qf_sf.fq
 rm set?_qt_qf.fq
+fi
+
 echo "creating symlinks to final files"
 #
 # why are the following lines commented?
