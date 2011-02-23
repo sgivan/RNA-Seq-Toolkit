@@ -166,7 +166,7 @@ then
             adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
             echo "adapter_trim.pl --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
             adapter_trim.pl --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
-            echo "linking new files"
+            echo "linking to noadapter files"
             ln -sf set1_noadapters.fq set1.fq
             ln -sf set2_noadapters.fq set2.fq
 #            cd ..
@@ -230,6 +230,8 @@ else # maybe this should be a separate if clause
             echo $tophatcmd $singles_extra_cmd $@
             $tophatcmd $singles_extra_cmd $@ > singles_tophat.stdout 2>&1
         fi
+    fi
+fi
             
 
 mkdir -p merged
