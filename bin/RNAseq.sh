@@ -162,10 +162,10 @@ then
         then
             echo "removing adapter sequence '$adapter_seq'"
 #            cd preprocess
-            echo "adapter_trim.pl --infile set1.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.1longs.txt | adapter_trim.pl --infile - --outfile set1_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.1shorts.txt"
-            adapter_trim.pl --infile set1.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.1longs.txt | adapter_trim.pl --infile - --outfile set1_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.1shorts.txt
-            echo "adapter_trim.pl --infile set2.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.2longs.txt | adapter_trim.pl --infile - --outfile set2_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.2shorts.txt" 
-            adapter_trim.pl --infile set2.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.2longs.txt | adapter_trim.pl --infile - --outfile set2_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.2shorts.txt
+            echo "adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
+            adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
+            echo "adapter_trim.pl --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
+            adapter_trim.pl --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
             echo "linking new files"
             ln -sf set1_noadapters.fq set1.fq
             ln -sf set2_noadapters.fq set2.fq
