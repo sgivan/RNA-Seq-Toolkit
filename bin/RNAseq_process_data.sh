@@ -15,22 +15,23 @@ function help_messg () {
         Linux) 
             echo ""
             echo "invoke script with the following options [default value]:"
-            echo "--full (will run full analysis, including short read preprocessing)"
-            echo "--partial (will skip preprocessing steps)"
-            echo "--transcripts (use transcripts.gtf for gene models and skip preprocessing)"
-            echo "--mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
-            echo "--min_intron_length [50] (minimum intron length)"
-            echo "--max_intron_length [25000] (maximum intron length)"
-            echo "--agg_transcripts (generate gtf file of empirical transcripts)"
-            echo "--refseq [refseq] (name of file containing reference DNA seqeunce)"
-            echo "--threads [4] (number of threads to use)"
-            echo "--library_type [fr-unstranded] (library type as defined in TopHat manual)"
+            echo "you can use either - or -- flags"
+            echo "-f | --full (will run full analysis, including short read preprocessing)"
+            echo "-p | --partial (will skip preprocessing steps)"
+            echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
+            echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
+            echo "-i | --min_intron_length [50] (minimum intron length)"
+            echo "-I | --max_intron_length [25000] (maximum intron length)"
+            echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
+            echo "-s | --refseq [refseq] (name of file containing reference DNA seqeunce)"
+            echo "-H | --threads [8] (number of threads to use)"
+            echo "-l | --library_type [fr-unstranded] (library type as defined in TopHat manual)"
             #echo "--use_aggregates"
-            echo "--seonly (use if NOT working with paired-end sequence data)"
-            echo "--adapter (provide the adapter sequence to remove)"
-            echo "--indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
-            echo "--toolpath [.] (provide path to directory containing RNAseq tools)"
-            echo "--help [print this help message]"
+            echo "-e | --seonly (use if NOT working with paired-end sequence data)"
+            echo "-A | --adapter (provide the adapter sequence to remove)"
+            echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
+            echo "-T | --toolpath [.] (provide path to directory containing RNAseq tools)"
+            echo "-h | --help [print this help message]"
             echo "" ;;
 
         Darwin)
@@ -44,7 +45,7 @@ function help_messg () {
             echo "-I [25000] (maximum intron length)"
             echo "-t (generate gtf file of empirical transcripts)"
             echo "-s [refseq] (name of file containing reference DNA seqeunce)"
-            echo "-H [4] (number of threads to use)"
+            echo "-H [8] (number of threads to use)"
             echo "-l [fr-unstranded] (library type as defined in TopHat manual)"
             #echo "--use_aggregates"
             echo "-e (use if NOT working with paired-end sequence data)"
@@ -57,22 +58,23 @@ function help_messg () {
         *)
             echo ""
             echo "invoke script with the following options [default value]:"
-            echo "--full (will run full analysis, including short read preprocessing)"
-            echo "--partial (will skip preprocessing steps)"
-            echo "--transcripts (use transcripts.gtf for gene models and skip preprocessing)"
-            echo "--mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
-            echo "--min_intron_length [50] (minimum intron length)"
-            echo "--max_intron_length [25000] (maximum intron length)"
-            echo "--agg_transcripts (generate gtf file of empirical transcripts)"
-            echo "--refseq [refseq] (name of file containing reference DNA seqeunce)"
-            echo "--threads [4] (number of threads to use)"
-            echo "--library_type [fr-unstranded] (library type as defined in TopHat manual)"
+            echo "you can use either - or -- flags"
+            echo "-f | --full (will run full analysis, including short read preprocessing)"
+            echo "-p | --partial (will skip preprocessing steps)"
+            echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
+            echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
+            echo "-i | --min_intron_length [50] (minimum intron length)"
+            echo "-I | --max_intron_length [25000] (maximum intron length)"
+            echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
+            echo "-s | --refseq [refseq] (name of file containing reference DNA seqeunce)"
+            echo "-H | --threads [8] (number of threads to use)"
+            echo "-l | --library_type [fr-unstranded] (library type as defined in TopHat manual)"
             #echo "--use_aggregates"
-            echo "--seonly (use if NOT working with paired-end sequence data)"
-            echo "--adapter (provide the adapter sequence to remove)"
-            echo "--indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
-            echo "--toolpath [.] (provide path to directory containing RNAseq tools)"
-            echo "--help [print this help message]"
+            echo "-e | --seonly (use if NOT working with paired-end sequence data)"
+            echo "-A | --adapter (provide the adapter sequence to remove)"
+            echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
+            echo "-T | --toolpath [.] (provide path to directory containing RNAseq tools)"
+            echo "-h | --help [print this help message]"
             echo "" ;;
 
     esac
@@ -83,8 +85,8 @@ function mk_agg_txpts () {
     echo "generating transcripts file"
     mkdir -p transcripts
     cd transcripts
-    echo "cuffcompare -s ../index/$refseq.fa ../*/cufflinks/transcripts.gtf"
-    cuffcompare -s ../index/$refseq.fa ../*/cufflinks/transcripts.gtf
+    echo "cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
+    cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
 #    samtools merge all_merged.bam ../*/merged/merged.bam
 #    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
 #    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
@@ -228,7 +230,8 @@ do
             echo "moving old output files to 'non-aggregate'"
             mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
             echo "creating symbolic link to transcript.gtf"
-            ln -sf ../transcripts.gtf ./
+#            ln -sf ../transcripts.gtf ./
+            ln -sf $wd/transcripts.gtf ./
             more_flags=""
             echo "running tophat"
 #            echo "RNAseq.sh --transcripts $flags $more_flags" ;

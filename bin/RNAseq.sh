@@ -139,7 +139,9 @@ singles_extra_cmd="-o singles_tophat_out $fasta_file read_1.1,read_2.1 "
 # 
 #cufflinkscmd="$cufflinks -m $mate_inner_distance_r -I $max_intron_length_I "
 #cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i */accepted_hits.bam"
-cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+#cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+#cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $wd/index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $BOWTIE_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -150,9 +152,8 @@ cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$
 
 if [ $run_type = full ]
 then
-    echo "preprocess_fq.sh"
-    #preprocess_fq.sh --indexpath $BOWTIE_INDEXES -t $procs
-    preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs
+#    echo "preprocess_fq.sh"
+#    preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs
     
     if [[ $seonly -eq 0 ]] # then these are paired-end data
     then
@@ -160,16 +161,20 @@ then
         if [[ $adapter_seq != 'NULL' ]] # then we want to remove adapter sequence
         then
             echo "removing adapter sequence '$adapter_seq'"
-            cd preprocess
-            echo "adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
-            adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
-            echo "adapter_trim.pl --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
-            adapter_trim.pl --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
+#            cd preprocess
+            echo "adapter_trim.pl --infile set1.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.1longs.txt | adapter_trim.pl --infile - --outfile set1_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.1shorts.txt"
+            adapter_trim.pl --infile set1.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.1longs.txt | adapter_trim.pl --infile - --outfile set1_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.1shorts.txt
+            echo "adapter_trim.pl --infile set2.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.2longs.txt | adapter_trim.pl --infile - --outfile set2_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.2shorts.txt" 
+            adapter_trim.pl --infile set2.fq --outfile - --adapterseq AAGCAGTGGTATCAACGCAGAGTACATGGG --fastq --printall --notwoadapters --id2adapters 2> 2.2longs.txt | adapter_trim.pl --infile - --outfile set2_noadapters.fq --fastq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --printall --overwrite --id2adapters 2> 2.2shorts.txt
             echo "linking new files"
             ln -sf set1_noadapters.fq set1.fq
             ln -sf set2_noadapters.fq set2.fq
-            cd ..
+#            cd ..
         fi
+#
+        echo "preprocess_fq.sh"
+        preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs
+#
         echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN"
         fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN
         echo "linking new files"
@@ -182,11 +187,11 @@ then
         if [[ $adapter_seq != 'NULL' ]] # then we want to remove adapter sequence
         then
             echo "removing adapter sequence '$adapter_seq'"
-            cd preprocess
+#            cd preprocess
             echo "adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
             adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
             ln -sf set1_noadapters.fq set1.fq
-            cd ..
+#            cd ..
             ln -sf preprocess/set1.fq ./
         fi 
         ln -sf set1.fq read_1.1
@@ -227,7 +232,24 @@ else # maybe this should be a separate if clause
         fi
             
 
-if [[ $run_type = full ]]
+mkdir -p merged
+cd merged
+
+if [[ $seonly -eq 0 ]]
+then
+
+    echo "merging PE and SE bam files"
+    samtools merge merged.bam ../*/accepted_hits.bam
+
+else
+
+    ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+fi
+
+cd ..
+
+#if [[ $run_type = full ]] # not sure why this is just for full runs
+if [[ $run_type = full ]] || [[ $run_type = partial ]]
 then
 
 #    mkdir -p merged
@@ -242,13 +264,17 @@ then
         #cat ../*/junctions.bed | awk '{ if ($1 != "track") {split($11,len,","); split($12,blstrt,","); printf "%s\t%i\t%i\t%s\n", $1, $2 + len[1] - 1, $2 + blstrt[2], $6; }}' | sort -k 1,1 -gk 2,2 | uniq > aggregate_junctions.txt
 #        echo "merging tophat bam files"
 #        samtools merge merged.bam ../*/accepted_hits.bam
-        echo $cufflinks $cufflinksflgs */accepted_hits.bam
-        $cufflinks $cufflinksflgs */accepted_hits.bam
+#        echo $cufflinks $cufflinksflgs */accepted_hits.bam
+#        $cufflinks $cufflinksflgs */accepted_hits.bam
+        echo $cufflinks $cufflinksflgs merged/merged.bam
+        $cufflinks $cufflinksflgs merged/merged.bam
     else
         echo "using cufflinks to build gene models with SE alignment data"
 #        ln -fs ../singles_tophat_out/accepted_hits.bam ./merged.bam
-        echo $cufflinks $cufflinksflgs */accepted_hits.bam
-        $cufflinks $cufflinksflgs */accepted_hits.bam
+#        echo $cufflinks $cufflinksflgs */accepted_hits.bam
+#        $cufflinks $cufflinksflgs */accepted_hits.bam
+        echo $cufflinks $cufflinksflgs merged/merged.bam
+        $cufflinks $cufflinksflgs merged/merged.bam
     fi
 #    cd ..
 fi
@@ -270,7 +296,8 @@ then
 #    fi
     echo "running cufflinks"
     #cufflinks_extra_cmd="--GTF ../transcripts.gtf -L $bioclass$lane merged.bam"
-    cufflinks_extra_cmd="--GTF ../transcripts.gtf"
+    #cufflinks_extra_cmd="--GTF ../transcripts.gtf"
+    cufflinks_extra_cmd="--GTF transcripts.gtf"
     echo $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
     $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
     #cd ..
@@ -281,21 +308,21 @@ then
     
 fi
 
-mkdir -p merged
-cd merged
-
-if [[ $seonly -eq 0 ]]
-then
-
-    echo "merging PE and SE bam files"
-    samtools merge merged.bam ../*/accepted_hits.bam
-
-else
-
-    ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
-fi
-
-cd ..
+#mkdir -p merged
+#cd merged
+#
+#if [[ $seonly -eq 0 ]]
+#then
+#
+#    echo "merging PE and SE bam files"
+#    samtools merge merged.bam ../*/accepted_hits.bam
+#
+#else
+#
+#    ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+#fi
+#
+#cd ..
 
 echo "finished"
 echo ""
