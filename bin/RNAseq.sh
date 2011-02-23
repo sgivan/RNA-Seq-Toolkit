@@ -140,7 +140,8 @@ singles_extra_cmd="-o singles_tophat_out $fasta_file read_1.1,read_2.1 "
 #cufflinkscmd="$cufflinks -m $mate_inner_distance_r -I $max_intron_length_I "
 #cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i */accepted_hits.bam"
 #cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
-cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $wd/index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+#cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $wd/index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $BOWTIE_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -233,6 +234,22 @@ else # maybe this should be a separate if clause
     fi
 fi
 
+mkdir -p merged
+cd merged
+
+if [[ $seonly -eq 0 ]]
+then
+
+    echo "merging PE and SE bam files"
+    samtools merge merged.bam ../*/accepted_hits.bam
+
+else
+
+    ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+fi
+
+cd ..
+
 #if [[ $run_type = full ]] # not sure why this is just for full runs
 if [[ $run_type = full ]] || [[ $run_type = partial ]]
 then
@@ -249,13 +266,17 @@ then
         #cat ../*/junctions.bed | awk '{ if ($1 != "track") {split($11,len,","); split($12,blstrt,","); printf "%s\t%i\t%i\t%s\n", $1, $2 + len[1] - 1, $2 + blstrt[2], $6; }}' | sort -k 1,1 -gk 2,2 | uniq > aggregate_junctions.txt
 #        echo "merging tophat bam files"
 #        samtools merge merged.bam ../*/accepted_hits.bam
-        echo $cufflinks $cufflinksflgs */accepted_hits.bam
-        $cufflinks $cufflinksflgs */accepted_hits.bam
+#        echo $cufflinks $cufflinksflgs */accepted_hits.bam
+#        $cufflinks $cufflinksflgs */accepted_hits.bam
+        echo $cufflinks $cufflinksflgs merged/merged.bam
+        $cufflinks $cufflinksflgs merged/merged.bam
     else
         echo "using cufflinks to build gene models with SE alignment data"
 #        ln -fs ../singles_tophat_out/accepted_hits.bam ./merged.bam
-        echo $cufflinks $cufflinksflgs */accepted_hits.bam
-        $cufflinks $cufflinksflgs */accepted_hits.bam
+#        echo $cufflinks $cufflinksflgs */accepted_hits.bam
+#        $cufflinks $cufflinksflgs */accepted_hits.bam
+        echo $cufflinks $cufflinksflgs merged/merged.bam
+        $cufflinks $cufflinksflgs merged/merged.bam
     fi
 #    cd ..
 fi
@@ -289,21 +310,21 @@ then
     
 fi
 
-mkdir -p merged
-cd merged
-
-if [[ $seonly -eq 0 ]]
-then
-
-    echo "merging PE and SE bam files"
-    samtools merge merged.bam ../*/accepted_hits.bam
-
-else
-
-    ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
-fi
-
-cd ..
+#mkdir -p merged
+#cd merged
+#
+#if [[ $seonly -eq 0 ]]
+#then
+#
+#    echo "merging PE and SE bam files"
+#    samtools merge merged.bam ../*/accepted_hits.bam
+#
+#else
+#
+#    ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+#fi
+#
+#cd ..
 
 echo "finished"
 echo ""
