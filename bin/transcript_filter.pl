@@ -5,7 +5,14 @@ use warnings;
 use Getopt::Long;
 
 my ($debug,$infile,$min_length,$max_length,$outfails,$failsfile,$cumulative,$help);
-
+#
+# Perl script to filter a collection of transripts specificed in a GTF file
+# by a minimum or maximum length value
+#
+# --cumulative tracks sum of lengths of each exon for a transcript, whereas
+# if --cumulative is not specified, then length is based on start and stop coords
+# of first and last exons, respectively.
+#
 GetOptions(
 
     "file=s"            =>  \$infile,
