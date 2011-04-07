@@ -7,16 +7,17 @@ use Getopt::Long;
 #
 # This script takes several output files from cuffcompare and generates
 # a GTF file that can subsequently be used as a reference file for
-# other analyses
+# other analyses. It also will filter by minimum coverage value.
 #
 
-my ($trackingfile,$inputgtf,$verbose,$debug,$help,$mincoverage,$Rfile);
+my ($trackingfile,$inputgtf,$verbose,$debug,$help,$mincoverage,$Rfile,$clean,%clean);
 
 GetOptions (
     "tracking=s"        =>  \$trackingfile,
     "gtf=s"             =>  \$inputgtf,
     "mincov=f"          =>  \$mincoverage,
     "Rfile"             =>  \$Rfile,
+    "clean"             =>  \$clean,
     "verbose"           =>  \$verbose,
     "debug"             =>  \$debug,
     "help"              =>  \$help,
@@ -31,6 +32,7 @@ print <<HELP;
 --gtf           input GTF file
 --mincov        minimum coverage value to accept
 --Rfile         generate tab-delimited statistics per transcript
+--clean         remove transcripts with class codes i,p,x,s
 --verbose
 --debug
 --help
@@ -66,6 +68,11 @@ while (<TRACK>) {
     }
 
     #
+    # we may have already parsed this and cleaned it out
+    #if ($clean) {
+    #    next if ($clean{$lid});
+    #}
+    #
     # now parse sdata
     #
     # my initial goal is to extract the maximum coverage value
@@ -78,6 +85,10 @@ while (<TRACK>) {
         $maxcov = $splitvals[6] if ($splitvals[6] > $maxcov);
     }
     $coverage{$tid} = $maxcov;
+
+    if ($clean) {
+        $clean{$lid} = 1 if ($cc eq 'i' || $cc eq 'p' || $cc eq 'x' || $cc eq 's');
+    }
 }
 
 close(TRACK) or warn "can't close $trackingfile properl: $!";;
@@ -90,11 +101,21 @@ if ($Rfile) {
     print R "TCONS\texons\tlength\tcoverage\n";
 }
 
-my ($tid,$start,$stop,@buff,$cnt,$ltid,$lattrs);
+my ($lgid,$tid,$start,$stop,@buff,$cnt,$ltid,$lattrs);
 
 while (<GTF>) {
     #print "line:\t", $_ if ($debug);
     my @lvals = split /\t/, $_;
+
+    if ($lvals[8] =~ /gene_id\s\"(.+?)\"/) {
+        $lgid = $1;
+    } else {
+        print "can't parse gene_id from '$lvals[8]'\n";
+    }
+    if ($clean) {
+        next if ($clean{$lgid});
+    }
+
     if ($lvals[8] =~ /transcript_id\s\"(.+?)\"/) {
         $tid = $1;
     } else {
