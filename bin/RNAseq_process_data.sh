@@ -31,6 +31,7 @@ function help_messg () {
             echo "-A | --adapter (provide the adapter sequence to remove)"
             echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
             echo "-T | --toolpath [.] (provide path to directory containing RNAseq tools)"
+            echo "-R | --preprocess (use if you want to ensure running sequence preprocessing routines)"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -52,6 +53,7 @@ function help_messg () {
             echo "-A (provide the adapter sequence to remove)"
             echo "-P [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
             echo "-T [.] (provide path to directory containing RNAseq tools)"
+            echo "-R (use if you want to ensure running sequence preprocessing routines)"
             echo "-h [print this help message]"
             echo "" ;;
 
@@ -74,6 +76,7 @@ function help_messg () {
             echo "-A | --adapter (provide the adapter sequence to remove)"
             echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
             echo "-T | --toolpath [.] (provide path to directory containing RNAseq tools)"
+            echo "-R | --preprocess (use if you want to ensure running sequence preprocessing routines)"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -124,6 +127,7 @@ use_aggregates=0
 seonly=0
 adapter='NULL'
 indexpath="$wd/index/"
+preprocess=0
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -133,11 +137,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T: --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath: -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:R --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T: $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:R $*`
         ;;
 
     *)
@@ -168,6 +172,7 @@ while true ; do
         -A|--adapter) adapter=$2 ; shift 2 ;;
         -P|--indexpath) indexpath=$2 ; shift 2 ;;
         -T|--toolpath) toolpath=$2 ; shift 2 ;;
+        -R|--preprocess) preprocess=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         --) shift ; break ;;
         *) break ;;
@@ -180,6 +185,11 @@ echo "run type is '$run_type'"
 flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/"
 #echo "flags: $flags"
 #exit
+
+if [[ $run_type = "full" ]]
+then
+    preprocess=1
+fi
 
 if [[ $seonly -eq 1 ]]
 then
@@ -194,6 +204,19 @@ then
 fi
 
 #echo "flags: '$flags'"
+#exit
+
+#echo "preprocess = " $preprocess
+
+if [[ $preprocess -ne 0 ]]
+then
+    more_flags="-R"
+else
+    more_flags=""
+fi
+#echo "preprocess = " $preprocess
+#echo "flags = " $flags
+#echo "more_flags = " $more_flags
 #exit
 
 for dir 
@@ -211,8 +234,7 @@ do
             # for partial runs (when you don't need to run preprocessing steps
 #            echo "RNAseq.sh $flags --partial" ;
             echo "RNAseq.sh $flags -p" ;
-#            RNAseq.sh $flags --partial ;;
-            RNAseq.sh $flags -p ;;
+            RNAseq.sh $flags -p $more_flags ;;
 
         full)
 
@@ -232,7 +254,14 @@ do
             echo "creating symbolic link to transcript.gtf"
 #            ln -sf ../transcripts.gtf ./
             ln -sf $wd/transcripts.gtf ./
-            more_flags=""
+
+#            if [[ preprocess != "NULL" ]]
+#            then
+#                more_flags="-R"
+#            else
+#                more_flags=""
+#            fi
+
             echo "running tophat"
 #            echo "RNAseq.sh --transcripts $flags $more_flags" ;
             echo "RNAseq.sh -a $flags $more_flags" ;
