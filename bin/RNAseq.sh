@@ -80,6 +80,7 @@ mate_inner_distance_r=165
 min_intron_length_i=50
 max_intron_length_I=25000
 adapter_seq='NULL'
+preprocess=0
 
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
@@ -87,15 +88,15 @@ adapter_seq='NULL'
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:R --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A: $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A:R $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:R --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess -- "$@"`
             ;;
 esac
 
@@ -118,6 +119,7 @@ while true ; do
         -A|--adapter_seq) adapter_seq=$2 ; shift 2 ;;
         -P|--indexpath) BOWTIE_INDEXES=$2 ; shift 2 ;;
         -s|--refseq) fasta_file=$2 ; shift 2 ;;
+        -R|--preprocess) preprocess=1 ; shift ;;
         -h) help_messg ; exit ;;
         --) shift ; break ;;
         *) break ;;
@@ -150,10 +152,21 @@ cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $BOWTIE_IN
 #
 #
 
-if [ $run_type = full ]
+if [[ $run_type = "full" ]]
+then
+    echo "setting preprocess to TRUE"
+    preprocess=1
+fi
+
+#echo "preprocess = " $preprocess
+
+#if [ $run_type = full ]
+if [[ $preprocess -ne 0 ]]
 then
 #    echo "preprocess_fq.sh"
 #    preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs
+    echo "passing reads through preprocessing routines"
+#    exit
     
     if [[ $seonly -eq 0 ]] # then these are paired-end data
     then
@@ -233,22 +246,26 @@ else # maybe this should be a separate if clause
     fi
 fi
             
-
-mkdir -p merged
-cd merged
-
-if [[ $seonly -eq 0 ]]
+if [[ run_type != 'NULL' ]]
 then
 
-    echo "merging PE and SE bam files"
-    samtools merge merged.bam ../*/accepted_hits.bam
+    mkdir -p merged
+    cd merged
 
-else
+    if [[ $seonly -eq 0 ]]
+    then
 
-    ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+        echo "merging PE and SE bam files"
+        samtools merge merged.bam ../*/accepted_hits.bam
+
+    else
+
+        ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+    fi
+
+    cd ..
+
 fi
-
-cd ..
 
 #if [[ $run_type = full ]] # not sure why this is just for full runs
 if [[ $run_type = full ]] || [[ $run_type = partial ]]
