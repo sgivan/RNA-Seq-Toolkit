@@ -66,6 +66,7 @@ while (<TRACK>) {
         ($tid,$lid,$rgid,$cc,@sdata) = @vals;
         $rtid = '';
     }
+    print "\@sdata = '@sdata'\n" if ($debug);
 
     #
     # we may have already parsed this and cleaned it out
@@ -78,11 +79,13 @@ while (<TRACK>) {
     # my initial goal is to extract the maximum coverage value
     #
 
-    my $maxcov = 0;
+    my $maxcov = 0.0;
     foreach my $dstring (@sdata) {
+        print "\$dstring = '$dstring'\n" if ($debug);
         next if (!$dstring || $dstring eq '-');
         my @splitvals = split /\|/, $dstring;
-        $maxcov = $splitvals[6] if ($splitvals[6] > $maxcov);
+        print "\$splitvals[6] = '", $splitvals[6], "'\n" if ($debug);
+        $maxcov = $splitvals[6] if ($splitvals[6] && $splitvals[6] > $maxcov);
     }
     $coverage{$tid} = $maxcov;
 
