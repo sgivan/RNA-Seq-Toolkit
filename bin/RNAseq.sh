@@ -81,6 +81,9 @@ min_intron_length_i=50
 max_intron_length_I=25000
 adapter_seq='NULL'
 preprocess=0
+splice_mismatches_m=0
+min_anchor_length_a=8
+mate_std_dev=20
 
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
@@ -88,15 +91,15 @@ preprocess=0
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:R --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:Rm:c:S: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev: -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A:R $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A:Rm:c:S: $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:R --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:Rm:c:S: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev: -- "$@"`
             ;;
 esac
 
@@ -113,6 +116,9 @@ while true ; do
         -r|--mate_inner_distance) mate_inner_distance_r=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length_i=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length_I=$2 ; shift 2 ;;
+        -m|--splice_mismatches) splice_mismatches_m=$2 ; shift 2 ;;
+        -c|--min_anchor_length) min_anchor_length_a=$2 ; shift 2 ;;
+        -S|--mate_std_dev) mate_std_dev=$2 ; shift 2 ;;
         -t|--procs) procs=$2 ; shift 2 ;;
         -l|--librarytype) librarytype=$2 ; shift 2 ;;
         -e|--seonly) seonly=1 ; shift ;;
@@ -134,9 +140,9 @@ echo "run type is " $run_type
 # tophat, so it contains arguments and options passed to the program
 #
 
-#tophatcmd="$tophat --library-type $librarytype -p $procs -r $mate_inner_distance_r -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals"
-tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals"
-pe_extra_cmd="-r $mate_inner_distance_r -o pe_tophat_out $fasta_file read_1 read_2 "
+#tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals"
+tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals -m $splice_mismatches_m -a $min_anchor_length_a"
+pe_extra_cmd="-r $mate_inner_distance_r --mate-std-dev $mate_std_dev -o pe_tophat_out $fasta_file read_1 read_2 "
 singles_extra_cmd="-o singles_tophat_out $fasta_file read_1.1,read_2.1 "
 # 
 #cufflinkscmd="$cufflinks -m $mate_inner_distance_r -I $max_intron_length_I "
