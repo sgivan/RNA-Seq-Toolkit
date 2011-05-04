@@ -22,6 +22,9 @@ function help_messg () {
             echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i | --min_intron_length [50] (minimum intron length)"
             echo "-I | --max_intron_length [25000] (maximum intron length)"
+            echo "-m | --splice_mismatches [0] (max number of mismatches in anchor region of spliced alignment)"
+            echo "-c | --min_anchor_length [8] (minimum number of reads on each side of splice junction)"
+            echo "-S | --mate_std_dev [20] (std dev for inner distances between mate pairs)"
             echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
             echo "-s | --refseq [refseq] (name of file containing reference DNA seqeunce)"
             echo "-H | --threads [8] (number of threads to use)"
@@ -44,6 +47,9 @@ function help_messg () {
             echo "-r [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i [50] (minimum intron length)"
             echo "-I [25000] (maximum intron length)"
+            echo "-m [0] (max number of mismatches in anchor region of spliced alignment)"
+            echo "-c [8] (minimum number of reads on each side of splice junction)"
+            echo "-S [20] (std dev for inner distances between mate pairs)"
             echo "-t (generate gtf file of empirical transcripts)"
             echo "-s [refseq] (name of file containing reference DNA seqeunce)"
             echo "-H [8] (number of threads to use)"
@@ -67,6 +73,9 @@ function help_messg () {
             echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i | --min_intron_length [50] (minimum intron length)"
             echo "-I | --max_intron_length [25000] (maximum intron length)"
+            echo "-m | --splice_mismatches [0] (max number of mismatches in anchor region of spliced alignment)"
+            echo "-c | --min_anchor_length [8] (minimum number of reads on each side of splice junction)"
+            echo "-S | --mate_std_dev [20] (std dev for inner distances between mate pairs)"
             echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
             echo "-s | --refseq [refseq] (name of file containing reference DNA seqeunce)"
             echo "-H | --threads [8] (number of threads to use)"
@@ -128,6 +137,9 @@ seonly=0
 adapter='NULL'
 indexpath="$wd/index/"
 preprocess=0
+splice_mismatches=0
+min_anchor_length=8
+mate_std_dev=20
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -137,11 +149,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:R --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S: --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev: -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:R $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S: $*`
         ;;
 
     *)
@@ -162,6 +174,9 @@ while true ; do
         -r|--mate_inner_distance) mate_inner_distance=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length=$2 ; shift 2 ;;
+        -m|--splice_mismatches) splice_mismatches=$2 ; shift 2 ;;
+        -c|--min_anchor_length) min_anchor_length=$2 ; shift 2 ;;
+        -S|--mate_std_dev) mate_std_dev=$2 ; shift 2 ;;
         -j|--agg_junctions) aggregate_junctions=1 ; shift ;;
         -t|--agg_transcripts) aggregate_transcripts=1 ; shift ;;
         -s|--refseq) refseq=$2 ; shift 2 ;;
@@ -182,7 +197,8 @@ done
 
 echo "run type is '$run_type'"
 #flags="--refseq $refseq --mate_inner_distance $mate_inner_distance --min_intron_length $min_intron_length --max_intron_length $max_intron_length --procs $threads --librarytype $library_type --indexpath $indexpath/" # change to work with MacOSX, below
-flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/"
+#flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/"
+flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev"
 #echo "flags: $flags"
 #exit
 
