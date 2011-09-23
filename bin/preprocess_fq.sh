@@ -32,15 +32,15 @@ function help_messg {
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o q:l:p:t:hi:f:c --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H: --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality: -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt q:l:p:t:hi:f:c $*`
+        TEMP=`getopt q:l:p:t:hi:f:cQ:L:H: $*`
         ;;
 
     *)
-        TEMP=`getopt -o q:l:p:t:hi:f:c --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H: --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality: -- "$@"`
         ;;
 esac
 
@@ -57,6 +57,9 @@ while true ; do
         -t|--bowtie_threads) bowtie_threads=$2 ; shift 2 ;;
         -i|--indexpath) BOWTIE_INDEXES=$2 ; shift 2 ;;
         -f|--filter) filter=$2 ; shift 2 ;;
+        -Q|--min_qual) min_qual=$2 ; shift 2 ;;
+        -L|--min_length) min_length=$2 ; shift 2 ;;
+        -H|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
         -h|help) help_messg ; exit ;;
         -c|leave_temp) leave_temp=1; shift ;;
 #        --) shift ; break ;;
