@@ -1,0 +1,4 @@
+#!/bin/bash
+
+grep yes cuffdiff/gene_exp.diff
+
