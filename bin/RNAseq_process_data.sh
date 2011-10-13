@@ -130,7 +130,9 @@ function mk_agg_txpts () {
 #    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
 #    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
     cd ..
-    ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
+    #ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
+    # name change means the link above doesn't work
+    ln -sf transcripts/cuffcmp.combined.gtf ./transcripts.gtf
 }
 
 #function mk_agg_txpts () {
