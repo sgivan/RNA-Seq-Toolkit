@@ -93,6 +93,8 @@ segment_mismatches=2
 min_qual=13
 min_length=32
 percent_high_quality=90
+#qualscores='--solexa1.3-quals'
+qualscores='NULL'
 
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
@@ -100,15 +102,15 @@ percent_high_quality=90
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:Rm:c:S:F:g:vbL:M:q:n:E: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:Rm:c:S:F:g:vbL:M:q:n:E:Q --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A:Rm:c:S:F:g:vbL:M:q:n:E: $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A:Rm:c:S:F:g:vbL:M:q:n:E:Q $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:Rm:c:S:F:g:q:n:E: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:Rm:c:S:F:g:q:n:E:Q --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa -- "$@"`
             ;;
 esac
 
@@ -144,6 +146,7 @@ while true ; do
         -q|--min_qual) min_qual=$2 ; shift 2 ;;
         -n|--min_length) min_length=$2 ; shift 2 ;;
         -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
+        -Q|--solexa) qualscores=1 ; shift ;;
         -h) help_messg ; exit ;;
         --) shift ; break ;;
         *) break ;;
@@ -158,8 +161,8 @@ echo "run type is " $run_type
 # tophat, so it contains arguments and options passed to the program
 #
 
-#tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals"
-tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
+#tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
+tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
 pe_extra_cmd="-r $mate_inner_distance_r --mate-std-dev $mate_std_dev -o pe_tophat_out $fasta_file read_1 read_2 "
 singles_extra_cmd="-o singles_tophat_out $fasta_file read_1.1,read_2.1 "
 # 
@@ -193,6 +196,20 @@ then
     tophatcmd="$tophatcmd --butterfly-search"
 fi
 
+if [[ $qualscores != 'NULL' ]]
+then
+    if [[ $qualscores -eq 1 ]]
+    then
+        tophatcmd="$tophatcmd --solexa-quals"
+    fi
+else
+    tophatcmd="$tophatcmd --solexa1.3-quals"
+fi
+#echo ""
+#echo "tophatcmd= $tophatcmd"
+#echo ""
+#exit
+
 if [[ $preprocess -ne 0 ]]
 then
     echo "passing reads through preprocessing routines"
@@ -215,7 +232,15 @@ then
         fi
 #
         echo "preprocess_fq.sh"
-        preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality
+        preprocess_flags="-i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
+
+        if [[ $qualscores -eq 1 ]]
+        then
+            preprocess_flags="$preprocess_flags -s"
+        fi
+
+        #preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality
+        preprocess_fq.sh $preprocess_flags
 #
         echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN"
         fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN

@@ -44,6 +44,7 @@ function help_messg () {
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n | --min_length [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E | --percent_high_quality [90] during preprocessing, minimum percentage of bases >= min_qual"
+            echo "-Q | --solexa Solexa quality scores. Current default is Illumina (Phred-scaled base-64). Illumina switched back to Solexa in 2011."
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -78,6 +79,7 @@ function help_messg () {
             echo "-q [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E [90] during preprocessing, minimum percentage of bases >= min_qual"
+            echo "-Q Solexa quality scores. Current default is Illumina (Phred-scaled base-64). Illumina switched back to Solexa in 2011."
             echo "-h [print this help message]"
             echo "" ;;
 
@@ -113,6 +115,7 @@ function help_messg () {
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n | --min_length [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E | --percent_high_quality [90] during preprocessing, minimum percentage of bases >= min_qual"
+            echo "-Q | --solexa Solexa quality scores. Current default is Illumina (Phred-scaled base-64). Illumina switched back to Solexa in 2011."
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -178,6 +181,7 @@ segment_mismatches=2
 min_qual=13
 min_length=32
 percent_high_quality=90
+qualscores='NULL'
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -187,11 +191,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E: --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality: -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:Q --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E: $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:Q $*`
         ;;
 
     *)
@@ -235,6 +239,7 @@ while true ; do
         -q|--min_qual) min_qual=$2 ; shift 2 ;;
         -n|--min_length) min_length=$2 ; shift 2 ;;
         -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
+        -Q|--solexa) qualscores=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         --) shift ; break ;;
         *) break ;;
@@ -243,8 +248,7 @@ done
 #for arg do echo '--> '"\`$arg'" ; done
 
 echo "run type is '$run_type'"
-#flags="--refseq $refseq --mate_inner_distance $mate_inner_distance --min_intron_length $min_intron_length --max_intron_length $max_intron_length --procs $threads --librarytype $library_type --indexpath $indexpath/" # change to work with MacOSX, below
-#flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/"
+#flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality"
 flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality"
 #echo "flags: $flags"
 #exit
@@ -265,6 +269,14 @@ then
     flags="$flags -A $adapter"    
 fi
 
+if [[ $qualscores != "NULL" ]]
+then
+    if [[ $qualscores -eq 1 ]]
+    then
+        flags="$flags -Q"
+    fi
+fi
+
 if [[ $coverage_search -ne 0 ]]
 then
     flags="$flags -v"
@@ -273,7 +285,7 @@ if [[ $butterfly_search -ne 0 ]]
 then
     flags="$flags -b"
 fi
-#echo "flags: '$flags'"
+echo "flags: '$flags'"
 #exit
 
 #echo "preprocess = " $preprocess
