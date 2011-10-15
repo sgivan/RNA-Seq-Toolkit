@@ -1,0 +1,4 @@
+TestData_1: paired-end Illumina GA2x data with base 64 quality values.
+TestData_2: paired-end Illumina GA2x data with base 33 quality values.
+TestData_3: non paired-end Illumina GA2x data with base 64 quality values.
+
