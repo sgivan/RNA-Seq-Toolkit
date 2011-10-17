@@ -62,8 +62,8 @@ while true ; do
         -L|--min_length) min_length=$2 ; shift 2 ;;
         -H|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
         -s|--sanger) qualscores=1 ; shift ;;
-        -h|help) help_messg ; exit ;;
-        -c|leave_temp) leave_temp=1; shift ;;
+        -h|--help) help_messg ; exit ;;
+        -c|--leave_temp) leave_temp=1; shift ;;
 #        --) shift ; break ;;
         *) break ;;
     esac
