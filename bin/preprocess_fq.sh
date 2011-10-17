@@ -17,6 +17,7 @@ BOWTIE_INDEXES='index'
 filter='filter'
 leave_temp=0
 qualscores='NULL'
+seonly=0
 #
 function help_messg {
     echo "invoke script like this:"
@@ -33,15 +34,15 @@ function help_messg {
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:s --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,sanger -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:se --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,sanger,seonly -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt q:l:p:t:hi:f:cQ:L:H:s $*`
+        TEMP=`getopt q:l:p:t:hi:f:cQ:L:H:se $*`
         ;;
 
     *)
-        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:s --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,sanger -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:se --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,sanger,seonly -- "$@"`
         ;;
 esac
 
@@ -62,6 +63,7 @@ while true ; do
         -L|--min_length) min_length=$2 ; shift 2 ;;
         -H|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
         -s|--sanger) qualscores=1 ; shift ;;
+        -e|--seonly) seonly=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         -c|--leave_temp) leave_temp=1; shift ;;
 #        --) shift ; break ;;
@@ -78,7 +80,11 @@ mkdir -p preprocess
 #mv set2.fq set2_input.fq
 cd preprocess
 ln -sf ../set1.fq ./set1.fq
-ln -sf ../set2.fq ./set2.fq
+if [[ $seonly -ne 1 ]]
+then
+    ln -sf ../set2.fq ./set2.fq
+fi
+
 echo "quality trimming and filtering"
 trimmer_flags="-t $min_qual -l $min_length -v"
 filter_flags="-p $percent_high_quality -q $min_qual"
@@ -95,9 +101,13 @@ fi
 #echo "fastq_quality_trimmer -i set1.fq -t $min_qual -l $min_length -v 2> set1_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
 echo "fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
 fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
-#echo "fastq_quality_trimmer -i set2.fq -t $min_qual -l $min_length -v 2> set2_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
-echo "fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
-fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
+if [[ $seonly -ne 1 ]]
+then
+    #echo "fastq_quality_trimmer -i set2.fq -t $min_qual -l $min_length -v 2> set2_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
+    echo "fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
+    fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
+fi
+
 echo "sequence similarity filtering using bowtie"
 echo "reads that fail to align are retained, reads that align are filtered out of data"
 echo "first data file ..."
@@ -108,18 +118,18 @@ cat set1_qt_qf_bwt.log
 
 if [[ -e set2_qt_qf.fq ]]
 then
-echo "second data file"
-echo "bowtie $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log"
-bowtie $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log
-cat set2_qt_qf_bwt.log
+    echo "second data file"
+    echo "bowtie $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log"
+    bowtie $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log
+    cat set2_qt_qf_bwt.log
 fi
 
 if [[ leave_temp -eq 1 ]]
 then
-echo "removing temporary files"
-rm *.sam
-#rm set?_qt_qf_sf.fq
-rm set?_qt_qf.fq
+    echo "removing temporary files"
+    rm *.sam
+    #rm set?_qt_qf_sf.fq
+    rm set?_qt_qf.fq
 fi
 
 echo "creating symlinks to final files"
@@ -130,9 +140,16 @@ echo "creating symlinks to final files"
 #mv set1.fq set1_input.fq
 #mv set2.fq set2_input.fq
 ln -sf set1_qt_qf_sf.fq set1.fq
-ln -sf set2_qt_qf_sf.fq set2.fq
+if [[ $seonly -ne 1 ]]
+then
+    ln -sf set2_qt_qf_sf.fq set2.fq
+fi
 cd ..
 #ln -sf preprocess/set1_qt_qf_sf.fq set1.fq
 #ln -sf preprocess/set2_qt_qf_sf.fq set2.fq
 ln -sf preprocess/set1.fq ./
-ln -sf preprocess/set2.fq ./
+if [[ $seonly -ne 1 ]]
+then
+    ln -sf preprocess/set2.fq ./
+fi
+
