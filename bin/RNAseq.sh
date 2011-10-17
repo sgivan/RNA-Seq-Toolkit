@@ -205,6 +205,17 @@ then
 else
     tophatcmd="$tophatcmd --solexa1.3-quals"
 fi
+
+preprocess_flags="-i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
+if [[ $qualscores -eq 1 ]]
+then
+    preprocess_flags="$preprocess_flags -s"
+fi
+if [[ $seonly -eq 1 ]]
+then
+    preprocess_flags="$preprocess_flags -e"
+fi
+
 #echo ""
 #echo "tophatcmd= $tophatcmd"
 #echo ""
@@ -231,15 +242,14 @@ then
 #            cd ..
         fi
 #
-        echo "preprocess_fq.sh"
-        preprocess_flags="-i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
+        echo "preprocess_fq.sh $preprocess_flags"
+#        preprocess_flags="-i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
+#
+#        if [[ $qualscores -eq 1 ]]
+#        then
+#            preprocess_flags="$preprocess_flags -s"
+#        fi
 
-        if [[ $qualscores -eq 1 ]]
-        then
-            preprocess_flags="$preprocess_flags -s"
-        fi
-
-        #preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality
         preprocess_fq.sh $preprocess_flags
 #
         echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN"
@@ -259,8 +269,10 @@ then
             adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
             ln -sf set1_noadapters.fq set1.fq
 #            cd ..
-            ln -sf preprocess/set1.fq ./
+#            ln -sf preprocess/set1.fq ./
         fi 
+        echo "preprocess_fq.sh $preprocess_flags"
+        preprocess_fq.sh $preprocess_flags
         ln -sf set1.fq read_1.1
     fi
 fi # end of preprocessing
