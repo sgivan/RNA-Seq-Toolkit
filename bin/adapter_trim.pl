@@ -1,4 +1,6 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
+#
+# copyright Scott Givan, University of Missouri, 2010
 #
 use strict;
 use Getopt::Long;
