@@ -252,8 +252,8 @@ then
 
         preprocess_fq.sh $preprocess_flags
 #
-        echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN"
-        fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN
+        echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --newid"
+        fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --newid
         echo "linking new files"
         ln -fs set1.fq.matched.fq read_1
         ln -fs set2.fq.matched.fq read_2
