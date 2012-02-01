@@ -50,8 +50,10 @@ my ($infile1_size,$infile2_size,$followsize) = (0,0,0);
 print "determining relative size of input files\n" if ($verbose);
 if (!$smaller) { # must determine fastq file contains fewer sequences if not explicitly passed via --smaller
   if (-e $read_1) {
-    $infile1_size = `grep -c -E '@.+' $read_1`;
+    #$infile1_size = `grep -c -E '@.+' $read_1`;
+    $infile1_size = `wc -l $read_1 \| awk '{ print \$1/4; }'`;
     chomp($infile1_size);
+    print "$read_1 sequences: '$infile1_size'\n" if ($debug);
   } else {
     print "'$read_1' is missing\n";
     print "typical usage:\nillumina_pe_matchup.pl --read_1 <infile1> --read_2 <infile2>\n\n";
@@ -59,8 +61,10 @@ if (!$smaller) { # must determine fastq file contains fewer sequences if not exp
   }
   
   if (-e $read_2) {
-    $infile2_size = `grep -c -E '@.+' $read_2`;
+    #$infile2_size = `grep -c -E '@.+' $read_2`;
+    $infile2_size = `wc -l $read_2 \| awk '{ print \$1/4; }'`;
     chomp($infile2_size);
+    print "$read_2 sequences: '$infile2_size'\n" if ($debug);
   } else {
     print "'$read_2' is missing\n";
     exit();
