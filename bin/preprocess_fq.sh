@@ -93,7 +93,8 @@ if [[ $qualscores != 'NULL' ]]
 then
     trimmer_flags="$trimmer_flags -Q 33"
     filter_flags="$filter_flags -Q 33"
-    bowtie_flags="$bowtie_flags --solexa-quals"
+    #bowtie_flags="$bowtie_flags --solexa-quals"
+    bowtie_flags="$bowtie_flags --phred33-quals"
 else
     bowtie_flags="$bowtie_flags --solexa1.3-quals"
 fi
