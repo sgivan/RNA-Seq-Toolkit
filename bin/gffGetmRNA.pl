@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # gffGetmRNA.pl
 # Creates mRNA fasta sequence files from a GFF with gene annotation
 # 
@@ -33,6 +33,7 @@ my @gfflines; # complete input file
 #         keys: transcript ids
 #         values: gff array reference
 my %txs = ();
+my %txa = ();# will contain all of field 9 for each txid
 
 
 readGenome();
@@ -78,23 +79,24 @@ sub parseAndStoreGFF{
     while(<STDIN>){
         my @f = split /\t/;
         next if (@f<8);
-	if ($f[8] =~ /(transcript_id|Transcript)."([^"]+)"/){ #"
-	    $txid = $2;
-	} elsif ($f[8] =~ /gene_id."([^"]+)"/){ #"
-	    $txid = $1;
-	} elsif ($f[8] =~ /Parent=Transcript:([^;]+)/){
-	    $txid = $1;
-	} elsif ($f[8] =~ m/Parent=([^;]+)/){
-	    $txid = $1;
-	} else {
-	    $txid = $f[8];
-	}
-	$txid =~ s/\n//;
-	my ($chr,$type) = ($f[0],$f[2]);
-	if ($type eq "exon"){
-	    $txs{$chr}{$txid} = [] if (!exists($txs{$chr}{$txid}));
-	    push @{$txs{$chr}{$txid}}, \@f;
-	}
+        if ($f[8] =~ /(transcript_id|Transcript)."([^"]+)"/){ #"
+            $txid = $2;
+        } elsif ($f[8] =~ /gene_id."([^"]+)"/){ #"
+            $txid = $1;
+        } elsif ($f[8] =~ /Parent=Transcript:([^;]+)/){
+            $txid = $1;
+        } elsif ($f[8] =~ m/Parent=([^;]+)/){
+            $txid = $1;
+        } else {
+            $txid = $f[8];
+        }
+        $txid =~ s/\n//;
+        my ($chr,$type) = ($f[0],$f[2]);
+        if ($type eq "exon"){
+            $txs{$chr}{$txid} = [] if (!exists($txs{$chr}{$txid}));
+            push @{$txs{$chr}{$txid}}, \@f;
+            chomp($txa{$txid} = $f[8]);
+        }
     }
 }
 
@@ -124,13 +126,15 @@ sub printmrnas() {
 	    foreach my $txid (sort keys %{$txs{$chr}}){
 		my $seq = "";
 		foreach my $exon (@{$txs{$chr}{$txid}}){
-		    die ("Coordinate of $txid out of sequence range. $exon->[4] >= " . length($sequence{$chr}) . "\n") 
-			if ($exon->[4] >= length($sequence{$chr}));
+		    die ("Coordinate of $txid out of sequence range. $exon->[4] > " . length($sequence{$chr}) . "\n") 
+			if ($exon->[4] > length($sequence{$chr}));
+   # 	    die ("Coordinate of $txid out of sequence range. $exon->[4] >= " . length($sequence{$chr}) . "\n") 
+   # 		if ($exon->[4] >= length($sequence{$chr}));
 		    my $seqpart = lc(substr($sequence{$chr}, $exon->[3]-1, $exon->[4] - $exon->[3] + 1));
 		    $seq .= $seqpart;
 		}
 		$seq = rc($seq) if ($txs{$chr}{$txid}->[0]->[6] eq "-");
-		print MRNA ">$txid\n" . getFa($seq, 100);
+		print MRNA ">$txid $txa{$txid}\n" . getFa($seq, 100);
 	    }
 	} else {
 	    $ignorechr{$chr}++;
@@ -155,9 +159,10 @@ sub getFa{
     my $start = 0;
     my $ret = "";
     while (length($seq)-$start >= $cols) {
-	my $shortline = substr($seq, $start, $cols);
-	$ret .= "$shortline\n";
-	$start += $cols;
+        my $shortline = substr($seq, $start, $cols);
+        $ret .= "$shortline\n";
+        $start += $cols;
     }
     $ret .= substr($seq, $start, $cols) . "\n";
+    return uc($ret);
 }
