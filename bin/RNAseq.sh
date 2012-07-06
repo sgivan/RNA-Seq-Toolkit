@@ -104,7 +104,7 @@ percent_high_quality=90
 qualscores='NULL'
 dev=0
 initial_read_mismatches=2
-newid=0
+oldid=0
 
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
@@ -112,7 +112,7 @@ newid=0
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:N --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,newid -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:N --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid -- "$@"`
             ;;
 
     Darwin)
@@ -120,7 +120,7 @@ case "$osname" in
             ;;
 
         *)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdC:N --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,newid -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdC:N --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid -- "$@"`
             ;;
 esac
 
@@ -161,7 +161,7 @@ while true ; do
         -h) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
         -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
-        -N|--newid) newid=1 ; shift ;;
+        -N|--oldid) oldid=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -271,7 +271,7 @@ then
 
         preprocess_fq.sh $preprocess_flags
 #
-        if [[ $newid = 1 ]]
+        if [[ $oldid -ne 1 ]]
         then
             echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --newid"
             fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --newid
