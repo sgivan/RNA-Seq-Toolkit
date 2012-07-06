@@ -18,6 +18,7 @@ function help_messg () {
             echo "you can use either - or -- flags"
             echo "-f | --full (will run full analysis, including short read preprocessing)"
             echo "-p | --partial (will skip preprocessing steps)"
+            echo "-O | --preprocess_only (only run preprocessing routines)"
             echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
             echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i | --min_intron_length [50] (minimum intron length)"
@@ -44,7 +45,8 @@ function help_messg () {
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n | --min_length [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E | --percent_high_quality [90] during preprocessing, minimum percentage of bases >= min_qual"
-            echo "-Q | --solexa Solexa quality scores. Current default is Illumina (Phred-scaled base-64). Illumina switched back to Solexa in 2011."
+            echo "-Q | --solexa Solexa quality scores (Phred-33). Current default is Illumina (Phred-64). Illumina switched back to Solexa in 2011."
+            echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -79,7 +81,8 @@ function help_messg () {
             echo "-q [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E [90] during preprocessing, minimum percentage of bases >= min_qual"
-            echo "-Q Solexa quality scores. Current default is Illumina (Phred-scaled base-64). Illumina switched back to Solexa in 2011."
+            echo "-Q solexa Solexa quality scores (Phred-33). Current default is Illumina (Phred-64). Illumina switched back to Solexa in 2011."
+            echo "-C | --initial_read_mismatches [2]"
             echo "-h [print this help message]"
             echo "" ;;
 
@@ -115,7 +118,8 @@ function help_messg () {
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n | --min_length [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E | --percent_high_quality [90] during preprocessing, minimum percentage of bases >= min_qual"
-            echo "-Q | --solexa Solexa quality scores. Current default is Illumina (Phred-scaled base-64). Illumina switched back to Solexa in 2011."
+            echo "-Q | --solexa Solexa quality scores (Phred-33). Current default is Illumina (Phred-64). Illumina switched back to Solexa in 2011."
+            echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -169,6 +173,7 @@ seonly=0
 adapter='NULL'
 indexpath="$wd/index/"
 preprocess=0
+preprocess_only=0
 splice_mismatches=0
 min_anchor_length=8
 mate_std_dev=20
@@ -182,6 +187,8 @@ min_qual=13
 min_length=32
 percent_high_quality=90
 qualscores='NULL'
+dev=0
+initial_read_mismatches=2
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -191,11 +198,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:Q --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC: --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches: -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:Q $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC: $*`
         ;;
 
     *)
@@ -236,11 +243,15 @@ while true ; do
         -P|--indexpath) indexpath=$2 ; shift 2 ;;
         -T|--toolpath) toolpath=$2 ; shift 2 ;;
         -R|--preprocess) preprocess=1 ; shift ;;
+#        -O|--preprocess_only) preprocess_only=1 ; shift ;;
+        -O|--preprocess_only) run_type='preprocess' ; shift ;;
         -q|--min_qual) min_qual=$2 ; shift 2 ;;
         -n|--min_length) min_length=$2 ; shift 2 ;;
         -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
         -Q|--solexa) qualscores=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
+        -d|--dev) dev=1 ; shift ;;
+        -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -249,7 +260,8 @@ done
 
 echo "run type is '$run_type'"
 #flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality"
-flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality"
+#flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality"
+flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality -C $initial_read_mismatches"
 #echo "flags: $flags"
 #exit
 
@@ -290,12 +302,26 @@ echo "flags: '$flags'"
 
 #echo "preprocess = " $preprocess
 
+more_flags=""
 if [[ $preprocess -ne 0 ]]
 then
     more_flags="-R"
-else
-    more_flags=""
+#else
+#    more_flags=""
 fi
+
+if [[ $preprocess_only -ne 0 ]]
+then
+    preprocess=1
+    more_flags="-R -O"
+fi
+
+if [[ $dev -ne 0 ]]
+then
+    export PATH="/ircf/ircfapps/dev/bin:$PATH"
+    flags="$flags -d"
+fi
+
 #echo "preprocess = " $preprocess
 #echo "flags = " $flags
 #echo "more_flags = " $more_flags
@@ -334,15 +360,7 @@ do
             echo "moving old output files to 'non-aggregate'"
             mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
             echo "creating symbolic link to transcript.gtf"
-#            ln -sf ../transcripts.gtf ./
             ln -sf $wd/transcripts.gtf ./
-
-#            if [[ preprocess != "NULL" ]]
-#            then
-#                more_flags="-R"
-#            else
-#                more_flags=""
-#            fi
 
             echo "running tophat"
 #            echo "RNAseq.sh --transcripts $flags $more_flags" ;
@@ -350,9 +368,15 @@ do
 #            RNAseq.sh --transcripts $flags $more_flags ;;
             RNAseq.sh -a $flags $more_flags ;;
 
+        preprocess)
+
+            echo "running preprocessing routines only" ;
+            echo "RNAseq.sh -R -O $flags $more_flags" ;
+            RNAseq.sh -R -O $flags $more_flags ;;
+
         *)
             echo "RNAeq.sh $flags"
-            RNAseq.sh $flags ;;
+            RNAseq.sh $flags $more_flags ;;
 
     esac
     cd $wd
