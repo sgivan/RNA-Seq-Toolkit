@@ -80,6 +80,7 @@ mkdir -p preprocess
 #mv set2.fq set2_input.fq
 cd preprocess
 ln -sf ../set1.fq ./set1.fq
+#exit
 if [[ $seonly -ne 1 ]]
 then
     ln -sf ../set2.fq ./set2.fq
@@ -89,6 +90,10 @@ echo "quality trimming and filtering"
 trimmer_flags="-t $min_qual -l $min_length -v"
 filter_flags="-p $percent_high_quality -q $min_qual"
 bowtie_flags="-q --threads $bowtie_threads"
+#echo trimmer_flags="-t $min_qual -l $min_length -v"
+#echo filter_flags="-p $percent_high_quality -q $min_qual"
+#echo bowtie_flags="-q --threads $bowtie_threads" 
+#exit
 if [[ $qualscores != 'NULL' ]]
 then
     trimmer_flags="$trimmer_flags -Q 33"
@@ -98,7 +103,10 @@ then
 else
     bowtie_flags="$bowtie_flags --solexa1.3-quals"
 fi
-
+echo trimmer_flags="-t $min_qual -l $min_length -v"
+echo filter_flags="-p $percent_high_quality -q $min_qual"
+echo bowtie_flags="-q --threads $bowtie_threads" 
+#exit
 #echo "fastq_quality_trimmer -i set1.fq -t $min_qual -l $min_length -v 2> set1_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
 echo "fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
 fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
@@ -108,7 +116,7 @@ then
     echo "fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
     fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
 fi
-
+#exit
 echo "sequence similarity filtering using bowtie"
 echo "reads that fail to align are retained, reads that align are filtered out of data"
 echo "first data file ..."
