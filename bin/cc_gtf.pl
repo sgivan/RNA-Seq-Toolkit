@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 #
+# Copyright 2012 Scott A. Givan
+#
 use strict;
 use warnings qw/all/;
 use Getopt::Long;
