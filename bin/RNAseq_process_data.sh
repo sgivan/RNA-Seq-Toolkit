@@ -4,8 +4,7 @@
 # then, invoke like FGMG_process_data.sh FC???/s_? 
 wd=`pwd`
 osname=`uname -s`
-#export PATH=~givans/projects/RNAseq/bin:$PATH
-#export PATH=/ircf/sgivan/projects/RNAseq/bin:$PATH
+#export PATH=# <-- make sure RNAseq scripts are in your path
 export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 #
 
@@ -318,6 +317,7 @@ fi
 
 if [[ $dev -ne 0 ]]
 then
+    # this works in-house at IRCF
     export PATH="/ircf/ircfapps/dev/bin:$PATH"
     flags="$flags -d"
 fi
