@@ -205,6 +205,7 @@ percent_high_quality=90
 qualscores='NULL'
 dev=0
 initial_read_mismatches=2
+oldid=0
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -214,11 +215,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC: --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches: -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:N --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:oldid -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC: $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:N $*`
         ;;
 
     *)
@@ -268,6 +269,7 @@ while true ; do
         -h|--help) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
         -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
+        -N|--oldid) oldid=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -309,11 +311,18 @@ if [[ $coverage_search -ne 0 ]]
 then
     flags="$flags -v"
 fi
+
 if [[ $butterfly_search -ne 0 ]]
 then
     flags="$flags -b"
 fi
-echo "flags: '$flags'"
+
+if [[ $oldid -ne 0 ]]
+then
+    flags="$flags -N"
+fi
+
+#echo "flags: '$flags'"
 #exit
 
 #echo "preprocess = " $preprocess
@@ -340,7 +349,7 @@ then
 fi
 
 #echo "preprocess = " $preprocess
-#echo "flags = " $flags
+echo "flags = " $flags
 #echo "more_flags = " $more_flags
 #exit
 
