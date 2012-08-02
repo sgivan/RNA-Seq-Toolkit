@@ -1,4 +1,21 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
+#
+# copyright Scott Givan, The University of Missouri, July 6, 2012
+#
+#    This file is part of the RNA-seq Toolkit, or RST.
+#
+#    RST is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    RST is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
 use 5.8.8;
 use strict;
@@ -8,13 +25,14 @@ use Data::Dumper;
 #use Bio::SeqIO;
 #use Bio::Seq::Quality;
 
-my ($read_1,$read_2,$debug,$help,$verbose,$read_1_out,$read_2_out,$maxN,$nomaxN,$smaller,$dump,$debug_max);
+my ($read_1,$read_2,$debug,$help,$verbose,$read_1_out,$read_2_out,$maxN,$nomaxN,$smaller,$dump,$debug_max,$newid);
 
 GetOptions(
             "read_1=s"        =>  \$read_1,
             "read_2=s"        =>  \$read_2,
             "read_1_out=s"    =>  \$read_1_out,
             "read_2_out=s"    =>  \$read_2_out,
+            "newid"           =>  \$newid,
             "debug"           =>  \$debug,
             "verbose"         =>  \$verbose,
             "help"            =>  \$help,
@@ -49,8 +67,10 @@ my ($infile1_size,$infile2_size,$followsize) = (0,0,0);
 print "determining relative size of input files\n" if ($verbose);
 if (!$smaller) { # must determine fastq file contains fewer sequences if not explicitly passed via --smaller
   if (-e $read_1) {
-    $infile1_size = `grep -c -E '@.+' $read_1`;
+    #$infile1_size = `grep -c -E '@.+' $read_1`;
+    $infile1_size = `wc -l $read_1 \| awk '{ print \$1/4; }'`;
     chomp($infile1_size);
+    print "$read_1 sequences: '$infile1_size'\n" if ($debug);
   } else {
     print "'$read_1' is missing\n";
     print "typical usage:\nillumina_pe_matchup.pl --read_1 <infile1> --read_2 <infile2>\n\n";
@@ -58,8 +78,10 @@ if (!$smaller) { # must determine fastq file contains fewer sequences if not exp
   }
   
   if (-e $read_2) {
-    $infile2_size = `grep -c -E '@.+' $read_2`;
+    #$infile2_size = `grep -c -E '@.+' $read_2`;
+    $infile2_size = `wc -l $read_2 \| awk '{ print \$1/4; }'`;
     chomp($infile2_size);
+    print "$read_2 sequences: '$infile2_size'\n" if ($debug);
   } else {
     print "'$read_2' is missing\n";
     exit();
@@ -114,6 +136,7 @@ while (my $read1 = _fastq_in($MASTER)) {
         $master{$id} = {
                             seq     =>  $read1->[1],
                             qual    =>  $read1->[3],
+                            xtra    =>  $read1->[4],
                             };
 
   } else { # end of if ($line =~ /([\@\+])(\S+)/)
@@ -188,18 +211,20 @@ while (my $read2 = _fastq_in($FOLLOW)) {
 #   opposite suffix.
 #
 
-    my $digit = substr($seqid_tr,-1,1,"");
-    if ($digit == 1) {
-        $seqid_tr .= "2";
-    } else {
-        $seqid_tr .= "1";
+    #my $digit;
+    if (!$newid) {
+        my $digit = substr($seqid_tr,-1,1,"");
+        if ($digit == 1) {
+            $seqid_tr .= "2";
+        } else {
+            $seqid_tr .= "1";
+        }
     }
-
 
 #  print "checking for '$seqid_tr'\n" if ($debug);
 
   if ($master{$seqid_tr}) { # if a mate is in %master, print it to mate file
-    _fastq_out($read2->[0],$read2->[1],$read2->[3],$FOLLOWOUT);
+    _fastq_out($read2->[0],$read2->[1],$read2->[3],$FOLLOWOUT,$read2->[4]);
 
 #    if ($debug) {
 #      my $quals = $read2->qual();
@@ -207,11 +232,11 @@ while (my $read2 = _fastq_in($FOLLOW)) {
 #    }
     ++$master{$seqid_tr}->{mate}; # remember that this master sequence had a mate
 
-    _fastq_out($seqid_tr,$master{$seqid_tr}->{seq},$master{$seqid_tr}->{qual},$MASTEROUT);
+    _fastq_out($seqid_tr,$master{$seqid_tr}->{seq},$master{$seqid_tr}->{qual},$MASTEROUT,$master{$seqid_tr}->{xtra});
 
 
   } else {  # else print it to the nomate file
-    _fastq_out($read2->[0],$read2->[1],$read2->[3],$FOLLOW_NOMATE);
+    _fastq_out($read2->[0],$read2->[1],$read2->[3],$FOLLOW_NOMATE,$read2->[4]);
   }
 } # end of while (my $read2 = $follow->next_seq())
 
@@ -224,7 +249,7 @@ my $NOMATE;
 open($NOMATE, ">$masterfile" . ".nomate.fq") or die "can't open $masterfile.nomate.fq: $!";
 while (my($key,$value) = each(%master)) {
   if (!$value->{mate}) {
-    _fastq_out($key,$value->{seq}, $value->{qual},$NOMATE);
+    _fastq_out($key,$value->{seq}, $value->{qual},$NOMATE,$value->{xtra});
   
   }
 }
@@ -241,12 +266,27 @@ sub _fastq_in {
     my $seq = <$fh>;
     my $id2 = <$fh>;
     my $qual = <$fh>;
+    my ($extra1,$extra2) = ('','');
 
 #   trim first character from ID's
     substr($id,0,1,"");
     substr($id2,0,1,"");
 
-    my @seqdata = ($id,$seq,$id2,$qual);
+    if ($newid) {
+        my ($newid1,$newid2) = ();
+        ($newid1,$extra1) = split/ /, $id;
+        $id = $newid1;
+        if ($id2) {
+            ($newid2,$extra2) = split/ /, $id2;
+            $id2 = $newid2;
+        }
+    }
+
+    #my @seqdata = ($id,$seq,$id2,$qual);
+    # although all the data is returned
+    # $id will always equal $id2 (if present)
+    # and $extra1 will always = $extra2 (if present)
+    my @seqdata = ($id,$seq,$id2,$qual,$extra1,$extra2);
 #    print "@seqdata\n";
 #    exit();
     chomp(@seqdata);
@@ -259,6 +299,9 @@ sub _fastq_out {
     my $seqstring = shift;
     my $qualstring = shift;
     my $filehandle = shift;
+    my $extra = shift;
+
+    $id .= " $extra" if ($extra);
 
     print $filehandle "\@$id\n$seqstring\n\+$id\n$qualstring\n";
     return 1;
@@ -271,6 +314,7 @@ print <<HELP;
             "read_2=s"        =>  \$read_2,
             "read_1_out=s"    =>  \$read_1_out,# not yet implemented
             "read_2_out=s"    =>  \$read_2_out,# not yet implemented
+            "newid"           =>  \$newid,# use with output from CASAVA version >=1.8
             "debug"           =>  \$debug,
             "verbose"         =>  \$verbose,
             "help"            =>  \$help,

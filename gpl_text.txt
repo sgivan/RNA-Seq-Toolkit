@@ -1,5 +1,5 @@
-#!/bin/bash
-# copyright Scott Givan, The University of Missouri, July 6, 2012
+#
+#   Copyright Scott A. Givan, University of Missouri, July 6, 2012.
 #
 #    This file is part of the RNA-seq Toolkit, or RST.
 #
@@ -16,12 +16,3 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
-file=$1
-
-if [ $# != 1 ] ; then
-    echo "what file?"
-    exit
-fi
-
-cat $file | cut -f 9 | cut -f 2 -d " " | sort | uniq | wc -l
-

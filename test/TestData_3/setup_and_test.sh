@@ -37,13 +37,13 @@ mv s_8_* s_8
 echo "creating symbolic links inside of sample directories"
 cd s_6
 ln -sf s_6_1_test.txt set1.fq
-ln -sf s_6_2_test.txt set2.fq
+#ln -sf s_6_2_test.txt set2.fq
 cd ../s_7
 ln -sf s_7_1_test.txt set1.fq
-ln -sf s_7_2_test.txt set2.fq
+#ln -sf s_7_2_test.txt set2.fq
 cd ../s_8
 ln -sf s_8_1_test.txt set1.fq
-ln -sf s_8_2_test.txt set2.fq
+#ln -sf s_8_2_test.txt set2.fq
 cd ..
 #
 echo "making bowtie indices"

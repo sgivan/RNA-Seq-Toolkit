@@ -3,19 +3,35 @@
 # This bash script runs the program "tophat" on a series of fastq
 # files of short read sequences
 #
-# copyright Scott Givan, The University of Missouri, November 11, 2011.
+# copyright Scott Givan, The University of Missouri, July 6, 2012
+#
+#    This file is part of the RNA-seq Toolkit, or RST.
+#
+#    RST is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    RST is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with RST.  If not, see <http://www.gnu.org/licenses/>.
+#
 #
 # set path to find RNAseq scripts
 wd=`pwd`
-#export PATH="$HOME/ircf/sgivan/projects/RNAseq/bin:~/bin:$PATH"
+#export PATH=# <-- make sure the RST scripts are in your path
 export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 #
 # some variables to set ...
 #
 
-#tophat=/home/cgrb/givans/bin/tophat # full path to tophat
+#tophat= # full path to tophat
 tophat=tophat # because it's in my $PATH
-#cufflinks=/home/cgrb/givans/bin/cufflinks # full path to cufflinks
+#cufflinks= # full path to cufflinks
 cufflinks=cufflinks 
 
 osname=`uname -s`
@@ -36,9 +52,6 @@ case "$osname" in
             lane=`pwd | sed -r 's/.+\/(.+)\/(.+)/\2/' | sed 's/_//'` ;;
 
 esac
-#echo "bioclass = $bioclass"
-#echo "lane = $lane"
-
 #
 # librarytype contains the "library type", as defined in the tophat documentation:
 # http://tophat.cbcb.umd.edu/manual.html
@@ -53,18 +66,12 @@ librarytype=fr-unstranded
 # files made with bowtie-build, which is specified by BOWTIE_INDEXES, below
 #
 
-#fasta_file=maize # actual file should be have .fa suffix
 fasta_file='refseq' # actual file should be have .fa suffix
 
 #
 # BOWTIE_INDEXES contains the path to the directory containing the reference index files
 # built by the bowtie-build program. Be sure to end with a "/".
 #
-#BOWTIE_INDEXES=/dbase/genomes/maize/4a.53v2/repeat_masked/
-#BOWTIE_INDEXES=/dbase/genomes/maize/bowtie/
-
-#BOWTIE_INDEXES=/dbase/genomes/maize/4a.53v2/chrv2/bowtie/
-#BOWTIE_INDEXES=/dbase/genomes/maize/4a.53v2/chrv2/bowtie_shortchroms/
 BOWTIE_INDEXES='index'
 
 #
@@ -74,13 +81,13 @@ BOWTIE_INDEXES='index'
 
 seonly=0 # for single-end sequence data only -- no paired-end 
 procs=8 # number of processors to use
-#run_type='partial'
 run_type='NULL'
 mate_inner_distance_r=165
 min_intron_length_i=50
 max_intron_length_I=25000
 adapter_seq='NULL'
 preprocess=0
+preprocess_only=0
 splice_mismatches_m=0
 min_anchor_length_a=8
 mate_std_dev=20
@@ -93,6 +100,11 @@ segment_mismatches=2
 min_qual=13
 min_length=32
 percent_high_quality=90
+#qualscores='--solexa1.3-quals'
+qualscores='NULL'
+dev=0
+initial_read_mismatches=2
+oldid=0
 
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
@@ -100,15 +112,15 @@ percent_high_quality=90
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:Rm:c:S:F:g:vbL:M:q:n:E: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:N --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A:Rm:c:S:F:g:vbL:M:q:n:E: $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:N $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:Rm:c:S:F:g:q:n:E: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdC:N --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid -- "$@"`
             ;;
 esac
 
@@ -141,10 +153,15 @@ while true ; do
         -P|--indexpath) BOWTIE_INDEXES=$2 ; shift 2 ;;
         -s|--refseq) fasta_file=$2 ; shift 2 ;;
         -R|--preprocess) preprocess=1 ; shift ;;
+        -O|--preprocess_only) preprocess_only=1; shift ;;
         -q|--min_qual) min_qual=$2 ; shift 2 ;;
         -n|--min_length) min_length=$2 ; shift 2 ;;
         -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
+        -Q|--solexa) qualscores=1 ; shift ;;
         -h) help_messg ; exit ;;
+        -d|--dev) dev=1 ; shift ;;
+        -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
+        -N|--oldid) oldid=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -158,16 +175,19 @@ echo "run type is " $run_type
 # tophat, so it contains arguments and options passed to the program
 #
 
-#tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals"
-tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
-pe_extra_cmd="-r $mate_inner_distance_r --mate-std-dev $mate_std_dev -o pe_tophat_out $fasta_file read_1 read_2 "
-singles_extra_cmd="-o singles_tophat_out $fasta_file read_1.1,read_2.1 "
+#tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
+#tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
+tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --initial-read-mismatches $initial_read_mismatches"
+pe_extra_cmd="-r $mate_inner_distance_r --mate-std-dev $mate_std_dev -o pe_tophat_out $BOWTIE_INDEXES/$fasta_file read_1 read_2 "
+singles_extra_cmd="-o singles_tophat_out $BOWTIE_INDEXES/$fasta_file read_1.1,read_2.1 "
 # 
 #cufflinkscmd="$cufflinks -m $mate_inner_distance_r -I $max_intron_length_I "
 #cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i */accepted_hits.bam"
 #cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r ../index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
 #cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $wd/index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
-cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $BOWTIE_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+#cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $BOWTIE_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+# cufflinks version >= 1.0.0 no longer uses -r flag. Now uses -b flag
+cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -b $BOWTIE_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -175,6 +195,10 @@ cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $BOWTIE_IN
 # Typically, it shouldn't be necessay to change anything below this line
 #
 #
+if [[ $dev -ne 0 ]]
+then
+    export $PATH="/ircf/ircfapps/dev/bin:$PATH"
+fi
 
 if [[ $run_type = "full" ]]
 then
@@ -190,6 +214,31 @@ if [[ $butterfly_search -ne 0 ]]
 then
     tophatcmd="$tophatcmd --butterfly-search"
 fi
+
+if [[ $qualscores != 'NULL' ]]
+then
+    if [[ $qualscores -eq 1 ]]
+    then
+        tophatcmd="$tophatcmd --solexa-quals"
+    fi
+else
+    tophatcmd="$tophatcmd --solexa1.3-quals"
+fi
+
+preprocess_flags="-i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
+if [[ $qualscores -eq 1 ]]
+then
+    preprocess_flags="$preprocess_flags -s"
+fi
+if [[ $seonly -eq 1 ]]
+then
+    preprocess_flags="$preprocess_flags -e"
+fi
+
+#echo ""
+#echo "tophatcmd= $tophatcmd"
+#echo ""
+#exit
 
 if [[ $preprocess -ne 0 ]]
 then
@@ -212,11 +261,25 @@ then
 #            cd ..
         fi
 #
-        echo "preprocess_fq.sh"
-        preprocess_fq.sh -i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality
+        echo "preprocess_fq.sh $preprocess_flags"
+#        preprocess_flags="-i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
 #
-        echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN"
-        fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN
+#        if [[ $qualscores -eq 1 ]]
+#        then
+#            preprocess_flags="$preprocess_flags -s"
+#        fi
+
+        preprocess_fq.sh $preprocess_flags
+#
+        if [[ $oldid -ne 1 ]]
+        then
+            echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --newid"
+            fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --newid
+        else
+            echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN "
+            fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN 
+        fi
+#
         echo "linking new files"
         ln -fs set1.fq.matched.fq read_1
         ln -fs set2.fq.matched.fq read_2
@@ -232,13 +295,21 @@ then
             adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
             ln -sf set1_noadapters.fq set1.fq
 #            cd ..
-            ln -sf preprocess/set1.fq ./
+#            ln -sf preprocess/set1.fq ./
         fi 
+        echo "preprocess_fq.sh $preprocess_flags"
+        preprocess_fq.sh $preprocess_flags
         ln -sf set1.fq read_1.1
     fi
 fi # end of preprocessing
 
-export BOWTIE_INDEXES # this is the directory containing the index files created with bowtie-build
+if [[ $preprocess_only -eq 1 ]]
+then
+    echo "preprocess only"
+    exit
+fi
+
+export BOWTIE_INDEXES=$BOWTIE_INDEXES # this is the directory containing the index files created with bowtie-build
 if [ $run_type = transcripts ]
 then
     if [[ $seonly -eq 0 ]]

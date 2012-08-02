@@ -16,12 +16,15 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
-file=$1
+echo 'Running all tests.'
 
-if [ $# != 1 ] ; then
-    echo "what file?"
-    exit
-fi
-
-cat $file | cut -f 9 | cut -f 2 -d " " | sort | uniq | wc -l
+for dir in `ls -1d TestData_*`
+do
+    echo ""
+    echo "$dir"
+    cd $dir
+    ./setup_and_test.sh
+    ./test_result
+    cd ..
+done
 
