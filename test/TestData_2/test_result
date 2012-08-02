@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "If everything worked, this script should return something very similar to:"
+echo "XLOC_000024     XLOC_000024     -       Chr3:195078-197976      q1      q2      OK      291380  479410  0.718361        -18.7348        0       0       yes"
+echo "XLOC_000024     XLOC_000024     -       Chr3:195078-197976      q1      q3      OK      291380  593601  1.02659 -27.8017        0       0       yes"
+echo "XLOC_000024     XLOC_000024     -       Chr3:195078-197976      q2      q3      OK      479410  593601  0.308233        -9.75541        0       0       yes"
+
+echo ""
+echo "running test"
+echo ""
+grep yes cuffdiff/gene_exp.diff
+
