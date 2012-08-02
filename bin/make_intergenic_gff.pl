@@ -5,79 +5,76 @@ use warnings;
 #
 # script to generate a GFF file of intergenic regions from a GFF file of genic regions.
 #
-my $debug = 1;
+my $debug = 0;
 
-my ($cnt,$chrname,$chromcnt,@lastvals) = (0,'',0);
+my ($cnt,$chrname,$prevline,@lastvals) = (0,'',0);
 while (<>) {
     my $line1 = $_;
-    my $line2 = <>;
     chomp($line1);
-    chomp($line2);
-    #print "\$line1 = '$line1'\n\$line2 = '$line2'\n\n" if ($debug);
+    print "\n\$line1 = '$line1'\n" if ($debug);
     ++$cnt;
-    #++$cnt;
-    ++$chromcnt;
-    #exit if ($debug && $cnt == 10);
 
-    my @vals1 = split /\t/, $line1;
-    my @vals2 = split /\t/, $line2;
-
-    $vals1[8] = join("","id=intergenic.","XX",";name=intergenic.","XX",";");
-    $vals2[8] = join("","id=intergenic.","XX",";name=intergenic.","XX",";");
-    #$vals2[8] = "id=intergenic.$cnt;name=intergenic.$cnt;";
+    my (@vals1,@vals2) = ();
+    my ($coord1,$coord2);
 
     if ($cnt == 1) {
-    #if ($cnt <= 2) {
+        @vals1 = split /\t/, $line1;
         $chrname = $vals1[0];
-        $vals1[8] =~ s/XX/$cnt/g;
-        print "$vals1[0]\t$vals1[1]\t$vals1[2]\t1\t$vals1[3]\t$vals1[5]\t$vals1[6]\t$vals1[7]\t$vals1[8]\n";
-        $vals1[8] =~ s/$cnt/XX/g;
-        ++$cnt;
-    } else {
-        if ($vals1[0] ne $chrname) { 
-            print "using lastvals\n";
-            $lastvals[8] =~ s/XX/$cnt/g;
-            print "$lastvals[0]\t$lastvals[1]\t$lastvals[2]\t$lastvals[4]\t.\t$lastvals[5]\t$lastvals[6]\t$lastvals[7]\t$lastvals[8]\n";
-            ++$cnt;
-            $vals1[8] =~ s/XX/$cnt/g;
-            print "$vals1[0]\t$vals1[1]\t$vals1[2]\t1\t$vals1[3]\t$vals1[5]\t$vals1[6]\t$vals1[7]\t$vals1[8]\n";
-            $vals1[8] =~ s/$cnt/XX/g;
-            ++$cnt;
-            $chrname = $vals1[0];
-        } elsif ($vals2[0] ne $chrname) {
-            $vals1[8] =~ s/XX/$cnt/g;
-            print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$vals1[4]\t.\t$vals1[5]\t$vals1[6]\t$vals1[7]\t$vals1[8]\n";
-            $vals1[8] =~ s/$cnt/XX/g;
-            ++$cnt;
-#            @vals2 = @vals1;
-#            $line2 = <>;
-#            chomp($line2);
-#            @vals2 = split /\t/, $line2;
-#            $vals2[8] = join("","id=intergenic.","XX",";name=intergenic.","XX",";");
-#            $vals1[8] =~ s/XX/$cnt/g;
-#            print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$vals1[4]\t$vals2[3]\t$vals1[5]\t$vals1[6]\t$vals1[7]\t$vals1[8]\n";
-#            $vals1[8] =~ s/$cnt/XX/g;
-#            ++$cnt;
-            $vals2[8] =~ s/XX/$cnt/g;
-            print "$vals2[0]\t$vals2[1]\t$vals2[2]\t1\t$vals2[3]\t$vals2[5]\t$vals2[6]\t$vals2[7]\t$vals2[8]\n";
-            $vals2[8] =~ s/$cnt/XX/g;
-            ++$cnt;
-            $chrname = $vals2[0];
-            next;
-        }
-
+        $prevline = $line1;
+        #$vals1[8] =~ s/XX/$cnt/g;
+        print "$vals1[0]\t$vals1[1]\t$vals1[2]\t1\t$vals1[3]\t$vals1[5]\t$vals1[6]\t$vals1[7]\tid=intergenic.$cnt; name=intergenic.$cnt;\n";
+        #$vals1[8] =~ s/$cnt/XX/g;
+        #++$cnt;
+        next;
     }
-    $vals1[8] =~ s/XX/$cnt/g;
-    print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$vals1[4]\t$vals2[3]\t$vals1[5]\t$vals1[6]\t$vals1[7]\t$vals1[8]\n";
-    $vals1[8] =~ s/$cnt/XX/g;
+    
+    @vals1 = split /\t/, $prevline;
+    @vals2 = split /\t/, $line1;
+
+    if ($vals1[0] ne $chrname) { 
+        print "\$vals1[0] '$vals1[0]' ne '$chrname'\n" if ($debug);
+        print "$vals1[0]\t$vals1[1]\t$vals1[2]\t1\t$vals1[4]\t$vals1[5]\t$vals1[6]\t$vals1[7]\tid=intergenic.$cnt; name=intergenic.$cnt;\n";
+        ++$cnt;
+        ($coord1,$coord2) = coordorder($vals1[4],$vals2[3]);
+        #print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$vals1[4]\t$vals2[3]\t$vals1[5]\t$vals1[6]\t$vals1[7]\ttid=intergenic.$cnt; name=intergenic.$cnt;\n";
+        print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$coord1\t$coord2\t$vals1[5]\t$vals1[6]\t$vals1[7]\ttid=intergenic.$cnt; name=intergenic.$cnt;\n";
+        #++$cnt;
+        $chrname = $vals1[0];
+        $prevline = $line1;
+        next;
+    } elsif ($vals2[0] ne $chrname) {
+        print "\$vals2[0] '$vals2[0]' ne '$chrname'\n" if ($debug);
+        print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$vals1[4]\t.\t$vals1[5]\t$vals1[6]\t$vals1[7]\tid=intergenic.$cnt; name=intergenic.$cnt;\n";
+        ++$cnt;
+        print "$vals2[0]\t$vals2[1]\t$vals2[2]\t1\t$vals2[3]\t$vals2[5]\t$vals2[6]\t$vals2[7]\tid=intergenic.$cnt; name=intergenic.$cnt;\n";
+        #++$cnt;
+        $chrname = $vals2[0];
+        $prevline = $line1;
+        next;
+    }
+
+    $vals1[8] = "id=intergenic.$cnt; name=intergenic.$cnt;";
+    #print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$vals1[4]\t$vals2[3]\t$vals1[5]\t$vals1[6]\t$vals1[7]\tid=intergenic.$cnt; name=intergenic.$cnt;\n";
+    ($coord1,$coord2) = coordorder($vals1[4],$vals2[3]);
+    print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$coord1\t$coord2\t$vals1[5]\t$vals1[6]\t$vals1[7]\tid=intergenic.$cnt; name=intergenic.$cnt;\n";
 
     if (eof) {
         print "eof reached\n" if ($debug);
         ++$cnt;
-        $vals1[8] =~ s/XX/$cnt/g;
-        print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$vals2[4]\t.\t$vals1[5]\t$vals1[6]\t$vals1[7]\t$vals1[8]\n";
-        $vals1[8] =~ s/$cnt/XX/g;
+        print "$vals1[0]\t$vals1[1]\t$vals1[2]\t$vals2[4]\t.\t$vals1[5]\t$vals1[6]\t$vals1[7]\tid=intergenic.$cnt; name=intergenic.$cnt;\n";
     }
-    @lastvals = @vals2;
+    $prevline = $line1;
+#    @lastvals = @vals2;
+}
+
+sub coordorder {
+    my $coord1 = shift;
+    my $coord2 = shift;
+
+    if ($coord1 < $coord2) {
+        return ($coord1,$coord2);
+    } else {
+        return ($coord2,$coord1);
+    }
 }
 
