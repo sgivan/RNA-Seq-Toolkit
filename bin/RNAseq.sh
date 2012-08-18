@@ -177,7 +177,7 @@ echo "run type is " $run_type
 
 #tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
 #tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
-tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --initial-read-mismatches $initial_read_mismatches"
+tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --read-mismatches $initial_read_mismatches"
 pe_extra_cmd="-r $mate_inner_distance_r --mate-std-dev $mate_std_dev -o pe_tophat_out $BOWTIE_INDEXES/$fasta_file read_1 read_2 "
 singles_extra_cmd="-o singles_tophat_out $BOWTIE_INDEXES/$fasta_file read_1.1,read_2.1 "
 # 
@@ -215,20 +215,25 @@ then
     tophatcmd="$tophatcmd --butterfly-search"
 fi
 
+# default quality scores are Phred+33
 if [[ $qualscores != 'NULL' ]]
 then
     if [[ $qualscores -eq 1 ]]
     then
-        tophatcmd="$tophatcmd --solexa-quals"
+        # quality scores are Phred+64
+        #tophatcmd="$tophatcmd --solexa-quals"
+        tophatcmd="$tophatcmd --solexa1.3-quals"
     fi
 else
-    tophatcmd="$tophatcmd --solexa1.3-quals"
+    #tophatcmd="$tophatcmd --solexa1.3-quals"
+    tophatcmd=$tophatcmd
 fi
 
 preprocess_flags="-i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
 if [[ $qualscores -eq 1 ]]
 then
     preprocess_flags="$preprocess_flags -s"
+    #preprocess_flags=$preprocess_flags
 fi
 if [[ $seonly -eq 1 ]]
 then
