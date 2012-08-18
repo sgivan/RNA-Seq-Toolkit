@@ -51,7 +51,7 @@ function help_messg {
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:se --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,sanger,seonly -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:se --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly -- "$@"`
         ;;
 
     Darwin)
@@ -59,7 +59,7 @@ case "$osname" in
         ;;
 
     *)
-        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:se --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,sanger,seonly -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:se --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly -- "$@"`
         ;;
 esac
 
@@ -79,7 +79,7 @@ while true ; do
         -Q|--min_qual) min_qual=$2 ; shift 2 ;;
         -L|--min_length) min_length=$2 ; shift 2 ;;
         -H|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
-        -s|--sanger) qualscores=1 ; shift ;;
+        -s|--solexa) qualscores=1 ; shift ;;
         -e|--seonly) seonly=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         -c|--leave_temp) leave_temp=1; shift ;;
@@ -113,12 +113,14 @@ bowtie_flags="-q --threads $bowtie_threads"
 #exit
 if [[ $qualscores != 'NULL' ]]
 then
+#    trimmer_flags="$trimmer_flags -Q 33"
+#    filter_flags="$filter_flags -Q 33"
+    #bowtie_flags="$bowtie_flags --solexa-quals"
+    bowtie_flags="$bowtie_flags --phred64-quals"
+else
+#    bowtie_flags="$bowtie_flags --solexa1.3-quals"
     trimmer_flags="$trimmer_flags -Q 33"
     filter_flags="$filter_flags -Q 33"
-    #bowtie_flags="$bowtie_flags --solexa-quals"
-    bowtie_flags="$bowtie_flags --phred33-quals"
-else
-    bowtie_flags="$bowtie_flags --solexa1.3-quals"
 fi
 echo trimmer_flags="-t $min_qual -l $min_length -v"
 echo filter_flags="-p $percent_high_quality -q $min_qual"
@@ -126,12 +128,14 @@ echo bowtie_flags="-q --threads $bowtie_threads"
 #exit
 #echo "fastq_quality_trimmer -i set1.fq -t $min_qual -l $min_length -v 2> set1_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
 echo "fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
-fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
+#fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
+eval fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
 if [[ $seonly -ne 1 ]]
 then
     #echo "fastq_quality_trimmer -i set2.fq -t $min_qual -l $min_length -v 2> set2_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
     echo "fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
-    fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
+    #fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
+    eval fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
 fi
 #exit
 echo "sequence similarity filtering using bowtie"
