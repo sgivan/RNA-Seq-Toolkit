@@ -61,7 +61,9 @@ function help_messg () {
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n | --min_length [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E | --percent_high_quality [90] during preprocessing, minimum percentage of bases >= min_qual"
-            echo "-Q | --solexa Solexa quality scores (Phred-33). Current default is Illumina (Phred-64). Illumina switched back to Solexa in 2011."
+            echo "-Q | --solexa Solexa quality scores (Phred-33)"
+            echo "-X | --phred33 Phred quality values encoded as Phred + 33"
+            echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -97,7 +99,9 @@ function help_messg () {
             echo "-q [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E [90] during preprocessing, minimum percentage of bases >= min_qual"
-            echo "-Q solexa Solexa quality scores (Phred-33). Current default is Illumina (Phred-64). Illumina switched back to Solexa in 2011."
+            echo "-Q solexa Solexa quality scores (Phred-33)"
+            echo "-X Phred quality values encoded as Phred + 33"
+            echo "-Y Phred quality values encoded as Phred + 64"
             echo "-C | --initial_read_mismatches [2]"
             echo "-h [print this help message]"
             echo "" ;;
@@ -134,7 +138,9 @@ function help_messg () {
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n | --min_length [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E | --percent_high_quality [90] during preprocessing, minimum percentage of bases >= min_qual"
-            echo "-Q | --solexa Solexa quality scores (Phred-33). Current default is Illumina (Phred-64). Illumina switched back to Solexa in 2011."
+            echo "-Q | --solexa Solexa quality scores (Phred-33)"
+            echo "-X | --phred33 Phred quality values encoded as Phred + 33"
+            echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -202,6 +208,7 @@ segment_mismatches=2
 min_qual=13
 min_length=32
 percent_high_quality=90
+# default qualscores should be Phred+33
 qualscores='NULL'
 dev=0
 initial_read_mismatches=2
@@ -215,11 +222,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:N --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:oldid -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXY --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,phred33,phred64 -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:N $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXY $*`
         ;;
 
     *)
@@ -266,6 +273,8 @@ while true ; do
         -n|--min_length) min_length=$2 ; shift 2 ;;
         -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
         -Q|--solexa) qualscores=1 ; shift ;;
+        -X|--phred33) qualscores=1 ; shift ;;
+        -Y|--phred64) qualscores=2 ; shift ;;
         -h|--help) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
         -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
@@ -299,9 +308,10 @@ then
     flags="$flags -A $adapter"    
 fi
 
+# default quality scores should be Phred+33
 if [[ $qualscores != "NULL" ]]
 then
-    if [[ $qualscores -eq 1 ]]
+    if [[ $qualscores -eq 2 ]]
     then
         flags="$flags -Q"
     fi
