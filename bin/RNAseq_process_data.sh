@@ -68,6 +68,7 @@ function help_messg () {
             echo "-Q | --solexa Solexa quality scores (Phred-33)"
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
+            echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
             echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -108,6 +109,7 @@ function help_messg () {
             echo "-Q solexa Solexa quality scores (Phred-33)"
             echo "-X Phred quality values encoded as Phred + 33"
             echo "-Y Phred quality values encoded as Phred + 64"
+            echo "-o Use bowtie1 instead of bowtie2"
             echo "-C | --initial_read_mismatches [2]"
             echo "-h [print this help message]"
             echo "" ;;
@@ -149,6 +151,7 @@ function help_messg () {
             echo "-Q | --solexa Solexa quality scores (Phred-33)"
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
+            echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
             echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -224,6 +227,7 @@ oldid=0
 RNAseq_script='NULL'
 bsub=0
 queue='normal'
+bowtie1='NULL'
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -233,11 +237,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXY --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,phred33,phred64 -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYo --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,phred33,phred64,bowtie1 -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXY $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYo $*`
         ;;
 
     *)
@@ -286,6 +290,7 @@ while true ; do
         -Q|--solexa) qualscores=1 ; shift ;;
         -X|--phred33) qualscores=1 ; shift ;;
         -Y|--phred64) qualscores=2 ; shift ;;
+        -o|--bowtie1) bowtie1=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
         -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
@@ -337,6 +342,11 @@ then
     then
         flags="$flags -Q"
     fi
+fi
+
+if [[ $bowtie1 != "NULL" ]]
+then
+    flags="$flags -o"
 fi
 
 if [[ $coverage_search -ne 0 ]]
