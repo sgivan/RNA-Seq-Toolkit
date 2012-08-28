@@ -362,21 +362,25 @@ fi
 if [[ run_type != 'NULL' ]]
 then
 
-    mkdir -p merged
-    cd merged
-
-    if [[ $seonly -eq 0 ]]
+    if [[ -e "merged" ]] || mkdir -p merged
     then
+        cd merged
 
-        echo "merging PE and SE bam files"
-        samtools merge merged.bam ../*/accepted_hits.bam
+        if [[ $seonly -eq 0 ]]
+        then
 
+            echo "merging PE and SE bam files"
+            samtools merge merged.bam ../*/accepted_hits.bam
+
+        else
+
+            ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+        fi
+
+        cd ..
     else
-
-        ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+        echo "can't create merged directory"
     fi
-
-    cd ..
 
 fi
 

@@ -162,17 +162,21 @@ function help_messg () {
 function mk_agg_txpts () {
     cd $wd
     echo "generating transcripts file"
-    mkdir -p transcripts
-    cd transcripts
-    echo "cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
-    cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
-#    samtools merge all_merged.bam ../*/merged/merged.bam
-#    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
-#    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
-    cd ..
-    #ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
-    # name change means the link above doesn't work
-    ln -sf transcripts/cuffcmp.combined.gtf ./transcripts.gtf
+    if [[ -e "transcripts" ]] || mkdir -p transcripts
+    then
+        cd transcripts
+        echo "cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
+        cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
+    #    samtools merge all_merged.bam ../*/merged/merged.bam
+    #    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
+    #    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
+        cd ..
+        #ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
+        # name change means the link above doesn't work
+        ln -sf transcripts/cuffcmp.combined.gtf ./transcripts.gtf
+    else
+        echo "can't create transcripts directory"
+    fi
 }
 
 #function mk_agg_txpts () {
@@ -433,9 +437,14 @@ do
 
             # for transcripts runs
             # must have already run script with --agg_transcripts flag
-            mkdir -p non-aggregate
-            echo "moving old output files to 'non-aggregate'"
-            mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
+            if [[ -e "non-aggregate" ]] || mkdir -p non-aggregate
+            then
+                echo "moving old output files to 'non-aggregate'"
+                mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
+            else
+                echo "can't create non-aggregate directory"
+            fi
+
             echo "creating symbolic link to transcript.gtf"
             ln -sf $wd/transcripts.gtf ./
 
@@ -463,10 +472,14 @@ done
 if [ $aggregate_junctions = 1 ]
     then
         echo "generating aggregate junctions file"
-        mkdir -p merged_aggregates
-        cd merged_aggregates
-        cat ../*/*/junctions.bed | awk '{ if ($1 != "track") {split($11,len,","); split($12,blstrt,","); printf "%s\t%i\t%i\t%s\n", $1, $2 + len[1] - 1, $2 + blstrt[2], $6; }}' | sort -k 1,1 -gk 2,2 | uniq > aggregate_junctions.txt
-        cd ..
+        if [[ -e "merged_aggregates" ]] || mkdir -p merged_aggregates
+        then
+            cd merged_aggregates
+            cat ../*/*/junctions.bed | awk '{ if ($1 != "track") {split($11,len,","); split($12,blstrt,","); printf "%s\t%i\t%i\t%s\n", $1, $2 + len[1] - 1, $2 + blstrt[2], $6; }}' | sort -k 1,1 -gk 2,2 | uniq > aggregate_junctions.txt
+            cd ..
+        else
+            echo "can't create merged_aggregates directory"
+        fi
 fi
 
 if [ $aggregate_transcripts = 1 ]
