@@ -190,12 +190,16 @@ if (!$fastq) {
 #        $quality = substr($quality,length($adapterseq));
         print "seqname:\t'$seqname'\nsequence:\t'$sequence'\nqualname:\t'$qualname'\nquality:\t'$quality'\n\n" if ($debug);
         
-        print OUT "\@$seqname\n$sequence\n\+$seqname\n$quality\n"; 
-        print ID "$seqname\n" if ($idlist);
+        if (length($sequence)) {
+            print OUT "\@$seqname\n$sequence\n\+$seqname\n$quality\n"; 
+            print ID "$seqname\n" if ($idlist);
+        }
       
       } elsif ($printall) {
 
-        print OUT "\@$seqname\n$sequence\n\+$seqname\n$quality\n"; 
+        if (length($sequence)) {
+            print OUT "\@$seqname\n$sequence\n\+$seqname\n$quality\n"; 
+        }
           
       } 
   
