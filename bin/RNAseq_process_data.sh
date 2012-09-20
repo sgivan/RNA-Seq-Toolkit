@@ -23,6 +23,8 @@ wd=`pwd`
 osname=`uname -s`
 #export PATH=# <-- make sure RNAseq scripts are in your path
 export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
+script=`which RNAseq.sh`
+echo "script \"$script\""
 #
 
 function help_messg () {
@@ -36,6 +38,8 @@ function help_messg () {
             echo "-p | --partial (will skip preprocessing steps)"
             echo "-O | --preprocess_only (only run preprocessing routines)"
             echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
+            echo "-B | --bsub submit to LSF queueing system" 
+            echo "-D | --queue LSF queue [normal]"
             echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i | --min_intron_length [50] (minimum intron length)"
             echo "-I | --max_intron_length [25000] (maximum intron length)"
@@ -61,7 +65,10 @@ function help_messg () {
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n | --min_length [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E | --percent_high_quality [90] during preprocessing, minimum percentage of bases >= min_qual"
-            echo "-Q | --solexa Solexa quality scores (Phred-33). Current default is Illumina (Phred-64). Illumina switched back to Solexa in 2011."
+            echo "-Q | --solexa Solexa quality scores (Phred-33)"
+            echo "-X | --phred33 Phred quality values encoded as Phred + 33"
+            echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
+            echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
             echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -72,6 +79,8 @@ function help_messg () {
             echo "-f (will run full analysis, including short read preprocessing)"
             echo "-p (will skip preprocessing steps)"
             echo "-a (use transcripts.gtf for gene models and skip preprocessing)"
+            echo "-B submit to LSF queueing system" 
+            echo "-D LSF queue [normal]"
             echo "-r [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i [50] (minimum intron length)"
             echo "-I [25000] (maximum intron length)"
@@ -97,7 +106,10 @@ function help_messg () {
             echo "-q [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E [90] during preprocessing, minimum percentage of bases >= min_qual"
-            echo "-Q solexa Solexa quality scores (Phred-33). Current default is Illumina (Phred-64). Illumina switched back to Solexa in 2011."
+            echo "-Q solexa Solexa quality scores (Phred-33)"
+            echo "-X Phred quality values encoded as Phred + 33"
+            echo "-Y Phred quality values encoded as Phred + 64"
+            echo "-o Use bowtie1 instead of bowtie2"
             echo "-C | --initial_read_mismatches [2]"
             echo "-h [print this help message]"
             echo "" ;;
@@ -109,6 +121,8 @@ function help_messg () {
             echo "-f | --full (will run full analysis, including short read preprocessing)"
             echo "-p | --partial (will skip preprocessing steps)"
             echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
+            echo "-B | --bsub submit to LSF queueing system" 
+            echo "-D | --queue LSF queue [normal]"
             echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i | --min_intron_length [50] (minimum intron length)"
             echo "-I | --max_intron_length [25000] (maximum intron length)"
@@ -134,7 +148,10 @@ function help_messg () {
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
             echo "-n | --min_length [32] during preprocessing, minimum acceptable length after trimming"
             echo "-E | --percent_high_quality [90] during preprocessing, minimum percentage of bases >= min_qual"
-            echo "-Q | --solexa Solexa quality scores (Phred-33). Current default is Illumina (Phred-64). Illumina switched back to Solexa in 2011."
+            echo "-Q | --solexa Solexa quality scores (Phred-33)"
+            echo "-X | --phred33 Phred quality values encoded as Phred + 33"
+            echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
+            echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
             echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -145,17 +162,21 @@ function help_messg () {
 function mk_agg_txpts () {
     cd $wd
     echo "generating transcripts file"
-    mkdir -p transcripts
-    cd transcripts
-    echo "cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
-    cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
-#    samtools merge all_merged.bam ../*/merged/merged.bam
-#    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
-#    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
-    cd ..
-    #ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
-    # name change means the link above doesn't work
-    ln -sf transcripts/cuffcmp.combined.gtf ./transcripts.gtf
+    if [[ -e "transcripts" ]] || mkdir -p transcripts
+    then
+        cd transcripts
+        echo "cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
+        cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
+    #    samtools merge all_merged.bam ../*/merged/merged.bam
+    #    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
+    #    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
+        cd ..
+        #ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
+        # name change means the link above doesn't work
+        ln -sf transcripts/cuffcmp.combined.gtf ./transcripts.gtf
+    else
+        echo "can't create transcripts directory"
+    fi
 }
 
 #function mk_agg_txpts () {
@@ -202,10 +223,15 @@ segment_mismatches=2
 min_qual=13
 min_length=32
 percent_high_quality=90
+# default qualscores should be Phred+33
 qualscores='NULL'
 dev=0
 initial_read_mismatches=2
 oldid=0
+RNAseq_script='NULL'
+bsub=0
+queue='normal'
+bowtie1='NULL'
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -215,11 +241,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:N --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:oldid -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoBD --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,phred33,phred64,bowtie1,bsub,queue: -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:N $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoBD $*`
         ;;
 
     *)
@@ -266,10 +292,15 @@ while true ; do
         -n|--min_length) min_length=$2 ; shift 2 ;;
         -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
         -Q|--solexa) qualscores=1 ; shift ;;
+        -X|--phred33) qualscores=1 ; shift ;;
+        -Y|--phred64) qualscores=2 ; shift ;;
+        -o|--bowtie1) bowtie1=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
         -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
         -N|--oldid) oldid=1 ; shift ;;
+        -B|--bsub) bsub=1 ; shift ;;
+        -D|--queue) queue=$2 ; shift 2 ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -294,17 +325,32 @@ then
     flags="$flags -e"
 fi
 
+#if [[ $bsub != 0 ]]
+#then
+#    RNAseq_script="bsub -q $queue -n $threads RNAseq.sh"
+#else
+#    RNAseq_script="RNAseq.sh"
+#fi
+
+echo "RNAseq_script = '$RNAseq_script'"
+
 if [[ $adapter != "NULL" ]]
 then
     flags="$flags -A $adapter"    
 fi
 
+# default quality scores should be Phred+33
 if [[ $qualscores != "NULL" ]]
 then
-    if [[ $qualscores -eq 1 ]]
+    if [[ $qualscores -eq 2 ]]
     then
         flags="$flags -Q"
     fi
+fi
+
+if [[ $bowtie1 != "NULL" ]]
+then
+    flags="$flags -o"
 fi
 
 if [[ $coverage_search -ne 0 ]]
@@ -361,48 +407,63 @@ do
     echo $dir
     cd $dir
 
+    if [[ $bsub != 0 ]]
+    then
+        RNAseq_script="bsub -R \"rusage[mem=5000] span[hosts=1]\" -J $dir -q $queue -n $threads $script"
+        #RNAseq_script="bsub -R \"span[hosts=1]\" -J $dir -q $queue -n $threads $script"
+        #RNAseq_script="bsub -q $queue -n $threads -R \"span[hosts=1]\" $script"
+    else
+        RNAseq_script="$script"
+    fi
+
     case "$run_type" in
 
         partial)
 	
             # for partial runs (when you don't need to run preprocessing steps
 #            echo "RNAseq.sh $flags --partial" ;
-            echo "RNAseq.sh $flags -p" ;
-            RNAseq.sh $flags -p $more_flags ;;
+            echo "$RNAseq_script $flags -p $more_flags" ;
+            eval $RNAseq_script $flags -p $more_flags ;;
 
         full)
 
             # for full runs
 #            echo "RNAseq.sh $flags --full" ;
-            echo "RNAseq.sh $flags -f" ;
+            echo "$RNAseq_script $flags -f" ;
 #            RNAseq.sh $flags --full ;;
-            RNAseq.sh $flags -f ;;
+            eval $RNAseq_script $flags -f ;;
 
         transcripts)
 
             # for transcripts runs
             # must have already run script with --agg_transcripts flag
-            mkdir -p non-aggregate
-            echo "moving old output files to 'non-aggregate'"
-            mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
+            if [[ -e "non-aggregate" ]] || mkdir -p non-aggregate
+            then
+                echo "moving old output files to 'non-aggregate'"
+                mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
+            else
+                echo "can't create non-aggregate directory"
+            fi
+
             echo "creating symbolic link to transcript.gtf"
             ln -sf $wd/transcripts.gtf ./
 
             echo "running tophat"
 #            echo "RNAseq.sh --transcripts $flags $more_flags" ;
-            echo "RNAseq.sh -a $flags $more_flags" ;
+            echo "$RNAseq_script -a $flags $more_flags" ;
 #            RNAseq.sh --transcripts $flags $more_flags ;;
-            RNAseq.sh -a $flags $more_flags ;;
+            eval $RNAseq_script -a $flags $more_flags ;;
 
         preprocess)
 
             echo "running preprocessing routines only" ;
-            echo "RNAseq.sh -R -O $flags $more_flags" ;
-            RNAseq.sh -R -O $flags $more_flags ;;
+            echo "$RNAseq_script -R -O $flags $more_flags" ;
+            eval $RNAseq_script -R -O $flags $more_flags ;;
+            #bsub -R "rusage[mem=500] span[hosts=1]" -J $dir -n $threads -q bioq RNAseq.sh -R -O $flags $more_flags ;;
 
         *)
             echo "RNAeq.sh $flags"
-            RNAseq.sh $flags $more_flags ;;
+            eval $RNAseq_script $flags $more_flags ;;
 
     esac
     cd $wd
@@ -411,10 +472,14 @@ done
 if [ $aggregate_junctions = 1 ]
     then
         echo "generating aggregate junctions file"
-        mkdir -p merged_aggregates
-        cd merged_aggregates
-        cat ../*/*/junctions.bed | awk '{ if ($1 != "track") {split($11,len,","); split($12,blstrt,","); printf "%s\t%i\t%i\t%s\n", $1, $2 + len[1] - 1, $2 + blstrt[2], $6; }}' | sort -k 1,1 -gk 2,2 | uniq > aggregate_junctions.txt
-        cd ..
+        if [[ -e "merged_aggregates" ]] || mkdir -p merged_aggregates
+        then
+            cd merged_aggregates
+            cat ../*/*/junctions.bed | awk '{ if ($1 != "track") {split($11,len,","); split($12,blstrt,","); printf "%s\t%i\t%i\t%s\n", $1, $2 + len[1] - 1, $2 + blstrt[2], $6; }}' | sort -k 1,1 -gk 2,2 | uniq > aggregate_junctions.txt
+            cd ..
+        else
+            echo "can't create merged_aggregates directory"
+        fi
 fi
 
 if [ $aggregate_transcripts = 1 ]

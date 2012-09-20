@@ -105,6 +105,7 @@ qualscores='NULL'
 dev=0
 initial_read_mismatches=2
 oldid=0
+bowtie1='NULL'
 
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
@@ -112,15 +113,15 @@ oldid=0
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:N --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:No --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,bowtie1 -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:N $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:No $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdC:N --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdC:No --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,bowtie1 -- "$@"`
             ;;
 esac
 
@@ -158,6 +159,7 @@ while true ; do
         -n|--min_length) min_length=$2 ; shift 2 ;;
         -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
         -Q|--solexa) qualscores=1 ; shift ;;
+        -o|--bowtie1) bowtie1=1; shift ;;
         -h) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
         -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
@@ -177,7 +179,10 @@ echo "run type is " $run_type
 
 #tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I --solexa1.3-quals -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
 #tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches"
-tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --initial-read-mismatches $initial_read_mismatches"
+# this line works with tophat < v2.0, because of --initial-read-mismatches
+#tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --initial-read-mismatches $initial_read_mismatches"
+# following works with tophat v2.0+
+tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --read-mismatches $initial_read_mismatches"
 pe_extra_cmd="-r $mate_inner_distance_r --mate-std-dev $mate_std_dev -o pe_tophat_out $BOWTIE_INDEXES/$fasta_file read_1 read_2 "
 singles_extra_cmd="-o singles_tophat_out $BOWTIE_INDEXES/$fasta_file read_1.1,read_2.1 "
 # 
@@ -197,7 +202,7 @@ cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -b $BOWTIE_IN
 #
 if [[ $dev -ne 0 ]]
 then
-    export $PATH="/ircf/ircfapps/dev/bin:$PATH"
+    export PATH="/ircf/ircfapps/dev/bin:$PATH"
 fi
 
 if [[ $run_type = "full" ]]
@@ -215,20 +220,30 @@ then
     tophatcmd="$tophatcmd --butterfly-search"
 fi
 
+# default quality scores are Phred+33
 if [[ $qualscores != 'NULL' ]]
 then
     if [[ $qualscores -eq 1 ]]
     then
-        tophatcmd="$tophatcmd --solexa-quals"
+        # quality scores are Phred+64
+        #tophatcmd="$tophatcmd --solexa-quals"
+        tophatcmd="$tophatcmd --solexa1.3-quals"
     fi
 else
-    tophatcmd="$tophatcmd --solexa1.3-quals"
+    #tophatcmd="$tophatcmd --solexa1.3-quals"
+    tophatcmd=$tophatcmd
+fi
+
+if [[ $bowtie1 != 'NULL' ]]
+then
+    tophatcmd="$tophatcmd --bowtie1"
 fi
 
 preprocess_flags="-i $BOWTIE_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
 if [[ $qualscores -eq 1 ]]
 then
     preprocess_flags="$preprocess_flags -s"
+    #preprocess_flags=$preprocess_flags
 fi
 if [[ $seonly -eq 1 ]]
 then
@@ -347,21 +362,25 @@ fi
 if [[ run_type != 'NULL' ]]
 then
 
-    mkdir -p merged
-    cd merged
-
-    if [[ $seonly -eq 0 ]]
+    if [[ -e "merged" ]] || mkdir -p merged
     then
+        cd merged
 
-        echo "merging PE and SE bam files"
-        samtools merge merged.bam ../*/accepted_hits.bam
+        if [[ $seonly -eq 0 ]]
+        then
 
+            echo "merging PE and SE bam files"
+            samtools merge merged.bam ../*/accepted_hits.bam
+
+        else
+
+            ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+        fi
+
+        cd ..
     else
-
-        ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+        echo "can't create merged directory"
     fi
-
-    cd ..
 
 fi
 
