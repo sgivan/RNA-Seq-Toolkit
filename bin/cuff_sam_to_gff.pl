@@ -22,7 +22,7 @@ use Getopt::Long;
 use Bio::DB::Sam;
 use Bio::DB::Sam::Constants; # this will import RFLAGS into this namespace
 
-my ($infile,$outfile,$debug,$source,$type,$help,$integers,$mapped_id_file);
+my ($infile,$outfile,$debug,$source,$type,$help,$integers,$mapped_id_file,$onlymapped);
 my $split = 0;
 
 
@@ -35,6 +35,7 @@ GetOptions(
             "split"           =>  \$split,
             "integers"        =>  \$integers,
             "mapped"          =>  \$mapped_id_file,
+            "onlymapped"      =>  \$onlymapped,
             "help"            =>  \$help,
 );
 _help() if ($help);
@@ -89,6 +90,10 @@ foreach my $line (<IN>) {
 	$outvals[$GFFLOC{refmol}] = $values[2];
 	$outvals[$GFFLOC{score}] = $values[4];
 	$outvals[$GFFLOC{phase}] = '.';
+
+    if ($onlymapped) {
+        next if ($flag & 0x0004);
+    }
 
 	print "$values[0]\t" if ($debug);
 	$outvals[$GFFLOC{start}] = $values[3];
@@ -235,6 +240,7 @@ print <<HELP;
             "split"           =>  \$split,
             "integers"        =>  \$integers, # print /1 or /2 suffix to read ID instead of /a or /b
             "mapped"          =>  \$mapped_id_file,
+            "onlymapped"      =>  \$onlymapped,
             "help"            =>  \$help,
 
 HELP
