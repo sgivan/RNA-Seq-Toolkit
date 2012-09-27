@@ -291,7 +291,7 @@ while true ; do
         -q|--min_qual) min_qual=$2 ; shift 2 ;;
         -n|--min_length) min_length=$2 ; shift 2 ;;
         -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
-        -Q|--solexa) qualscores=1 ; shift ;;
+        -Q|--solexa) qualscores=3 ; shift ;;
         -X|--phred33) qualscores=1 ; shift ;;
         -Y|--phred64) qualscores=2 ; shift ;;
         -o|--bowtie1) bowtie1=1 ; shift ;;
@@ -345,6 +345,9 @@ then
     if [[ $qualscores -eq 2 ]]
     then
         flags="$flags -Q"
+    elif [[ $qualscores -eq 3 ]]
+    then
+        flags="$flags -B"
     fi
 fi
 
