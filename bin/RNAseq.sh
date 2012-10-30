@@ -424,7 +424,7 @@ then
     echo "running cufflinks using transcript file"
     #samtools merge - ../*/accepted_hits.bam | samtools view -o - - | cuff_sam_to_gff.pl --infile - --outfile all_sorted.gff --source GA2 --type $bioclass$lane
     
-    echo "creating new directory: merged_aggregate"
+#    echo "creating new directory: merged_aggregate"
 #    mkdir -p merged_aggregate
 #    cd merged_aggregate
 #    echo "creating bam file from pe and single runs"
