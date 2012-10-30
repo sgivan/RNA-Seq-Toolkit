@@ -8,5 +8,6 @@ echo "XLOC_000024     XLOC_000024     -       Chr3:195078-197976      q2      q3
 echo ""
 echo "running test"
 echo ""
-grep yes cuffdiff/gene_exp.diff
+#grep yes cuffdiff/gene_exp.diff
+grep XLOC_000024 cuffdiff/gene_exp.diff
 
