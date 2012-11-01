@@ -37,22 +37,24 @@ mv s_8_* s_8
 echo "creating symbolic links inside of sample directories"
 cd s_6
 ln -sf s_6_1_test.txt set1.fq
-#ln -sf s_6_2_test.txt set2.fq
+ln -sf s_6_2_test.txt set2.fq
 cd ../s_7
 ln -sf s_7_1_test.txt set1.fq
-#ln -sf s_7_2_test.txt set2.fq
+ln -sf s_7_2_test.txt set2.fq
 cd ../s_8
 ln -sf s_8_1_test.txt set1.fq
-#ln -sf s_8_2_test.txt set2.fq
+ln -sf s_8_2_test.txt set2.fq
 cd ..
 #
 echo "making bowtie indices"
 #
 cd index
 echo "building refseq index"
-bowtie-build chrom3.fa refseq
+#bowtie-build chrom3.fa refseq
+bowtie2-build chrom3.fa refseq
 echo "building undesireables index"
-bowtie-build Contaminants.fa filter
+#bowtie-build Contaminants.fa filter
+bowtie2-build Contaminants.fa filter
 echo "creating sybolic links"
 ln -s chrom3.fa refseq.fa
 ln -s Contaminants.fa filter.fa
