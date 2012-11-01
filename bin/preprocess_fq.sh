@@ -31,6 +31,8 @@ min_length=32
 percent_high_quality=90
 bowtie_threads=8
 BOWTIE_INDEXES='index'
+BOWTIE2_INDEXES='index'
+bowtie_cmd='bowtie2'
 filter='filter'
 leave_temp=0
 qualscores='NULL'
@@ -89,7 +91,10 @@ while true ; do
 done
 
 export BOWTIE_INDEXES
-echo "min_qual min_length percent_high_quality bowtie_threads indexpath = $min_qual $min_length $percent_high_quality $bowtie_threads $BOWTIE_INDEXES"
+export BOWTIE2_INDEXES
+echo 'BOWTIE2_INDEXES: '$BOWTIE2_INDEXES
+
+echo "min_qual min_length percent_high_quality bowtie_threads indexpath = $min_qual $min_length $percent_high_quality $bowtie_threads $BOWTIE2_INDEXES"
 #
 echo "creating preprocess directory in $wd"
 mkdir -p preprocess
@@ -97,6 +102,7 @@ mkdir -p preprocess
 #mv set2.fq set2_input.fq
 cd preprocess
 ln -sf ../set1.fq ./set1.fq
+ln -sf ../../index
 #exit
 if [[ $seonly -ne 1 ]]
 then
@@ -138,19 +144,19 @@ then
     eval fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
 fi
 #exit
-echo "sequence similarity filtering using bowtie"
+echo "sequence similarity filtering using $bowtie_cmd"
 echo "reads that fail to align are retained, reads that align are filtered out of data"
 echo "first data file ..."
 #echo "bowtie -q --solexa1.3-quals --un set1_qt_qf_sf.fq --threads $bowtie_threads $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
-echo "bowtie $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
-bowtie $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+echo "$bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
+$bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
 cat set1_qt_qf_bwt.log
 
 if [[ -e set2_qt_qf.fq ]]
 then
     echo "second data file"
-    echo "bowtie $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log"
-    bowtie $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log
+    echo "$bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log"
+    $bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log
     cat set2_qt_qf_bwt.log
 fi
 
