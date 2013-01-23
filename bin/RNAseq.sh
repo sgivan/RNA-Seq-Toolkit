@@ -93,6 +93,7 @@ min_anchor_length_a=8
 mate_std_dev=20
 min_isoform_frac=0.15
 max_multihits=20
+max_mismatches=2
 coverage_search=0
 butterfly_search=0
 segment_length=25
@@ -103,7 +104,7 @@ percent_high_quality=90
 #qualscores='--solexa1.3-quals'
 qualscores='NULL'
 dev=0
-initial_read_mismatches=2
+#initial_read_mismatches=2
 oldid=0
 bowtie1='NULL'
 
@@ -113,15 +114,17 @@ bowtie1='NULL'
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NoB --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,bowtie1,solexa_p13 -- "$@"`
+#            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NoB $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG: $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdC:NoB --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,bowtie1,solexa_p13 -- "$@"`
+#            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdC:NoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
             ;;
 esac
 
@@ -143,6 +146,7 @@ while true ; do
         -S|--mate_std_dev) mate_std_dev=$2 ; shift 2 ;;
         -F|--min_isoform_fraction) min_isoform_frac=$2 ; shift 2 ;;
         -g|--max_multihits) max_multihits=$2 ; shift 2 ;;
+        -G|--max_mismatches) max_mismatches=$2 ; shift 2 ;;
         -v|--coverage_search) coverage_search=1 ; shift ;;
         -b|--butterfly_search) butterfly_search=1 ; shift ;;
         -L|--segment_length) segment_length=$2 ; shift 2 ;;
@@ -163,7 +167,7 @@ while true ; do
         -o|--bowtie1) bowtie1=1; shift ;;
         -h) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
-        -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
+#        -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
         -N|--oldid) oldid=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
@@ -183,7 +187,8 @@ echo "run type is " $run_type
 # this line works with tophat < v2.0, because of --initial-read-mismatches
 #tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --initial-read-mismatches $initial_read_mismatches"
 # following works with tophat v2.0+
-tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --read-mismatches $initial_read_mismatches"
+#tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --read-mismatches $initial_read_mismatches --read-mismatches $max_mismatches"
+tophatcmd="$tophat --library-type $librarytype -p $procs -i $min_intron_length_i -I $max_intron_length_I -m $splice_mismatches_m -a $min_anchor_length_a --min-isoform-fraction $min_isoform_frac --max-multihits $max_multihits --segment-length $segment_length --segment-mismatches $segment_mismatches --read-mismatches $max_mismatches --read-edit-dist $max_mismatches"
 pe_extra_cmd="-r $mate_inner_distance_r --mate-std-dev $mate_std_dev -o pe_tophat_out $BOWTIE_INDEXES/$fasta_file read_1 read_2 "
 singles_extra_cmd="-o singles_tophat_out $BOWTIE_INDEXES/$fasta_file read_1.1,read_2.1 "
 # 
@@ -414,7 +419,8 @@ then
 #        echo $cufflinks $cufflinksflgs */accepted_hits.bam
 #        $cufflinks $cufflinksflgs */accepted_hits.bam
         echo $cufflinks $cufflinksflgs merged/merged.bam
-        $cufflinks $cufflinksflgs merged/merged.bam
+        #$cufflinks $cufflinksflgs merged/merged.bam
+        $cufflinks $cufflinksflgs merged/merged.bam > cufflinks.log 2>&1
     fi
 #    cd ..
 fi
@@ -437,9 +443,11 @@ then
     echo "running cufflinks"
     #cufflinks_extra_cmd="--GTF ../transcripts.gtf -L $bioclass$lane merged.bam"
     #cufflinks_extra_cmd="--GTF ../transcripts.gtf"
-    cufflinks_extra_cmd="--GTF transcripts.gtf"
+    #cufflinks_extra_cmd="--GTF transcripts.gtf"
+    cufflinks_extra_cmd="--GTF-guide transcripts.gtf"
     echo $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
-    $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
+    #$cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
+    $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam > cufflinks.log 2>&1
     #cd ..
     #ln -s merged/aggregate_junctions.txt junctions.txt
     #ln -s merged/transcripts.gtf ./
