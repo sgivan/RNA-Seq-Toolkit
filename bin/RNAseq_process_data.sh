@@ -48,6 +48,7 @@ function help_messg () {
             echo "-S | --mate_std_dev [20] (std dev for inner distances between mate pairs)"
             echo "-F | --min-isoform-fraction [0.15] (min isoform fraction)"
             echo "-g | --max_multihits [20] (max multihits)"
+            echo "-G | --max_mismatches [2] (max mismatches in final alignment of whole read)"
             echo "-v | --coverage_search (enables coverage search)"
             echo "-b | --butterfly_search (enables butterfly search)"
             echo "-L | --segment-length [25] (segment length)"
@@ -69,7 +70,7 @@ function help_messg () {
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
-            echo "-C | --initial_read_mismatches [2]"
+#            echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -89,6 +90,7 @@ function help_messg () {
             echo "-S [20] (std dev for inner distances between mate pairs)"
             echo "-F [0.15] (min isoform fraction)"
             echo "-g [20] (max multihits)"
+            echo "-G [2] (max mismatches)"
             echo "-v (enables coverage search)"
             echo "-b (enables butterfly search)"
             echo "-L [25] (segment length)"
@@ -110,7 +112,7 @@ function help_messg () {
             echo "-X Phred quality values encoded as Phred + 33"
             echo "-Y Phred quality values encoded as Phred + 64"
             echo "-o Use bowtie1 instead of bowtie2"
-            echo "-C | --initial_read_mismatches [2]"
+#            echo "-C | --initial_read_mismatches [2]"
             echo "-h [print this help message]"
             echo "" ;;
 
@@ -130,6 +132,7 @@ function help_messg () {
             echo "-c | --min_anchor_length [8] (minimum number of reads on each side of splice junction)"
             echo "-S | --mate_std_dev [20] (std dev for inner distances between mate pairs)"
             echo "-g | --max_multihits [20] (max multihits)"
+            echo "-G | --max_mismatches [2] (max mismatches in final alignment of whole read)"
             echo "-v | --coverage_search (enables coverage search)"
             echo "-b | --butterfly_search (enables butterfly search)"
             echo "-L | --segment-length [25] (segment length)"
@@ -152,7 +155,7 @@ function help_messg () {
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
-            echo "-C | --initial_read_mismatches [2]"
+#            echo "-C | --initial_read_mismatches [2]"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -216,6 +219,7 @@ min_anchor_length=8
 mate_std_dev=20
 min_isoform_frac=0.15
 max_multihits=20
+max_mismatches=2
 coverage_search=0
 butterfly_search=0
 segment_length=25
@@ -241,7 +245,7 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoBD: --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,phred33,phred64,bowtie1,bsub,queue: -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoBD: --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches: -- "$@"`
         ;;
 
     Darwin)
@@ -271,6 +275,7 @@ while true ; do
         -S|--mate_std_dev) mate_std_dev=$2 ; shift 2 ;;
         -F|--min_isoform_fraction) min_isoform_frac=$2 ; shift 2 ;;
         -g|--max_multihits) max_multihits=$2 ; shift 2 ;;
+        -G|--max_mismatches) max_mismatches=$2 ; shift 2 ;;
         -v|--coverage_search) coverage_search=1 ; shift ;;
         -b|--butterfly_search) butterfly_search=1 ; shift ;;
         -L|--segment_length) segment_length=$2 ; shift 2 ;;
@@ -297,7 +302,7 @@ while true ; do
         -o|--bowtie1) bowtie1=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
-        -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
+#        -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
         -N|--oldid) oldid=1 ; shift ;;
         -B|--bsub) bsub=1 ; shift ;;
         -D|--queue) queue=$2 ; shift 2 ;;
@@ -310,7 +315,8 @@ done
 echo "run type is '$run_type'"
 #flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality"
 #flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality"
-flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality -C $initial_read_mismatches"
+#flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality -C $initial_read_mismatches -G $max_mismatches" 
+flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality -G $max_mismatches" 
 #echo "flags: $flags"
 #exit
 
@@ -427,6 +433,7 @@ do
 #            echo "RNAseq.sh $flags --partial" ;
             echo "$RNAseq_script $flags -p $more_flags" ;
             eval $RNAseq_script $flags -p $more_flags ;;
+            #eval $RNAseq_script $flags -p $more_flags > RNAseq.log 2>&1 ;;
 
         full)
 
@@ -435,6 +442,7 @@ do
             echo "$RNAseq_script $flags -f" ;
 #            RNAseq.sh $flags --full ;;
             eval $RNAseq_script $flags -f ;;
+            #eval $RNAseq_script $flags -f > RNAseq.log 2>&1 ;;
 
         transcripts)
 
@@ -456,12 +464,14 @@ do
             echo "$RNAseq_script -a $flags $more_flags" ;
 #            RNAseq.sh --transcripts $flags $more_flags ;;
             eval $RNAseq_script -a $flags $more_flags ;;
+            #eval $RNAseq_script -a $flags $more_flags > RNAseq.log 2>&1 ;;
 
         preprocess)
 
             echo "running preprocessing routines only" ;
             echo "$RNAseq_script -R -O $flags $more_flags" ;
             eval $RNAseq_script -R -O $flags $more_flags ;;
+            #eval $RNAseq_script -R -O $flags $more_flags >> RNAseq.log 2>&1 ;;
             #bsub -R "rusage[mem=500] span[hosts=1]" -J $dir -n $threads -q bioq RNAseq.sh -R -O $flags $more_flags ;;
 
         *)
