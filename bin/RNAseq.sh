@@ -107,6 +107,7 @@ dev=0
 #initial_read_mismatches=2
 oldid=0
 bowtie1='NULL'
+no_new_txpts='NULL'
 
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
@@ -114,17 +115,17 @@ bowtie1='NULL'
 case "$osname" in
 
     Linux)
-#            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
+            #TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:k --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG: $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:k $*`
             ;;
 
         *)
-#            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdC:NoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
+            #TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG:k --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts -- "$@"`
             ;;
 esac
 
@@ -138,6 +139,7 @@ while true ; do
         -f|--full) run_type='full' ; shift ;;
         -p|--partial) run_type='partial' ; shift ;;
         -a|--transcripts) run_type='transcripts' ; shift ;;
+        -k|--nonewtranscripts) no_new_txpts=1 ; shift ;;
         -r|--mate_inner_distance) mate_inner_distance_r=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length_i=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length_I=$2 ; shift 2 ;;
@@ -198,7 +200,7 @@ singles_extra_cmd="-o singles_tophat_out $BOWTIE_INDEXES/$fasta_file read_1.1,re
 #cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $wd/index/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
 #cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -r $BOWTIE_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
 # cufflinks version >= 1.0.0 no longer uses -r flag. Now uses -b flag
-cufflinksflgs="-I $max_intron_length_I --library-type $librarytype -b $BOWTIE_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
+cufflinksflgs="-u -I $max_intron_length_I --library-type $librarytype -b $BOWTIE_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min-intron-length $min_intron_length_i"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -336,6 +338,21 @@ fi
 export BOWTIE_INDEXES=$BOWTIE_INDEXES # this is the directory containing the index files created with bowtie-build
 if [ $run_type = transcripts ]
 then
+    if [[ $no_new_txpts != "NULL" ]]
+    then
+        #pe_extra_cmd="$pe_extra_cmd --transcriptome-only"
+        pe_extra_cmd=" --transcriptome-only $pe_extra_cmd"
+        #singles_extra_cmd="$singles_extra_cmd --transcriptome-only"
+        singles_extra_cmd=" --transcriptome-only $singles_extra_cmd"
+    fi
+
+    #pe_extra_cmd="$pe_extra_cmd --transcriptome-index=../transcriptome-data"
+    #singles_extra_cmd="$singles_extra_cmd --transcriptome-index=../transcriptome-data"
+    #pe_extra_cmd=" --transcriptome-index=../transcriptome-data $pe_extra_cmd"
+    #singles_extra_cmd=" --transcriptome-index=../transcriptome-data $singles_extra_cmd"
+    pe_extra_cmd=" --transcriptome-index=../transcriptome-data/transcriptome $pe_extra_cmd"
+    singles_extra_cmd=" --transcriptome-index=../transcriptome-data/transcriptome $singles_extra_cmd"
+
     if [[ $seonly -eq 0 ]]
     then
         echo "running tophat using precomputed annotation file"
@@ -441,10 +458,16 @@ then
 #        ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
 #    fi
     echo "running cufflinks"
+    if [[ $no_new_txpts != "NULL" ]]
+    then
+        cufflinks_extra_cmd="--GTF transcripts.gtf"
+    else
+        cufflinks_extra_cmd="--GTF-guide transcripts.gtf"
+    fi
     #cufflinks_extra_cmd="--GTF ../transcripts.gtf -L $bioclass$lane merged.bam"
     #cufflinks_extra_cmd="--GTF ../transcripts.gtf"
     #cufflinks_extra_cmd="--GTF transcripts.gtf"
-    cufflinks_extra_cmd="--GTF-guide transcripts.gtf"
+    #cufflinks_extra_cmd="--GTF-guide transcripts.gtf"
     echo $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
     #$cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
     $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam > cufflinks.log 2>&1

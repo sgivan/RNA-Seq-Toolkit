@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-my ($debug,$infile,$min_length,$max_length,$outfails,$failsfile,$cumulative,$help);
+my ($debug,$infile,$min_length,$max_length,$outfails,$failsfile,$cumulative,$help,$filter_by_length,$filter_by_class);
 #
 # Perl script to filter a collection of transripts specificed in a GTF file
 # by a minimum or maximum length value
@@ -33,6 +33,8 @@ my ($debug,$infile,$min_length,$max_length,$outfails,$failsfile,$cumulative,$hel
 GetOptions(
 
     "file=s"            =>  \$infile,
+    "bylength"          =>  \$filter_by_length,
+    "byclass"           =>  \$filter_by_class,
     "min_length=i"      =>  \$min_length,
     "max_length=i"      =>  \$max_length,
     "outfails"          =>  \$outfails,
@@ -49,8 +51,9 @@ if ($help) {
     print "usage: transcript_filter.pl --file infile_name\n";
     print "options:\n \
     \t--file infile_name or - \
-    \t--min_length integer \
-    \t--max_length integer \
+    \t--bylength or --byclass [default = --bylength] \
+    \t--min_length integer [default = 500] \
+    \t--max_length integer [default = 1e6]\
     \t--outfails \
     \t--cumulative \
     \t--debug\n\n";
@@ -63,8 +66,8 @@ if ($outfails) {
     open(FAILS,">$failsfile") or die "can't open 'outfails.txt': $!";
 }
 
-my ($new_transcript_id,$transcript_id,$start,$stop,@buffer,$cnt,$cumlength);
-($start,$stop,$cnt,$cumlength) = (0,0,0,0);
+my ($new_transcript_id,$transcript_id,$start,$stop,@buffer,$cnt,$cumlength,$class_code);
+($start,$stop,$cnt,$cumlength,$class_code) = (0,0,0,0,'');
 while (<IN>) {
     my $line = $_;
     my @vals = split /\t/, $line;
@@ -75,10 +78,10 @@ while (<IN>) {
     
     if ($new_transcript_id ne $transcript_id) {
 #        print @buffer; 
-        evalout($start,$stop,$cumlength,@buffer);
+        evalout($start,$stop,$cumlength,$class_code,@buffer);
         @buffer = ();
         $transcript_id = $new_transcript_id;
-        ($start,$stop,$cumlength) = ($vals[3],$vals[4],0);
+        ($start,$stop,$cumlength,$class_code) = ($vals[3],$vals[4],0,'');
     }
 
     push(@buffer,$line);
@@ -87,12 +90,17 @@ while (<IN>) {
     $cumlength += $vals[4] - $vals[3] + 1;
 #    print "loop '$cnt', start: '$start', vals[3]: '" . $vals[3] . "', stop: '$stop', vals[4]: '" . $vals[4] . "'\n";
 
+    # parse class_code values
+    if ($vals[8] =~ /\Wclass_code\s\"(.)\"\;/) {
+        $class_code = $1;
+    }
+
 
 } continue {
     ++$cnt;
     if (eof) {
 #        print @buffer;
-        evalout($start,$stop,$cumlength,@buffer);
+        evalout($start,$stop,$cumlength,$class_code,@buffer);
     }
 }
 
@@ -100,14 +108,28 @@ close(IN) or warn("can't close $infile properly: $!");
 close(FAILS) or warn("can't close $failsfile properl: $!") if ($outfails);
 
 sub evalout {
-    my ($start,$stop,$cumlength,@bufferout) = @_;
+    my ($start,$stop,$cumlength,$class_code,@bufferout) = @_;
     my $diff = $stop - $start;
+    #$filter_by_length = 1 if (!$filter_by_length && !$filter_by_class);# just so we do some filtering by default
+    my ($length_pass,$class_pass) = (0,0);
 
 #    if ($diff >= $min_length && $diff <= $max_length) {
-    if (($cumulative && ($cumlength >= $min_length && $cumlength <= $max_length)) || (!$cumulative && ($diff >= $min_length && $diff <= $max_length))) {
+    if ($filter_by_length && (($cumulative && ($cumlength >= $min_length && $cumlength <= $max_length)) || (!$cumulative && ($diff >= $min_length && $diff <= $max_length)))) {
+#        print "\nstart: $start; stop: $stop; cumulative: $cumlength\n" if ($debug);
+#        print @bufferout;
+#        return;
+        ++$length_pass;
+    }
+
+    if ($filter_by_class && ($class_code ne 'r' && $class_code ne 's' && $class_code ne 'i')) {
+#        ++$passed;
+        ++$class_pass;
+    }
+#    } elsif ($outfails) {
+    if ( (($filter_by_length && $filter_by_class) && ($length_pass && $class_pass)) || (!$filter_by_class && $filter_by_length && $length_pass) || (!$filter_by_length && $filter_by_class && $class_pass) ) {
         print "\nstart: $start; stop: $stop; cumulative: $cumlength\n" if ($debug);
         print @bufferout;
-    } elsif ($outfails) {
+    } else {        
         print FAILS @bufferout;
     }
 }
