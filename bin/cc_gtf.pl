@@ -1,6 +1,4 @@
 #!/usr/bin/env perl
-<<<<<<< HEAD
-=======
 # copyright Scott Givan, The University of Missouri, July 6, 2012
 #
 #    This file is part of the RNA-seq Toolkit, or RST.
@@ -20,7 +18,6 @@
 #
 #
 # Copyright 2012 Scott A. Givan
->>>>>>> github/osu
 #
 use strict;
 use warnings qw/all/;
