@@ -38,6 +38,7 @@ function help_messg () {
             echo "-p | --partial (will skip preprocessing steps)"
             echo "-O | --preprocess_only (only run preprocessing routines)"
             echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
+            echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
             echo "-B | --bsub submit to LSF queueing system" 
             echo "-D | --queue LSF queue [normal]"
             echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
@@ -123,6 +124,7 @@ function help_messg () {
             echo "-f | --full (will run full analysis, including short read preprocessing)"
             echo "-p | --partial (will skip preprocessing steps)"
             echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
+            echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
             echo "-B | --bsub submit to LSF queueing system" 
             echo "-D | --queue LSF queue [normal]"
             echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
@@ -236,6 +238,7 @@ RNAseq_script='NULL'
 bsub=0
 queue='normal'
 bowtie1='NULL'
+no_new_txpts='NULL'
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -245,11 +248,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoBD: --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches: -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoBD:k --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches:,nonewtranscripts -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoBD: $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoBD:k $*`
         ;;
 
     *)
@@ -267,6 +270,7 @@ while true ; do
         -f|--full) run_type='full' ; shift ;;
         -p|--partial) run_type='partial' ; shift ;;
         -a|--transcripts) run_type='transcripts' ; shift ;;
+        -k|--nonewtranscripts) no_new_txpts=1 ; shift ;;
         -r|--mate_inner_distance) mate_inner_distance=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length=$2 ; shift 2 ;;
@@ -418,7 +422,8 @@ do
 
     if [[ $bsub != 0 ]]
     then
-        RNAseq_script="bsub -R \"rusage[mem=10000] span[hosts=1]\" -J $dir -q $queue -n $threads $script"
+        #RNAseq_script="bsub -R \"rusage[mem=10000] span[hosts=1]\" -J $dir -q $queue -n $threads $script"
+        RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -J $dir -q $queue -n $threads $script"
         #RNAseq_script="bsub -R \"span[hosts=1]\" -J $dir -q $queue -n $threads $script"
         #RNAseq_script="bsub -q $queue -n $threads -R \"span[hosts=1]\" $script"
     else
@@ -454,6 +459,11 @@ do
                 mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
             else
                 echo "can't create non-aggregate directory"
+            fi
+
+            if [[ $no_new_txps != "NULL" ]]
+            then
+                more_flags="$more_flags -k"
             fi
 
             echo "creating symbolic link to transcript.gtf"
