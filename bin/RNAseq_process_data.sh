@@ -53,7 +53,7 @@ function help_messg () {
             echo "-v | --coverage_search (enables coverage search)"
             echo "-b | --butterfly_search (enables butterfly search)"
             echo "-L | --segment-length [25] (segment length)"
-            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
+#            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
             echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
             echo "-s | --refseq [refseq] (name of file containing reference DNA seqeunce)"
             echo "-H | --threads [8] (number of threads to use)"
@@ -138,7 +138,7 @@ function help_messg () {
             echo "-v | --coverage_search (enables coverage search)"
             echo "-b | --butterfly_search (enables butterfly search)"
             echo "-L | --segment-length [25] (segment length)"
-            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
+#            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
             echo "-F | --min-isoform-fraction [0.15] (min isoform fraction)"
             echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
             echo "-s | --refseq [refseq] (name of file containing reference DNA seqeunce)"
@@ -423,7 +423,7 @@ do
     if [[ $bsub != 0 ]]
     then
         #RNAseq_script="bsub -R \"rusage[mem=10000] span[hosts=1]\" -J $dir -q $queue -n $threads $script"
-        RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -J $dir -q $queue -n $threads $script"
+        RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
         #RNAseq_script="bsub -R \"span[hosts=1]\" -J $dir -q $queue -n $threads $script"
         #RNAseq_script="bsub -q $queue -n $threads -R \"span[hosts=1]\" $script"
     else
