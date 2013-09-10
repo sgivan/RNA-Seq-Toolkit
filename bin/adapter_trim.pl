@@ -23,22 +23,27 @@ use strict;
 use Getopt::Long;
 
 my ($infile, $outfile, $overwrite, $adapterseq, $help, $verbose, $debug, $fastq,$idlist,$idlistfile,$printall,$notwoadapters,$id2adapters,$diversity);
+my ($prefix,$internal,$suffix,$minlength,$lowercase);
 
 my $options = GetOptions(
-  "infile=s"      =>  \$infile,
-  "outfile=s"     =>  \$outfile,
-  "overwrite"     =>  \$overwrite,
-  "adapterseq=s"   =>  \$adapterseq,
-  "help"          =>  \$help,
-  "verbose"       =>  \$verbose,
-  "debug"         =>  \$debug,
-  "fastq"         =>  \$fastq,
-  "idlist"        =>  \$idlist,
-  "idlistfile=s"  =>  \$idlistfile,
-  "printall"      =>  \$printall,
-  "notwoadapters"    =>  \$notwoadapters,
-  "id2adapters"      =>  \$id2adapters,
-  "diversity=f"     =>  \$diversity,
+    "infile=s"      =>  \$infile,
+    "outfile=s"     =>  \$outfile,
+    "overwrite"     =>  \$overwrite,
+    "prefix"        =>  \$prefix,# default
+    "suffix"        =>  \$suffix,
+    "minlength=i"   =>  \$minlength,
+    "adapterseq=s"  =>  \$adapterseq,
+    "lowercase"     =>  \$lowercase,
+    "help"          =>  \$help,
+    "verbose"       =>  \$verbose,
+    "debug"         =>  \$debug,
+    "fastq"         =>  \$fastq,
+    "idlist"        =>  \$idlist,
+    "idlistfile=s"  =>  \$idlistfile,
+    "printall"      =>  \$printall,
+    "notwoadapters" =>  \$notwoadapters,
+    "id2adapters"   =>  \$id2adapters,
+    "diversity=f"   =>  \$diversity,
 );
 
 if (!$options) {
@@ -49,21 +54,25 @@ if (!$options) {
 if ($help) {
 print <<HELP;
 
-  "infile=s"      =>  \$infile,
-  "outfile=s"     =>  \$outfile,
-  "overwrite"     =>  \$overwrite,
-  "adapterseq=s"   =>  \$adapterseq,
-  "help"          =>  \$help,
-  "verbose"       =>  \$verbose,
-  "debug"         =>  \$debug,
+    "infile=s"      =>  input file [default = infile]
+    "outfile=s"     =>  output file [default = outfile]
+    "overwrite"     =>  overwrite output file [default = no overwrite]
+    "prefix"        =>  identify adapter seq at 5' end
+    "suffix"        =>  identify adapter seq at 3' end
+    "minlength"     =>  minimum acceptable length after trimming [default = 10]
+    "adapterseq=s"   => the adapter sequence to identify and trim
+    "lowercase"     =>  trim lowercase nucleotides & their quality values
+    "help"          =>  print the help menu
+    "verbose"       =>  verbose output to terminal
+    "debug"         =>  debugging output to terminal
 Options below only affect fastq input files:
-  "fastq"         =>  \$fastq,
-  "idlist"        =>  \$idlist,
-  "idlistfile=s"  =>  \$idlistfile,
-  "printall"      =>  \$printall, # print all sequences, even if they don't contain adapter sequence
-  "notwoadapters"  =>  \$notwoadapters, # skip sequences that contain > 1 adapter sequence, even if --printall
-  "id2adapters"    =>  \$id2adapters, # output sequences with >1 adapter to STDERR, requires --notwoadapters
-  "diversity=f"     =>  \$diversity, # default = 0 -- no diversity filter
+    "fastq"         =>  input file is fastq [default = fastq]
+    "idlist"        =>  generate a file called idlist that contains id's of sequences trimmed
+    "idlistfile=s"  =>  input idlist file
+    "printall"      =>  print all sequences, even if they don't contain adapter sequence
+    "notwoadapters"  => skip sequences that contain > 1 adapter sequence, even if --printall
+    "id2adapters"    => output sequences with >1 adapter to STDERR, requires --notwoadapters
+    "diversity=f"    => diversity filter [default = 0 -- no diversity filter]
 
 notes:
 
@@ -76,6 +85,8 @@ are filtered using --id2adapters, which directs those sequences to STDERR.
 
 ie:  adapter_trim.pl --infile set1.fq --fastq --outfile trimmed1.fq --adapterseq AAGCAGTGGTATCAACGCAGAGTAC --notwoadapters --id2adapters >& 2adapters.txt
 
+NOTE: Recent development has focused almost entirely on working with fastq files -- please do not use this script with fasta files.
+
 HELP
 exit;
 }
@@ -85,6 +96,10 @@ $outfile = 'outfile' unless ($outfile);
 $idlistfile = 'idlist' unless ($idlistfile);
 $diversity = 0.00 unless ($diversity);
 #$adapterseq = '';
+my $adapterseq_length = length($adapterseq);
+$prefix = 1  unless ($suffix);
+$minlength ||= 10;
+$fastq ||= 1;
 
 if (-e $outfile && !$overwrite) {
   print "$outfile already exists and you didn't specify to overwrite\n";
@@ -138,61 +153,99 @@ if (!$fastq) {
   # print trimmed fastq sequence and quality string
   #
   
+  my $loopcnt = 0;
+  my $noread = 0;
   while (<IN>) {    
     if ($_ =~ /^\@(.+)\n/) {
       $seqname = $1;
        
-      $sequence = <IN>;
-      chomp($sequence);
-      $qualname = <IN>;
-      $qualname =~ s/[\+\n]//g;
-      $quality = <IN>;
-      chomp($quality);
+    $sequence = <IN>;
+    chomp($sequence);
+    $qualname = <IN>;
+    $qualname =~ s/[\+\n]//g;
+    $quality = <IN>;
+    chomp($quality);
+
+    print "\nBEFORE:\nseqname:\t'$seqname'\nsequence:\t'$sequence'\nqualname:\t'$qualname'\nquality:\t'$quality'\n\n" if ($debug);
+    #last if (++$loopcnt == 26 && $debug);
 
 #        if ($debug) {
 #            print "sequence: '$sequence'\n";
 #            print "quality:  '$quality'\n";
 #        }
 
-        if ($diversity) {
-            my $length = length($sequence);
-            my $cA = $sequence =~ tr/A/A/;
-            my $cT = $sequence =~ tr/T/T/;
-            my $cG = $sequence =~ tr/G/G/;
-            my $cC = $sequence =~ tr/C/C/;
-            if ($cA/$length >= $diversity || $cT/$length >= $diversity || $cG/$length >= $diversity || $cC/$length >= $diversity) {
-                if ($debug) {
-                    print "discarding\n$seqname\n$sequence\ndue to low diversity\n";
-                    print "\tA: $cA\n\tT: $cT\n\tG: $cG\n\tC: $cC\n";
-                }
-                next;
+    if ($diversity) {
+        my $length = length($sequence);
+        my $cA = $sequence =~ tr/A/A/;
+        my $cT = $sequence =~ tr/T/T/;
+        my $cG = $sequence =~ tr/G/G/;
+        my $cC = $sequence =~ tr/C/C/;
+        if ($cA/$length >= $diversity || $cT/$length >= $diversity || $cG/$length >= $diversity || $cC/$length >= $diversity) {
+            if ($debug) {
+                print "discarding\n$seqname\n$sequence\ndue to low diversity\n";
+                print "\tA: $cA\n\tT: $cT\n\tG: $cG\n\tC: $cC\n";
             }
+            next;
         }
-      
-      
-      if ($sequence =~ /^$adapterseq/) {
-#      if ($adapterseq && ($sequence =~ /^$adapterseq/)) {
-      
-        print "seqname:\t'$seqname'\nsequence:\t'$sequence'\nqualname:\t'$qualname'\nquality:\t'$quality'\n\n" if ($debug);
-        
-        $sequence =~ s/$adapterseq//;
-        $quality = substr($quality,length($adapterseq));
+    }# end of diversity section
 
-        if ($notwoadapters) {
-            #next if (!$printall && $sequence =~ /$adapterseq/);
-            #next if (!$printall && (index($sequence,$adapterseq) >= 0));
-            if (index($sequence,$adapterseq) >= 0) {
-                print STDERR "\@$seqname\n$sequence\n\+$seqname\n$quality\n" if ($id2adapters);
-                next;
-            }
+    if ($lowercase) {
+        if ($sequence =~ /([a-z]+)/) {
+#            print "identified lowercase string '$1' in $seqname\n" if ($debug);
+            $adapterseq = $1;
+            $adapterseq_length = length($1);
         }
+#        next unless ($adapterseq_length);
+    }
 
-#        $quality = substr($quality,length($adapterseq));
-        print "seqname:\t'$seqname'\nsequence:\t'$sequence'\nqualname:\t'$qualname'\nquality:\t'$quality'\n\n" if ($debug);
-        
-        if (length($sequence)) {
-            print OUT "\@$seqname\n$sequence\n\+$seqname\n$quality\n"; 
-            print ID "$seqname\n" if ($idlist);
+      my $loc = index($sequence,$adapterseq,0);
+    
+    if ($debug) {
+        print "adapter: '$adapterseq'\nadapterseq_length: '$adapterseq_length'\nloc = '$loc'\n";
+    }
+
+      #if ($adapterseq_length && $loc >= 0) {
+      if ($adapterseq_length && (($prefix && $loc == 0) || ($suffix && $loc > 0))) {
+      
+        #if ($loc == 0 && $prefix) {
+        if ($prefix) {
+            print "prefix search\n" if ($debug);
+          $sequence = substr($sequence,$adapterseq_length);
+          $quality = substr($quality,$adapterseq_length);
+
+          # notwoadapters only applies under prefix rules
+          # suffix rules will trim everything downstream of first occurrence
+          if ($notwoadapters) {
+              #next if (!$printall && $sequence =~ /$adapterseq/);
+              #next if (!$printall && (index($sequence,$adapterseq) >= 0));
+              if (index($sequence,$adapterseq) >= 0) {
+                  print STDERR "\@$seqname\n$sequence\n\+$seqname\n$quality\n" if ($id2adapters);
+                  next;
+              }
+          }
+
+          print "AFTER: seqname:\t'$seqname'\nsequence:\t'$sequence'\nqualname:\t'$qualname'\nquality:\t'$quality'\n\n" if ($debug);
+          
+          if (length($sequence) >= $minlength) {
+              print OUT "\@$seqname\n$sequence\n\+$seqname\n$quality\n"; 
+              print ID "$seqname\n" if ($idlist);
+          }
+
+        #} elsif ($loc > 0 && $suffix) {
+        } elsif ($suffix) {
+
+            print "suffix search\n" if ($debug);
+          #print "BEFORE: seqname:\t'$seqname'\nsequence:\t'$sequence'\nqualname:\t'$qualname'\nquality:\t'$quality'\n\n" if ($debug);
+
+          $sequence = substr($sequence,0,$loc);
+          $quality = substr($quality,0,$loc);
+
+          print "AFTER: seqname:\t'$seqname'\nsequence:\t'$sequence'\nqualname:\t'$qualname'\nquality:\t'$quality'\n\n" if ($debug);
+
+          if (length($sequence) >= $minlength) {
+              print OUT "\@$seqname\n$sequence\n\+$seqname\n$quality\n"; 
+              print ID "$seqname\n" if ($idlist);
+          }
         }
       
       } elsif ($printall) {
@@ -202,10 +255,8 @@ if (!$fastq) {
         }
           
       } 
-  
-    }
+    } # end of if statement identifying adapter sequence in input sequence
   }
-
 }
 
 
