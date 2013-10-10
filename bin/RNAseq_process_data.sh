@@ -73,6 +73,7 @@ function help_messg () {
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
             echo "-C | --leave_temp leave temporary files on file system"
+            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -116,6 +117,7 @@ function help_messg () {
             echo "-Y Phred quality values encoded as Phred + 64"
             echo "-o Use bowtie1 instead of bowtie2"
             echo "-C | --leave_temp leave temporary files on file system"
+            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h [print this help message]"
             echo "" ;;
 
@@ -161,6 +163,7 @@ function help_messg () {
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
             echo "-C | --leave_temp leave temporary files on file system"
+            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -173,11 +176,16 @@ function mk_agg_txpts () {
     if [[ -e "transcripts" ]] || mkdir -p transcripts
     then
         cd transcripts
-        echo "cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
-        cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
-    #    samtools merge all_merged.bam ../*/merged/merged.bam
-    #    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
-    #    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
+        cuffcompare_flags="-s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
+        if [[ $ignore_single_exons -eq 1 ]]
+        then
+            cuffcompare_flags="-M $cuffcompare_flags"
+        fi
+#        echo "cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
+        echo "cuffcompare $cuffcompare_flags"
+#        cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
+        cuffcompare $cuffcompare_flags
+
         cd ..
         #ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
         # name change means the link above doesn't work
@@ -242,6 +250,7 @@ queue='normal'
 bowtie1='NULL'
 no_new_txpts='NULL'
 leave_temp=0
+ignore_single_exons=0
 wait4first=0
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
@@ -252,11 +261,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kw --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches:,nonewtranscripts,wait -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches:,nonewtranscripts,wait,ignore_single_exons -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kw $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ $*`
         ;;
 
     *)
@@ -311,6 +320,7 @@ while true ; do
         -h|--help) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
         -C|--leave_temp) leave_temp=1 ; shift ;;
+        -J|--ignore_single_exons) ignore_single_exons=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
         -B|--bsub) bsub=1 ; shift ;;
         -D|--queue) queue=$2 ; shift 2 ;;

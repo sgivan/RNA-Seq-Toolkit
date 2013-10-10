@@ -1,8 +1,10 @@
-#bin/RNAseq_process_data.sh -H 4 -t -f s_? -N -Y -o
-#bin/RNAseq_process_data.sh -H 4 -t -f s_? -N -Y
-bin/RNAseq_process_data.sh -H 4 -t -f -N -Y s_?
-#bin/RNAseq_process_data.sh -H 4 -a s_? -N -o
+# do full pre-processing and generate aggregate transcripts GTF file in wd/transcripts
+bin/RNAseq_process_data.sh -H 4 -t -f -N -Y s_? -J
+#
+# do partial run & use new aggregate transcripts GTF file to generate data
+# for a unified & merged set of transcripts
 bin/RNAseq_process_data.sh -H 4 -a -N s_?
-#cuffdiff -o cuffdiff -N -p 4 -r index/refseq.fa --library-type fr-unstranded transcripts.gtf s_?/merged/merged.bam
+#
+# use cuffdiff to generate differential expression data for unified set of transcripts across all samples
 # new version no longer accepts -r, use -b now
 cuffdiff -o cuffdiff -N -p 4 -b index/refseq.fa --library-type fr-unstranded transcripts.gtf s_?/merged/merged.bam
