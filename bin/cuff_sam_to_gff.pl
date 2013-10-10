@@ -21,8 +21,9 @@ use strict;
 use Getopt::Long;
 use Bio::DB::Sam;
 use Bio::DB::Sam::Constants; # this will import RFLAGS into this namespace
+use File::Temp; # for the sort command
 
-my ($infile,$outfile,$debug,$source,$type,$help,$integers,$mapped_id_file,$onlymapped);
+my ($infile,$outfile,$debug,$source,$type,$help,$integers,$mapped_id_file,$onlymapped,$sort_by_refmol,$temp_directory);
 my $split = 0;
 
 
@@ -36,13 +37,22 @@ GetOptions(
             "integers"        =>  \$integers,
             "mapped"          =>  \$mapped_id_file,
             "onlymapped"      =>  \$onlymapped,
+            "sort"            =>  \$sort_by_refmol,
+            "tempdir=s"       =>  \$temp_directory,
             "help"            =>  \$help,
 );
 _help() if ($help);
 $outfile = 'cuff_sam_to_gff.txt' unless ($outfile);
 $infile = 'infile' unless ($infile);
 $type = 'match' unless ($type);
-$source = 'cufflinks' unless ($source);
+#$source = 'cufflinks' unless ($source);
+$source = 'QDread' unless ($source);
+$temp_directory = '/tmp' unless ($temp_directory);
+
+if ($debug) {
+    print "outfile: '$outfile'\ninfile: '$infile'\ntype: '$type'\nsource: '$source'\ntempdir: '$temp_directory'\n";
+    #exit();
+}
 
 my %GFFLOC = (
 
@@ -69,17 +79,24 @@ my %GFFLOC = (
 # }
 # exit();
 
-open(IN,$infile) or die "can't open $infile: $!";
-open(OUT,">$outfile") or die "can't open $outfile: $!";
+my $IN;
+if ($infile eq '-') {
+    $IN = *STDIN;
+} else {
+    open($IN,"<",$infile) or die "can't open $infile: $!";
+}
+open(OUT,">",$outfile) or die "can't open $outfile: $!";
 
 if ($mapped_id_file) {
-    open(IDFILE,">idfile.txt") or die "can't open 'idfile.txt': $!";
+    open(IDFILE,">","idfile.txt") or die "can't open 'idfile.txt': $!";
 }
 
 my $cnt = 0;
-foreach my $line (<IN>) {
-	last if (++$cnt > 10 && $debug);
+#foreach my $line (<IN>) {
+foreach my $line (<$IN>) {
+	#last if (++$cnt > 10 && $debug);
     next if (substr($line,0,1) eq '@');
+	last if (++$cnt > 10 && $debug);
 	my @outvals = ();
 	$outvals[$GFFLOC{source}] = $source;
 	$outvals[$GFFLOC{type}] = $type;
@@ -216,6 +233,24 @@ close(IN);
 close(OUT);
 close(IDFILE) if ($mapped_id_file);
 
+if ($sort_by_refmol) {
+    #system("sort -k 1,4 $outfile > tempoutfile");
+    print "sorting by refmol\n" if ($debug);
+    my $tmp = File::Temp->new(
+                                TEMPLATE => 'tempXXXXX',
+                                DIR => '.',
+                                SUFFIX => '.dat'
+                            );
+    my $tmpname = $tmp->filename();
+    #system("sort -k 1,1 -k 4,4n $outfile > tempoutfile");# sort by col 1, then do numeric sort on col 4 (start coordinate)
+    #system("sort --temporary-directory=$temp_directory -k 1,1 -k 4,4n $outfile > tempoutfile");# sort by col 1, then do numeric sort on col 4 (start coordinate)
+    system("sort --temporary-directory=$temp_directory -k 1,1 -k 4,4n $outfile > $tmpname");# sort by col 1, then do numeric sort on col 4 (start coordinate)
+    #system("cp tempoutfile $outfile");
+    #unlink('tempoutfile');
+    system("cp $tmpname $outfile");
+    unlink($tmpname);
+}
+
 sub gffline {
   my @vals = @_;
 #  print "\n" if ($debug);
@@ -240,8 +275,14 @@ print <<HELP;
             "split"           =>  \$split,
             "integers"        =>  \$integers, # print /1 or /2 suffix to read ID instead of /a or /b
             "mapped"          =>  \$mapped_id_file,
-            "onlymapped"      =>  \$onlymapped,
-            "help"            =>  \$help,
+            "onlymapped"      =>  only generate output for mapped reads
+                                    some software outputs mapped & unmapped
+                                    reads in the sam file (ie, bowtie)
+            "sort"            =>  sort_by_refmol,# sort output file by refmol
+                                    GFF files *must* be sorted like this if they will
+                                    be used as input to QuantDisplay preload script
+            "tempdir"         =>  temporary directory to use for sort command
+            "help"            =>  help
 
 HELP
 exit();
