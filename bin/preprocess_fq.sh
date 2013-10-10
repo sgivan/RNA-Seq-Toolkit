@@ -34,6 +34,7 @@ BOWTIE_INDEXES='index'
 BOWTIE2_INDEXES='index'
 bowtie_cmd='bowtie2'
 filter='filter'
+nofilter=0
 leave_temp=0
 qualscores='NULL'
 seonly=0
@@ -45,7 +46,22 @@ function help_messg {
     echo "preprocess_fq.sh"
     echo "example with the default values:"
     echo "preprocess.sh --min_qual 13 --min_length 32 --percent_high_quality 90 --bowtie_threads 8"
-    echo ""
+    echo "
+        -q|--min_qual Minimum quality value to accept [default = 13]
+        -l|--min_length Minimum sequence length to accept after trimming [default = 32]
+        -p|--percent_high_quality Minimum % of bases > --min_qual to accept [default = 90]
+        -t|--bowtie_threads Number of bowtie threads to use in filter step [default = 8]
+        -i|--indexpath path to bowtie index
+        -f|--filter Name of filter bowtie index [default = 'filter']
+        -n|--nofilter Don't do sequence similarity filtering
+        -Q|--min_qual # this must be a duplicate -> see -q option, above
+        -L|--min_length # this must be a duplicate -> see -l option, above
+        -H|--percent_high_quality # this must be a duplicate -> see -p option, above
+        -s|--solexa Use old Solexa fastq quality scale 
+        -e|--seonly Sequence data is not paired end
+        -h|--help
+        -C|--leave_temp Leave temporary files in place [default behavior is to remove them]
+        "
 }
 
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
@@ -53,15 +69,15 @@ function help_messg {
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:se --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:CQ:L:H:sen --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly,nofilter -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt q:l:p:t:hi:f:cQ:L:H:se $*`
+        TEMP=`getopt q:l:p:t:hi:f:CQ:L:H:sen $*`
         ;;
 
     *)
-        TEMP=`getopt -o q:l:p:t:hi:f:cQ:L:H:se --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:CQ:L:H:sen --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly,nofilter -- "$@"`
         ;;
 esac
 
@@ -78,13 +94,14 @@ while true ; do
         -t|--bowtie_threads) bowtie_threads=$2 ; shift 2 ;;
         -i|--indexpath) BOWTIE_INDEXES=$2 ; shift 2 ;;
         -f|--filter) filter=$2 ; shift 2 ;;
+        -n|--nofilter) nofilter=1 ; shift ;;
         -Q|--min_qual) min_qual=$2 ; shift 2 ;;
         -L|--min_length) min_length=$2 ; shift 2 ;;
         -H|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
         -s|--solexa) qualscores=1 ; shift ;;
         -e|--seonly) seonly=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
-        -c|--leave_temp) leave_temp=1; shift ;;
+        -C|--leave_temp) leave_temp=1; shift ;;
 #        --) shift ; break ;;
         *) break ;;
     esac
@@ -102,7 +119,10 @@ mkdir -p preprocess
 #mv set2.fq set2_input.fq
 cd preprocess
 ln -sf ../set1.fq ./set1.fq
+if [[ $nofilter -ne 1 ]]
+then
 ln -sf ../../index
+fi
 #exit
 if [[ $seonly -ne 1 ]]
 then
@@ -143,24 +163,31 @@ then
     #fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
     eval fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
 fi
-#exit
-echo "sequence similarity filtering using $bowtie_cmd"
-echo "reads that fail to align are retained, reads that align are filtered out of data"
-echo "first data file ..."
-#echo "bowtie -q --solexa1.3-quals --un set1_qt_qf_sf.fq --threads $bowtie_threads $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
-echo "$bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
-$bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
-cat set1_qt_qf_bwt.log
-
-if [[ -e set2_qt_qf.fq ]]
+if [[ $nofilter -eq 1 ]]
 then
-    echo "second data file"
-    echo "$bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log"
-    $bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log
-    cat set2_qt_qf_bwt.log
+    echo "not running sequence similarity filter"
+    leave_temp=1
+#    exit
+else
+    #exit
+    echo "sequence similarity filtering using $bowtie_cmd"
+    echo "reads that fail to align are retained, reads that align are filtered out of data"
+    echo "first data file ..."
+    #echo "bowtie -q --solexa1.3-quals --un set1_qt_qf_sf.fq --threads $bowtie_threads $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
+    echo "$bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
+    $bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+    cat set1_qt_qf_bwt.log
+
+    if [[ -e set2_qt_qf.fq ]]
+    then
+        echo "second data file"
+        echo "$bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log"
+        $bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log
+        cat set2_qt_qf_bwt.log
+    fi
 fi
 
-if [[ leave_temp -eq 1 ]]
+if [[ $leave_temp -ne 1 ]]
 then
     echo "removing temporary files"
     rm *.sam
@@ -175,15 +202,27 @@ echo "creating symlinks to final files"
 # however, now adapter_trim.pl runs before preprocess_fq.sh, so re-comment
 #mv set1.fq set1_input.fq
 #mv set2.fq set2_input.fq
-ln -sf set1_qt_qf_sf.fq set1.fq
+if [[ $nofilter -eq 1 ]]
+then
+    ln -sf set1_qt_qf.fq set1.fq
+else
+    ln -sf set1_qt_qf_sf.fq set1.fq
+fi
+
 if [[ $seonly -ne 1 ]]
 then
-    ln -sf set2_qt_qf_sf.fq set2.fq
+    if [[ $nofilter -eq 1 ]]
+    then
+        ln -sf set2_qt_qf.fq set2.fq
+    else
+        ln -sf set2_qt_qf_sf.fq set2.fq
+    fi
 fi
 cd ..
 #ln -sf preprocess/set1_qt_qf_sf.fq set1.fq
 #ln -sf preprocess/set2_qt_qf_sf.fq set2.fq
 ln -sf preprocess/set1.fq ./
+
 if [[ $seonly -ne 1 ]]
 then
     ln -sf preprocess/set2.fq ./
