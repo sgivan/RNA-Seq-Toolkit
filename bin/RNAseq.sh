@@ -435,7 +435,7 @@ then
 #        echo $cufflinks $cufflinksflgs */accepted_hits.bam
 #        $cufflinks $cufflinksflgs */accepted_hits.bam
         echo $cufflinks $cufflinksflgs merged/merged.bam
-        $cufflinks $cufflinksflgs merged/merged.bam
+        $cufflinks $cufflinksflgs merged/merged.bam > cufflinks.log 2>&1
     else
         echo "using cufflinks to build gene models with SE alignment data"
 #        ln -fs ../singles_tophat_out/accepted_hits.bam ./merged.bam
