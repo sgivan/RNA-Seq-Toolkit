@@ -104,7 +104,7 @@ percent_high_quality=90
 #qualscores='--solexa1.3-quals'
 qualscores='NULL'
 dev=0
-#initial_read_mismatches=2
+leave_temp=0
 oldid=0
 bowtie1='NULL'
 no_new_txpts='NULL'
@@ -116,16 +116,16 @@ case "$osname" in
 
     Linux)
             #TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:k --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kC --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts,leave_temp -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:k $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kC $*`
             ;;
 
         *)
             #TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG:k --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG:kC --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts,leave_temp -- "$@"`
             ;;
 esac
 
@@ -169,7 +169,7 @@ while true ; do
         -o|--bowtie1) bowtie1=1; shift ;;
         -h) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
-#        -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
+        -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
@@ -256,9 +256,15 @@ then
     preprocess_flags="$preprocess_flags -s"
     #preprocess_flags=$preprocess_flags
 fi
+
 if [[ $seonly -eq 1 ]]
 then
     preprocess_flags="$preprocess_flags -e"
+fi
+
+if [[ $leave_temp -ne 0 ]]
+then
+    preprocess_flags="$preprocess_flags -C"
 fi
 
 #echo ""

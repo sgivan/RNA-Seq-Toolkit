@@ -41,6 +41,7 @@ function help_messg () {
             echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
             echo "-B | --bsub submit to LSF queueing system" 
             echo "-D | --queue LSF queue [normal]"
+            echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
             echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i | --min_intron_length [50] (minimum intron length)"
             echo "-I | --max_intron_length [25000] (maximum intron length)"
@@ -71,7 +72,7 @@ function help_messg () {
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
-#            echo "-C | --initial_read_mismatches [2]"
+            echo "-C | --leave_temp leave temporary files on file system"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -83,6 +84,7 @@ function help_messg () {
             echo "-a (use transcripts.gtf for gene models and skip preprocessing)"
             echo "-B submit to LSF queueing system" 
             echo "-D LSF queue [normal]"
+            echo "-w wait for first job submitted to LSF queue finish before running other jobs"
             echo "-r [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i [50] (minimum intron length)"
             echo "-I [25000] (maximum intron length)"
@@ -113,7 +115,7 @@ function help_messg () {
             echo "-X Phred quality values encoded as Phred + 33"
             echo "-Y Phred quality values encoded as Phred + 64"
             echo "-o Use bowtie1 instead of bowtie2"
-#            echo "-C | --initial_read_mismatches [2]"
+            echo "-C | --leave_temp leave temporary files on file system"
             echo "-h [print this help message]"
             echo "" ;;
 
@@ -127,6 +129,7 @@ function help_messg () {
             echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
             echo "-B | --bsub submit to LSF queueing system" 
             echo "-D | --queue LSF queue [normal]"
+            echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
             echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i | --min_intron_length [50] (minimum intron length)"
             echo "-I | --max_intron_length [25000] (maximum intron length)"
@@ -157,7 +160,7 @@ function help_messg () {
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
-#            echo "-C | --initial_read_mismatches [2]"
+            echo "-C | --leave_temp leave temporary files on file system"
             echo "-h | --help [print this help message]"
             echo "" ;;
 
@@ -232,13 +235,14 @@ percent_high_quality=90
 # default qualscores should be Phred+33
 qualscores='NULL'
 dev=0
-initial_read_mismatches=2
 oldid=0
 RNAseq_script='NULL'
 bsub=0
 queue='normal'
 bowtie1='NULL'
 no_new_txpts='NULL'
+leave_temp=0
+wait4first=0
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -248,11 +252,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:k --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,initial_read_mismatches:,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches:,nonewtranscripts -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kw --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches:,nonewtranscripts,wait -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:k $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kw $*`
         ;;
 
     *)
@@ -306,10 +310,11 @@ while true ; do
         -o|--bowtie1) bowtie1=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
-#        -C|--initial_read_mismatches) initial_read_mismatches=$2 ; shift 2 ;;
+        -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
         -B|--bsub) bsub=1 ; shift ;;
         -D|--queue) queue=$2 ; shift 2 ;;
+        -w|--wait) wait4first=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -381,6 +386,11 @@ then
     flags="$flags -N"
 fi
 
+if [[ $leave_temp -ne 0 ]]
+then
+    flags="$flags -C"
+fi
+
 #echo "flags: '$flags'"
 #exit
 
@@ -412,8 +422,11 @@ echo "flags = " $flags
 #echo "more_flags = " $more_flags
 #exit
 
+let "cnt = 0"
 for dir 
 do
+    let "++cnt"
+    echo "cnt = '$cnt'"
 	echo `date`
 	#echo $wd/$dir
 	#cd $wd/$dir
@@ -422,10 +435,19 @@ do
 
     if [[ $bsub != 0 ]]
     then
-        #RNAseq_script="bsub -R \"rusage[mem=10000] span[hosts=1]\" -J $dir -q $queue -n $threads $script"
-        RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
-        #RNAseq_script="bsub -R \"span[hosts=1]\" -J $dir -q $queue -n $threads $script"
-        #RNAseq_script="bsub -q $queue -n $threads -R \"span[hosts=1]\" $script"
+        if [[ $wait4first -eq 1 && $cnt -eq 1 ]]
+        then
+            RNAseq_script="bsub -K"
+        else
+            RNAseq_script="bsub"
+        fi
+
+        #RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
+        RNAseq_script="$RNAseq_script -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
+        echo "RNAseq_script: '$RNAseq_script'"
+        #continue
+        #break
+
     else
         RNAseq_script="$script"
     fi
@@ -489,6 +511,16 @@ do
             eval $RNAseq_script $flags $more_flags ;;
 
     esac
+
+    RETVAL=$?
+    if [[ $RETVAL -eq 0 ]]
+    then
+        echo "success!"
+    else
+        echo "non-zero exit value"
+        exit
+    fi
+
     cd $wd
 done
 
