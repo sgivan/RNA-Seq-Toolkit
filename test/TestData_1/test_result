@@ -1,9 +1,9 @@
 #!/bin/bash
 
 echo "If everything worked, this script should return something very similar to:"
-echo "XLOC_000024     XLOC_000024     -       Chr3:199647-200062      q1      q2      OK      16205.4 14997.1 -0.111788       0.19755 0.843397  1 no"
-echo "XLOC_000024     XLOC_000024     -       Chr3:199647-200062      q1      q3      OK      16205.4 14255.2 -0.184986       0.326904        0.743741   1       no"
-echo "XLOC_000024     XLOC_000024     -       Chr3:199647-200062      q2      q3      OK      14997.1 14255.2 -0.0731975      0.129354        0.897078   1       no"
+echo "XLOC_000024     XLOC_000024     -       Chr3:198670-199531      q1      q2      OK      11947.6 12481.6 0.0630795       0.234841        0.84885 0.9737      no"
+echo "XLOC_000024     XLOC_000024     -       Chr3:198670-199531      q1      q3      OK      11947.6 12095   0.0176867       0.0648471       0.94775 0.9737      no"
+echo "XLOC_000024     XLOC_000024     -       Chr3:198670-199531      q2      q3      OK      12481.6 12095   -0.0453929      -0.170073       0.91915 0.9737      no"
 
 echo ""
 echo "running test"
