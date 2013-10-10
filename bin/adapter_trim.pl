@@ -69,7 +69,7 @@ Options below only affect fastq input files:
     "fastq"         =>  input file is fastq [default = fastq]
     "idlist"        =>  generate a file called idlist that contains id's of sequences trimmed
     "idlistfile=s"  =>  input idlist file
-    "printall"      =>  print all sequences, even if they don't contain adapter sequence
+    "printall"      =>  print all sequences > minlength, even if they don't contain adapter sequence
     "notwoadapters"  => skip sequences that contain > 1 adapter sequence, even if --printall
     "id2adapters"    => output sequences with >1 adapter to STDERR, requires --notwoadapters
     "diversity=f"    => diversity filter [default = 0 -- no diversity filter]
@@ -189,16 +189,14 @@ if (!$fastq) {
         }
     }# end of diversity section
 
-    if ($lowercase) {
-        if ($sequence =~ /([a-z]+)/) {
-#            print "identified lowercase string '$1' in $seqname\n" if ($debug);
-            $adapterseq = $1;
-            $adapterseq_length = length($1);
+        if ($lowercase) {
+            if ($sequence =~ /([a-z]+)/) {
+                $adapterseq = $1;
+                $adapterseq_length = length($1);
+            }
         }
-#        next unless ($adapterseq_length);
-    }
 
-      my $loc = index($sequence,$adapterseq,0);
+        my $loc = index($sequence,$adapterseq,0);
     
     if ($debug) {
         print "adapter: '$adapterseq'\nadapterseq_length: '$adapterseq_length'\nloc = '$loc'\n";
@@ -250,7 +248,7 @@ if (!$fastq) {
       
       } elsif ($printall) {
 
-        if (length($sequence)) {
+        if (length($sequence) >= $minlength) {
             print OUT "\@$seqname\n$sequence\n\+$seqname\n$quality\n"; 
         }
           
