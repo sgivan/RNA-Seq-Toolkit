@@ -25,7 +25,7 @@ use Data::Dumper;
 #use Bio::SeqIO;
 #use Bio::Seq::Quality;
 
-my ($read_1,$read_2,$debug,$help,$verbose,$read_1_out,$read_2_out,$maxN,$nomaxN,$smaller,$dump,$debug_max,$newid);
+my ($read_1,$read_2,$debug,$help,$verbose,$read_1_out,$read_2_out,$maxN,$nomaxN,$smaller,$dump,$debug_max,$newid,$oldid);
 
 GetOptions(
             "read_1=s"        =>  \$read_1,
@@ -33,6 +33,7 @@ GetOptions(
             "read_1_out=s"    =>  \$read_1_out,
             "read_2_out=s"    =>  \$read_2_out,
             "newid"           =>  \$newid,
+            "oldid"           =>  \$oldid,
             "debug"           =>  \$debug,
             "verbose"         =>  \$verbose,
             "help"            =>  \$help,
@@ -152,12 +153,12 @@ close($MASTER);
 
 if ($dump) {  # this could potentially be LOTS of text; ie gigabytes to terabytes
 
-print "\n\n", "+" x 24, "DATA DUMP", "+" x 24, "\n\n";
-$Data::Dumper::Indent = 3;
-$Data::Dumper::Useqq = 1;
-print Dumper(\%master);
+    print "\n\n", "+" x 24, "DATA DUMP", "+" x 24, "\n\n";
+    $Data::Dumper::Indent = 3;
+    $Data::Dumper::Useqq = 1;
+    print Dumper(\%master);
 
-print "-" x 50, "\n";
+    print "-" x 50, "\n";
 
 }
 
@@ -212,12 +213,23 @@ while (my $read2 = _fastq_in($FOLLOW)) {
 #
 
     #my $digit;
-    if (!$newid) {
-        my $digit = substr($seqid_tr,-1,1,"");
-        if ($digit == 1) {
-            $seqid_tr .= "2";
-        } else {
-            $seqid_tr .= "1";
+    #if (!$newid) {
+    if ($oldid) {
+        my $char = substr($seqid_tr,-1,1,"");
+        if ($char =~ /\d/) {
+            my $digit = $char;
+            if ($digit == 1) {
+                $seqid_tr .= "2";
+            } elsif ($digit == 2) {
+                $seqid_tr .= "1";
+            }
+        } elsif ($char =~ /[fr]/) {
+            my $fr = $char;
+            if ($fr eq 'f') {
+                $seqid_tr .= "r";
+            } else {
+                $seqid_tr .= "f";
+            }
         }
     }
 
@@ -227,8 +239,7 @@ while (my $read2 = _fastq_in($FOLLOW)) {
     _fastq_out($read2->[0],$read2->[1],$read2->[3],$FOLLOWOUT,$read2->[4]);
 
 #    if ($debug) {
-#      my $quals = $read2->qual();
-#      print "writing to '$followfile':\n\@$seqid\n", $read2->seq(), "\n\+$seqid\n@$quals\n";
+#      print "writing to '$followfile':\n\@" . $read2->[0] . "\n" . $read2->[1] . "\n\+" . $read2->[3] . "\n" . $read2->[4] . "\n";
 #    }
     ++$master{$seqid_tr}->{mate}; # remember that this master sequence had a mate
 
@@ -267,6 +278,7 @@ sub _fastq_in {
     my $id2 = <$fh>;
     my $qual = <$fh>;
     my ($extra1,$extra2) = ('','');
+    my (@extra1,@extra2) = ();
 
 #   trim first character from ID's
     substr($id,0,1,"");
@@ -274,10 +286,14 @@ sub _fastq_in {
 
     if ($newid) {
         my ($newid1,$newid2) = ();
-        ($newid1,$extra1) = split/ /, $id;
+        #($newid1,$extra1) = split/ /, $id;
+        ($newid1,@extra1) = split/ /, $id;
+        $extra1 = join " ", @extra1;
         $id = $newid1;
         if ($id2) {
-            ($newid2,$extra2) = split/ /, $id2;
+            #($newid2,$extra2) = split/ /, $id2;
+            ($newid2,@extra2) = split/ /, $id2;
+            $extra2 = join " ", @extra2;
             $id2 = $newid2;
         }
     }
@@ -287,9 +303,10 @@ sub _fastq_in {
     # $id will always equal $id2 (if present)
     # and $extra1 will always = $extra2 (if present)
     my @seqdata = ($id,$seq,$id2,$qual,$extra1,$extra2);
-#    print "@seqdata\n";
-#    exit();
     chomp(@seqdata);
+    if ($debug) {
+        print "id: '$seqdata[0]'\nseq: '$seqdata[1]'\nid2: '$seqdata[2]'\nqual: '$seqdata[3]'\n\n";
+    }
     return [@seqdata];
 }
 

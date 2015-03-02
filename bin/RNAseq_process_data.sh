@@ -31,7 +31,7 @@ function help_messg () {
     case "$osname" in
 
         Linux) 
-            echo ""
+            echo "invoke as RNAseq_process_data.sh [options] set1.fq set2.fq"
             echo "invoke script with the following options [default value]:"
             echo "you can use either - or -- flags"
             echo "-f | --full (will run full analysis, including short read preprocessing)"

@@ -33,6 +33,8 @@ export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 tophat=tophat # because it's in my $PATH
 #cufflinks= # full path to cufflinks
 cufflinks=cufflinks 
+cutadapt='/ircf/ircfapps/opt/cutadapt/bin/cutadapt'
+use_cutadapt=1
 
 osname=`uname -s`
 echo "osname '$osname'"
@@ -282,15 +284,27 @@ then
         if [[ $adapter_seq != 'NULL' ]] # then we want to remove adapter sequence
         then
             echo "removing adapter sequence '$adapter_seq'"
-#            cd preprocess
-            echo "adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
-            adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
-            echo "adapter_trim.pl --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
-            adapter_trim.pl --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
-            echo "linking to noadapter files"
+            if [[ $use_cutadapt == 'NULL' ]]
+            then
+                echo "use adapter_trim.pl"
+                echo "adapter_trim.pl --prefix --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
+                adapter_trim.pl --prefix --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
+                echo "adapter_trim.pl --prefix --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
+                adapter_trim.pl --prefix --fastq --infile set2.fq --outfile set2_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
+                echo "linking to noadapter files"
+                #ln -sf set1_noadapters.fq set1.fq
+                #ln -sf set2_noadapters.fq set2.fq
+                touch adapter_trim_finished
+            else
+                echo "use cutadapt"
+                echo "$cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq"
+                $cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq
+                echo "$cutadapt --anywhere=$adapter_seq --output=set2_noadapters.fq set2.fq"
+                $cutadapt --anywhere=$adapter_seq --output=set2_noadapters.fq set2.fq
+                touch cutadapt_finished
+            fi
             ln -sf set1_noadapters.fq set1.fq
             ln -sf set2_noadapters.fq set2.fq
-#            cd ..
         fi
 #
         echo "preprocess_fq.sh $preprocess_flags"
@@ -323,8 +337,8 @@ then
         then
             echo "removing adapter sequence '$adapter_seq'"
 #            cd preprocess
-            echo "adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
-            adapter_trim.pl --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
+            echo "adapter_trim.pl --prefix --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
+            adapter_trim.pl --prefix --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
             ln -sf set1_noadapters.fq set1.fq
 #            cd ..
 #            ln -sf preprocess/set1.fq ./

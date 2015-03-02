@@ -32,7 +32,8 @@ percent_high_quality=90
 bowtie_threads=8
 BOWTIE_INDEXES='index'
 BOWTIE2_INDEXES='index'
-bowtie_cmd='bowtie2'
+#bowtie_cmd='bowtie2'
+bowtie_cmd='bowtie'
 filter='filter'
 nofilter=0
 leave_temp=0
@@ -46,6 +47,7 @@ function help_messg {
     echo "preprocess_fq.sh"
     echo "example with the default values:"
     echo "preprocess.sh --min_qual 13 --min_length 32 --percent_high_quality 90 --bowtie_threads 8"
+    echo "the script looks for two files named set1.fq and set2.fq"
     echo "
         -q|--min_qual Minimum quality value to accept [default = 13]
         -l|--min_length Minimum sequence length to accept after trimming [default = 32]
@@ -121,7 +123,8 @@ cd preprocess
 ln -sf ../set1.fq ./set1.fq
 if [[ $nofilter -ne 1 ]]
 then
-ln -sf ../../index
+#ln -sf ../../index
+ln -s $BOWTIE_INDEXES ./index
 fi
 #exit
 if [[ $seonly -ne 1 ]]
@@ -154,15 +157,26 @@ echo bowtie_flags="-q --threads $bowtie_threads"
 #exit
 #echo "fastq_quality_trimmer -i set1.fq -t $min_qual -l $min_length -v 2> set1_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
 echo "fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
+CMD1="fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log && touch set1.finished" 
 #fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
-eval fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
+#eval fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
+eval $CMD1 &
 if [[ $seonly -ne 1 ]]
 then
     #echo "fastq_quality_trimmer -i set2.fq -t $min_qual -l $min_length -v 2> set2_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
     echo "fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
     #fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
-    eval fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
+    #eval fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
+    CMD2="fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log && touch set2.finished"
+    eval $CMD2 &
 fi
+
+while [[ ! -e "set1.finished" && ! -e "set2.finished" ]]
+do
+#    echo "q/t not finished yet"
+    sleep 10;
+done
+
 if [[ $nofilter -eq 1 ]]
 then
     echo "not running sequence similarity filter"
