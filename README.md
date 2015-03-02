@@ -8,4 +8,3 @@ http://www.springerlink.com/content/mu65310036466275/?MUD=MP
 
 @sgivan
 
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/sgivan/rna-seq-toolkit/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
