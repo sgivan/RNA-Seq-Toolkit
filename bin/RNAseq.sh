@@ -336,15 +336,23 @@ then
         if [[ $adapter_seq != 'NULL' ]] # then we want to remove adapter sequence
         then
             echo "removing adapter sequence '$adapter_seq'"
-#            cd preprocess
-            echo "adapter_trim.pl --prefix --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
-            adapter_trim.pl --prefix --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
+            if [[ $use_cutadapt == 'NULL' ]]
+            then
+                echo "use adapter_trim.pl"
+                echo "adapter_trim.pl --prefix --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters"
+                adapter_trim.pl --prefix --fastq --infile set1.fq --outfile set1_noadapters.fq -adapterseq $adapter_seq --overwrite --printall --notwoadapters
+                touch adapter_trim_finished
+            else
+                echo "use cutadapt"
+                echo "$cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq"
+                $cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq
+                touch cutadapt_finished
+            fi
             ln -sf set1_noadapters.fq set1.fq
-#            cd ..
-#            ln -sf preprocess/set1.fq ./
         fi 
         echo "preprocess_fq.sh $preprocess_flags"
         preprocess_fq.sh $preprocess_flags
+        touch preprocess_fq finished
         ln -sf set1.fq read_1.1
     fi
 fi # end of preprocessing
