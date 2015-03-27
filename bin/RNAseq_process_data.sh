@@ -350,13 +350,6 @@ then
     flags="$flags -e"
 fi
 
-#if [[ $bsub != 0 ]]
-#then
-#    RNAseq_script="bsub -q $queue -n $threads RNAseq.sh"
-#else
-#    RNAseq_script="RNAseq.sh"
-#fi
-
 echo "RNAseq_script = '$RNAseq_script'"
 
 if [[ $adapter != "NULL" ]]
@@ -453,7 +446,7 @@ do
         fi
 
         #RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
-        RNAseq_script="$RNAseq_script -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
+        RNAseq_script="$RNAseq_script -R \"rusage[mem=1000] span[hosts=1]\" -o ./${dir}.o -e ./${dir}.e -J $dir -q $queue -n $threads $script"
         echo "RNAseq_script: '$RNAseq_script'"
         #continue
         #break
