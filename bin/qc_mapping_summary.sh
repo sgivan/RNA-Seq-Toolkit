@@ -1,24 +1,38 @@
 #!/bin/bash
 
 
-TEMP=`getopt -o qhcu -- "$@"`
+TEMP=`getopt -o qHhcu -- "$@"`
 
 quiet=0
 header=0
 comma=0
 cumulative=0
+hlp=0
 
 eval set -- "$TEMP"
 while true ; do
     case "$1" in
         -q) quiet=1 ; shift ;;
-        -h) header=1 ; shift ;;
+        -H) header=1 ; shift ;;
         -c) comma=1 ; shift ;;
         -u) cumulative=1 ; shift ;;
+        -h) hlp=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
 done
+
+if [[ $hlp == 1 ]]
+then
+    echo "
+    -q don't print verbose information
+    -H print column headers
+    -c print comma-separated data (default = | separated)
+    -u print cumulative data
+    -h print this help menu
+    "
+    exit
+fi
 
 if [[ $header == 1 ]]
 then 
