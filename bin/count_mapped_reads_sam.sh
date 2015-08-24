@@ -4,6 +4,8 @@ file=$1
 # It uses a newer version of Gnu sort that is threaded
 # https://www.gnu.org/software/coreutils/manual/html_node/sort-invocation.html
 # It also specifies a temporary directory that probably isn't available on most machines.
-grep -v '^@' $file | awk 'BEGIN { FS = "\t" } { if ($2 != 4) { print $0; } }' | cut -f 1 | psort --parallel=4 --temporary-directory=/scratch | uniq | wc -l > ${file}.cnt
+#grep -v '^@' $file | awk 'BEGIN { FS = "\t" } { if ($2 != 4) { print $0; } }' | cut -f 1 | psort --parallel=4 --temporary-directory=/scratch | uniq | wc -l > ${file}.cnt
+#samtools view -F $file | grep -v '^@' $file | cut -f 1 | psort --parallel=4 --temporary-directory=/scratch | uniq | wc -l > ${file}.cnt
+samtools view -F $file | grep -v '^@' $file | cut -f 1 | sort --temporary-directory=/scratch | uniq | wc -l > ${file}.cnt
 # the following line can be used on a standard linux distro
 #grep -v '^@' $file | awk 'BEGIN { FS = "\t" } { if ($2 != 4) { print $0; } }' | cut -f 1 | sort | uniq | wc -l > ${file}.cnt
