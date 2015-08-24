@@ -8,4 +8,5 @@ file=$1
 # psort is just a link to a newer version of gnu sort that is threaded
 # https://www.gnu.org/software/coreutils/manual/html_node/sort-invocation.html
 #
-samtools view $file | grep -v '^@' | awk '{ if ($2 != 4) { print $0; } }' | cut -f 1 | sort --temporary-directory /scratch | uniq | wc -l > ${file}.cnt
+#samtools view $file | grep -v '^@' | awk '{ if ($2 != 4) { print $0; } }' | cut -f 1 | sort --temporary-directory /scratch | uniq | wc -l > ${file}.cnt
+samtools view -F 4 $file | grep -v '^@' |  cut -f 1 | sort --temporary-directory /scratch | uniq | wc -l > ${file}.cnt
