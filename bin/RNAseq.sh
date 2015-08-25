@@ -298,9 +298,9 @@ then
             else
                 echo "use cutadapt"
                 echo "$cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq 2> cutadapt_set1.log"
-                ($cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq 2> cutadapt_set1.log)
+                $($cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq 2> cutadapt_set1.err 1> cutadapt_set1.log)
                 echo "$cutadapt --anywhere=$adapter_seq --output=set2_noadapters.fq set2.fq 2> cutadapt_set2.log"
-                ($cutadapt --anywhere=$adapter_seq --output=set2_noadapters.fq set2.fq 2> cutadapt_set2.log)
+                $($cutadapt --anywhere=$adapter_seq --output=set2_noadapters.fq set2.fq 2> cutadapt_set2.err 1> cutadapt_set1.log)
                 touch cutadapt_finished
             fi
             ln -sf set1_noadapters.fq set1.fq
@@ -345,7 +345,7 @@ then
             else
                 echo "use cutadapt"
                 echo "$cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq 2> cutadapt_set1.log"
-                ($cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq 2> cutadapt_set1.log)
+                $($cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq 2> cutadapt_set1.err 1> cutadapt_set1.log)
                 touch cutadapt_finished
             fi
             ln -sf set1_noadapters.fq set1.fq
