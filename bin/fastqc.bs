@@ -1,0 +1,13 @@
+#BSUB -J JOBNAME
+#BSUB -o JOBNAME.o%J
+#BSUB -e JOBNAME.e%J
+#BSUB -n 1
+#BSUB -q normal
+#BSUB -R "rusage[mem=20000] span[hosts=1]"
+
+mkdir fastqc
+fastqc --threads 4 --outdir fastqc set1.fq
+cd fastqc
+mv set1.fq_fastqc.html JOBNAME_set1_fastqc.html
+cd ..
+
