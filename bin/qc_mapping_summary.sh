@@ -40,7 +40,7 @@ then
     then
         echo "Sample,Raw,Trimmed,Filtered,Matched,Retained,% Retained,Mapped,% Mapped"
     else
-        echo "|Sample|Raw|Trimmed|Filtered|Matched|Retained|% Retained|Mapped|% Mapped|"
+        echo "^Sample^Raw<sup>1</sup>^Trimmed<sup>2</sup>^Filtered<sup>3</sup>^Matched<sup>4</sup>^Retained<sup>5</sup>^% Retained^Mapped<sup>6</sup>^% Mapped^"
     fi
 fi
 
@@ -88,3 +88,13 @@ do
 
 done
 
+if [[ $header == 1 ]]
+then 
+    echo ""
+    echo "  - Number of raw reads at beginning of QC regimen"
+    echo "  - Number of reads that had low quality base calls trimmed"
+    echo "  - Number of reads filtered due to overall low quality"
+    echo "  - Number of reads that match PhiX, rRNA genes or relevant repeat sequences"
+    echo "  - Number of reads remaining after all quality control steps"
+    echo "  - Number of QC reads mapped to reference genome"
+fi
