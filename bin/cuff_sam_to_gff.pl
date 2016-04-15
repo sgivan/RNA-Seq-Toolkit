@@ -51,7 +51,7 @@ $temp_directory = '/tmp' unless ($temp_directory);
 
 if ($debug) {
     print "outfile: '$outfile'\ninfile: '$infile'\ntype: '$type'\nsource: '$source'\ntempdir: '$temp_directory'\n";
-    #exit();
+    exit();
 }
 
 my %GFFLOC = (
@@ -83,9 +83,16 @@ my $IN;
 if ($infile eq '-') {
     $IN = *STDIN;
 } else {
+    print "opening infile '$infile'\n" if ($debug);
     open($IN,"<",$infile) or die "can't open $infile: $!";
 }
-open(OUT,">",$outfile) or die "can't open $outfile: $!";
+my $OUT;
+if ($outfile eq '-') {
+    $OUT = *STDOUT;
+} else {
+    print "opening outfile '$outfile'\n" if ($debug);
+    open($OUT,">",$outfile) or die "can't open $outfile: $!";
+}
 
 if ($mapped_id_file) {
     open(IDFILE,">","idfile.txt") or die "can't open 'idfile.txt': $!";
@@ -229,8 +236,8 @@ foreach my $line (<$IN>) {
 
 }
 
-close(IN);
-close(OUT);
+close($IN);
+close($OUT);
 close(IDFILE) if ($mapped_id_file);
 
 if ($sort_by_refmol) {
@@ -256,7 +263,7 @@ sub gffline {
 #  print "\n" if ($debug);
     my $gffstring = join "\t", @vals;
     print $gffstring . ";\n" if ($debug);
-    print OUT$gffstring . ";\n"; 
+    print $OUT $gffstring . ";\n"; 
 #	print join "\t", @vals, ";\n" if ($debug);
 #    print OUT join "\t", @vals, ";\n";
 #	print "\n";
