@@ -486,7 +486,8 @@ do
                 echo "can't create non-aggregate directory"
             fi
 
-            if [[ $no_new_txps != "NULL" ]]
+            # add '-k' flag if needed and not already included
+            if [[ $no_new_txps != "NULL" ]] && [[ "$more_flags" != *" -k"* ]]
             then
                 more_flags="$more_flags -k"
             fi
