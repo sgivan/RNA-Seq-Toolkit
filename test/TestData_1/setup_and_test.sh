@@ -54,7 +54,7 @@ echo "building refseq index"
 bowtie2-build chrom3.fa refseq
 echo "building undesireables index"
 #bowtie-build Contaminants.fa filter
-bowtie2-build Contaminants.fa filter
+bowtie-build Contaminants.fa filter
 echo "creating sybolic links"
 ln -s chrom3.fa refseq.fa
 ln -s Contaminants.fa filter.fa
