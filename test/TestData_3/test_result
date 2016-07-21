@@ -1,10 +1,10 @@
 #!/bin/bash
 
 echo "If everything worked, this script should return something very similar to:"
-echo "XLOC_000022     XLOC_000022     -       Chr3:194981-197954      q1      q2      OK      25910.2 14974.4 -0.791024       -0.865449       5e-05   0.0014      yes"
-echo "XLOC_000011     XLOC_000011     -       Chr3:39078-41920        q1      q3      OK      28809.6 22689.4 -0.344533       -2.21015        0.0009  0.0189      yes"
-echo "XLOC_000022     XLOC_000022     -       Chr3:194981-197954      q1      q3      OK      25910.2 10289.9 -1.33229        -0.943565       5e-05   0.0014      yes"
-echo "XLOC_000022     XLOC_000022     -       Chr3:194981-197954      q2      q3      OK      14974.4 10289.9 -0.541265       -0.338703       5e-05   0.0014      yes"
+echo "XLOC_000022     XLOC_000022     -       Chr3:194981-197954      q1      q2      OK      25910.2 14974.4 -0.791024       -21.1911        5e-05   0.0014 yes"
+echo "XLOC_000011     XLOC_000011     -       Chr3:39078-41920        q1      q3      OK      28809.6 22689.4 -0.344533       -3.35362        0.0009  0.0189 yes"
+echo "XLOC_000022     XLOC_000022     -       Chr3:194981-197954      q1      q3      OK      25910.2 10289.9 -1.33229        -37.1557        5e-05   0.0014 yes"
+echo "XLOC_000022     XLOC_000022     -       Chr3:194981-197954      q2      q3      OK      14974.4 10289.9 -0.541265       -17.6954        5e-05   0.0014 yes"
 
 echo ""
 echo "running test"
