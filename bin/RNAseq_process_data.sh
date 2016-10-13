@@ -17,8 +17,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
-# run this script from directory containing flowcell directories; ie, the one containing all the FCXXX directories
-# then, invoke like FGMG_process_data.sh FC???/s_? 
 wd=`pwd`
 osname=`uname -s`
 #export PATH=# <-- make sure RNAseq scripts are in your path
