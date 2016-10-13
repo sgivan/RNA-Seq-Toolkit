@@ -40,17 +40,9 @@ function help_messg () {
             echo "-B | --bsub submit to LSF queueing system" 
             echo "-D | --queue LSF queue [normal]"
             echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
-            echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
-            echo "-i | --min_intron_length [50] (minimum intron length)"
-            echo "-I | --max_intron_length [25000] (maximum intron length)"
-            echo "-m | --splice_mismatches [0] (max number of mismatches in anchor region of spliced alignment)"
-            echo "-c | --min_anchor_length [8] (minimum number of reads on each side of splice junction)"
-            echo "-S | --mate_std_dev [20] (std dev for inner distances between mate pairs)"
+            echo "-i | --min_intron_length [20] (minimum intron length)"
+            echo "-I | --max_intron_length [500000] (maximum intron length)"
             echo "-F | --min-isoform-fraction [0.15] (min isoform fraction)"
-            echo "-g | --max_multihits [20] (max multihits)"
-            echo "-G | --max_mismatches [2] (max mismatches in final alignment of whole read)"
-            echo "-v | --coverage_search (enables coverage search)"
-            echo "-b | --butterfly_search (enables butterfly search)"
             echo "-L | --segment-length [25] (segment length)"
 #            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
             echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
@@ -69,11 +61,10 @@ function help_messg () {
             echo "-Q | --solexa Solexa quality scores (Phred-33)"
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
-            echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
-            echo "--no_tophat don't run tophat"
+            echo "--no_hisat don't run hisat"
             echo "" ;;
 
         Darwin)
@@ -95,7 +86,6 @@ function help_messg () {
             echo "-g [20] (max multihits)"
             echo "-G [2] (max mismatches)"
             echo "-v (enables coverage search)"
-            echo "-b (enables butterfly search)"
             echo "-L [25] (segment length)"
             echo "-M [2] (segment mismatches [0-3])"
             echo "-t (generate gtf file of empirical transcripts)"
@@ -114,7 +104,6 @@ function help_messg () {
             echo "-Q solexa Solexa quality scores (Phred-33)"
             echo "-X Phred quality values encoded as Phred + 33"
             echo "-Y Phred quality values encoded as Phred + 64"
-            echo "-o Use bowtie1 instead of bowtie2"
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h [print this help message]"
@@ -131,16 +120,8 @@ function help_messg () {
             echo "-B | --bsub submit to LSF queueing system" 
             echo "-D | --queue LSF queue [normal]"
             echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
-            echo "-r | --mate_inner_distance [165] (expected mean inner distance between mate pairs (PE only))"
-            echo "-i | --min_intron_length [50] (minimum intron length)"
-            echo "-I | --max_intron_length [25000] (maximum intron length)"
-            echo "-m | --splice_mismatches [0] (max number of mismatches in anchor region of spliced alignment)"
-            echo "-c | --min_anchor_length [8] (minimum number of reads on each side of splice junction)"
-            echo "-S | --mate_std_dev [20] (std dev for inner distances between mate pairs)"
-            echo "-g | --max_multihits [20] (max multihits)"
-            echo "-G | --max_mismatches [2] (max mismatches in final alignment of whole read)"
-            echo "-v | --coverage_search (enables coverage search)"
-            echo "-b | --butterfly_search (enables butterfly search)"
+            echo "-i | --min_intron_length [20] (minimum intron length)"
+            echo "-I | --max_intron_length [500000] (maximum intron length)"
             echo "-L | --segment-length [25] (segment length)"
 #            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
             echo "-F | --min-isoform-fraction [0.15] (min isoform fraction)"
@@ -160,11 +141,10 @@ function help_messg () {
             echo "-Q | --solexa Solexa quality scores (Phred-33)"
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
-            echo "-o | --bowtie1 Use bowtie1 instead of bowtie2"
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
-            echo "--no_tophat don't run tophat"
+            echo "--no_hisat don't run hisat"
             echo "" ;;
 
     esac
@@ -212,10 +192,8 @@ function mk_agg_txpts () {
 #}
 
 run_type='NULL'
-mate_inner_distance=165
-min_intron_length=50
-##max_intron_length_I=10000
-max_intron_length=25000
+min_intron_length=20
+max_intron_length=500000
 aggregate_junctions=0
 aggregate_transcripts=0
 refseq='refseq'
@@ -227,16 +205,6 @@ adapter='NULL'
 indexpath="$wd/index/"
 preprocess=0
 preprocess_only=0
-splice_mismatches=0
-min_anchor_length=8
-mate_std_dev=20
-min_isoform_frac=0.15
-max_multihits=20
-max_mismatches=2
-coverage_search=0
-butterfly_search=0
-segment_length=25
-segment_mismatches=2
 min_qual=13
 min_length=32
 percent_high_quality=90
@@ -247,12 +215,11 @@ oldid=0
 RNAseq_script='NULL'
 bsub=0
 queue='normal'
-bowtie1='NULL'
 no_new_txpts='NULL'
 leave_temp=0
 ignore_single_exons=0
 wait4first=0
-run_tophat=1
+run_hisat=1
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -262,7 +229,7 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches:,nonewtranscripts,wait,ignore_single_exons,no_tophat -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ --long help,full,transcripts,partial,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bsub,queue:,nonewtranscripts,wait,ignore_single_exons,no_hisat -- "$@"`
         ;;
 
     Darwin)
@@ -285,19 +252,8 @@ while true ; do
         -p|--partial) run_type='partial' ; shift ;;
         -a|--transcripts) run_type='transcripts' ; shift ;;
         -k|--nonewtranscripts) no_new_txpts=1 ; shift ;;
-        -r|--mate_inner_distance) mate_inner_distance=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length=$2 ; shift 2 ;;
-        -m|--splice_mismatches) splice_mismatches=$2 ; shift 2 ;;
-        -c|--min_anchor_length) min_anchor_length=$2 ; shift 2 ;;
-        -S|--mate_std_dev) mate_std_dev=$2 ; shift 2 ;;
-        -F|--min_isoform_fraction) min_isoform_frac=$2 ; shift 2 ;;
-        -g|--max_multihits) max_multihits=$2 ; shift 2 ;;
-        -G|--max_mismatches) max_mismatches=$2 ; shift 2 ;;
-        -v|--coverage_search) coverage_search=1 ; shift ;;
-        -b|--butterfly_search) butterfly_search=1 ; shift ;;
-        -L|--segment_length) segment_length=$2 ; shift 2 ;;
-        -M|--segment_mismatches) segment_mismatches=$2 ; shift 2 ;; 
         -j|--agg_junctions) aggregate_junctions=1 ; shift ;;
         -t|--agg_transcripts) aggregate_transcripts=1 ; shift ;;
         -s|--refseq) refseq=$2 ; shift 2 ;;
@@ -317,7 +273,6 @@ while true ; do
         -Q|--solexa) qualscores=3 ; shift ;;
         -X|--phred33) qualscores=1 ; shift ;;
         -Y|--phred64) qualscores=2 ; shift ;;
-        -o|--bowtie1) bowtie1=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         -d|--dev) dev=1 ; shift ;;
         -C|--leave_temp) leave_temp=1 ; shift ;;
@@ -326,7 +281,7 @@ while true ; do
         -B|--bsub) bsub=1 ; shift ;;
         -D|--queue) queue=$2 ; shift 2 ;;
         -w|--wait) wait4first=1 ; shift ;;
-        --no_tophat) run_tophat=0 ; shift ;;
+        --no_hisat) run_hisat=0 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -334,10 +289,7 @@ done
 #for arg do echo '--> '"\`$arg'" ; done
 
 echo "run type is '$run_type'"
-#flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality"
-#flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality"
-#flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality -C $initial_read_mismatches -G $max_mismatches" 
-flags="-s $refseq -r $mate_inner_distance -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -m $splice_mismatches -c $min_anchor_length -S $mate_std_dev -F $min_isoform_frac -g $max_multihits -L $segment_length -M $segment_mismatches -q $min_qual -n $min_length -E $percent_high_quality -G $max_mismatches" 
+flags="-s $refseq -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -q $min_qual -n $min_length -E $percent_high_quality" 
 #echo "flags: $flags"
 #exit
 
@@ -371,25 +323,12 @@ then
     fi
 fi
 
-if [[ $run_tophat -eq 1 ]]
+if [[ $run_hisat -eq 1 ]]
 then
 
-    if [[ $bowtie1 != "NULL" ]]
-    then
-        flags="$flags -o"
-    fi
 
-    if [[ $coverage_search -ne 0 ]]
-    then
-        flags="$flags -v"
-    fi
-
-    if [[ $butterfly_search -ne 0 ]]
-    then
-        flags="$flags -b"
-    fi
 else
-    flags="$flags --no_tophat"
+    flags="$flags --no_hisat"
 fi
 
 if [[ $oldid -ne 0 ]]
@@ -486,12 +425,12 @@ do
 
             # for transcripts runs
             # must have already run script with --agg_transcripts flag
-            if [[ $run_tophat -eq 1 ]]
+            if [[ $run_hisat -eq 1 ]]
             then
                 if [[ -e "non-aggregate" ]] || mkdir -p non-aggregate
                 then
                     echo "moving old output files to 'non-aggregate'"
-                    mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
+                    mv -f merged cufflinks pe_hisat* singles_hisat* non-aggregate/
                 else
                     echo "can't create non-aggregate directory"
                 fi
@@ -506,7 +445,7 @@ do
             echo "creating symbolic link to transcript.gtf"
             ln -sf $wd/transcripts.gtf ./
 
-            echo "running tophat"
+            echo "running hisat"
 #            echo "RNAseq.sh --transcripts $flags $more_flags" ;
             echo "$RNAseq_script -a $flags $more_flags" ;
 #            RNAseq.sh --transcripts $flags $more_flags ;;
