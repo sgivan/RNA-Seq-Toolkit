@@ -75,6 +75,7 @@ function help_messg () {
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
+            echo "--no_tophat don't run tophat"
             echo "" ;;
 
         Darwin)
@@ -165,6 +166,7 @@ function help_messg () {
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
+            echo "--no_tophat don't run tophat"
             echo "" ;;
 
     esac
@@ -252,6 +254,7 @@ no_new_txpts='NULL'
 leave_temp=0
 ignore_single_exons=0
 wait4first=0
+run_tophat=1
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -261,7 +264,7 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches:,nonewtranscripts,wait,ignore_single_exons -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ --long help,full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bowtie1,bsub,queue:,max_mismatches:,nonewtranscripts,wait,ignore_single_exons,no_tophat -- "$@"`
         ;;
 
     Darwin)
@@ -325,6 +328,7 @@ while true ; do
         -B|--bsub) bsub=1 ; shift ;;
         -D|--queue) queue=$2 ; shift 2 ;;
         -w|--wait) wait4first=1 ; shift ;;
+        --no_tophat) run_tophat=0 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -369,19 +373,25 @@ then
     fi
 fi
 
-if [[ $bowtie1 != "NULL" ]]
+if [[ $run_tophat -eq 1 ]]
 then
-    flags="$flags -o"
-fi
 
-if [[ $coverage_search -ne 0 ]]
-then
-    flags="$flags -v"
-fi
+    if [[ $bowtie1 != "NULL" ]]
+    then
+        flags="$flags -o"
+    fi
 
-if [[ $butterfly_search -ne 0 ]]
-then
-    flags="$flags -b"
+    if [[ $coverage_search -ne 0 ]]
+    then
+        flags="$flags -v"
+    fi
+
+    if [[ $butterfly_search -ne 0 ]]
+    then
+        flags="$flags -b"
+    fi
+else
+    flags="$flags --no_tophat"
 fi
 
 if [[ $oldid -ne 0 ]]
@@ -478,12 +488,15 @@ do
 
             # for transcripts runs
             # must have already run script with --agg_transcripts flag
-            if [[ -e "non-aggregate" ]] || mkdir -p non-aggregate
+            if [[ $run_tophat -eq 1 ]]
             then
-                echo "moving old output files to 'non-aggregate'"
-                mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
-            else
-                echo "can't create non-aggregate directory"
+                if [[ -e "non-aggregate" ]] || mkdir -p non-aggregate
+                then
+                    echo "moving old output files to 'non-aggregate'"
+                    mv -f merged cufflinks pe_tophat* singles_tophat* non-aggregate/
+                else
+                    echo "can't create non-aggregate directory"
+                fi
             fi
 
             # add '-k' flag if needed and not already included

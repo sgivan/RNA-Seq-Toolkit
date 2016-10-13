@@ -30,10 +30,11 @@ export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 #
 
 #tophat= # full path to tophat
-tophat=tophat # because it's in my $PATH
+tophat=$(which tophat) # because it's in my $PATH
 #cufflinks= # full path to cufflinks
-cufflinks=cufflinks 
-cutadapt='/ircf/ircfapps/opt/cutadapt/bin/cutadapt'
+cufflinks=$(which cufflinks)
+#cutadapt='/ircf/ircfapps/opt/cutadapt/bin/cutadapt'
+cutadapt=$(which cutadapt)
 use_cutadapt=1
 
 osname=`uname -s`
@@ -110,6 +111,7 @@ leave_temp=0
 oldid=0
 bowtie1='NULL'
 no_new_txpts='NULL'
+run_tophat=1
 
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
@@ -118,7 +120,7 @@ case "$osname" in
 
     Linux)
             #TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG: --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kC --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts,leave_temp -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kC --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts,leave_temp,no_tophat -- "$@"`
             ;;
 
     Darwin)
@@ -127,7 +129,7 @@ case "$osname" in
 
         *)
             #TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches: -- "$@"`
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG:kC --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts,leave_temp -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG:kC --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,splice_mismatches:,min_anchor_length:,mate_std_dev:,min_isoform_fraction:,max_multihits:,coverage_search,butterfly_search,segment_length:,segment_mismatches:,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,bowtie1,solexa_p13,max_mismatches:,nonewtranscripts,leave_temp,no_tophat -- "$@"`
             ;;
 esac
 
@@ -173,6 +175,7 @@ while true ; do
         -d|--dev) dev=1 ; shift ;;
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
+        --no_tophat) run_tophat=0 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -274,6 +277,9 @@ fi
 #echo ""
 #exit
 
+# start running pipeline
+
+
 if [[ $preprocess -ne 0 ]]
 then
     echo "passing reads through preprocessing routines"
@@ -363,83 +369,91 @@ then
     exit
 fi
 
-export BOWTIE_INDEXES=$BOWTIE_INDEXES # this is the directory containing the index files created with bowtie-build
-if [ $run_type = transcripts ]
+# run tophat
+
+if [[ $run_tophat -eq 1 ]]
 then
-    if [[ $no_new_txpts != "NULL" ]]
+
+    export BOWTIE_INDEXES=$BOWTIE_INDEXES # this is the directory containing the index files created with bowtie-build
+    if [ $run_type = transcripts ]
     then
-        #pe_extra_cmd="$pe_extra_cmd --transcriptome-only"
-        pe_extra_cmd=" --transcriptome-only $pe_extra_cmd"
-        #singles_extra_cmd="$singles_extra_cmd --transcriptome-only"
-        singles_extra_cmd=" --transcriptome-only $singles_extra_cmd"
-    fi
+        if [[ $no_new_txpts != "NULL" ]]
+        then
+            #pe_extra_cmd="$pe_extra_cmd --transcriptome-only"
+            pe_extra_cmd=" --transcriptome-only $pe_extra_cmd"
+            #singles_extra_cmd="$singles_extra_cmd --transcriptome-only"
+            singles_extra_cmd=" --transcriptome-only $singles_extra_cmd"
+        fi
 
-    #pe_extra_cmd="$pe_extra_cmd --transcriptome-index=../transcriptome-data"
-    #singles_extra_cmd="$singles_extra_cmd --transcriptome-index=../transcriptome-data"
-    #pe_extra_cmd=" --transcriptome-index=../transcriptome-data $pe_extra_cmd"
-    #singles_extra_cmd=" --transcriptome-index=../transcriptome-data $singles_extra_cmd"
-    pe_extra_cmd=" --transcriptome-index=../transcriptome-data/transcriptome $pe_extra_cmd"
-    singles_extra_cmd=" --transcriptome-index=../transcriptome-data/transcriptome $singles_extra_cmd"
+        #pe_extra_cmd="$pe_extra_cmd --transcriptome-index=../transcriptome-data"
+        #singles_extra_cmd="$singles_extra_cmd --transcriptome-index=../transcriptome-data"
+        #pe_extra_cmd=" --transcriptome-index=../transcriptome-data $pe_extra_cmd"
+        #singles_extra_cmd=" --transcriptome-index=../transcriptome-data $singles_extra_cmd"
+        pe_extra_cmd=" --transcriptome-index=../transcriptome-data/transcriptome $pe_extra_cmd"
+        singles_extra_cmd=" --transcriptome-index=../transcriptome-data/transcriptome $singles_extra_cmd"
 
-    if [[ $seonly -eq 0 ]]
-    then
-        echo "running tophat using precomputed annotation file"
-        echo $tophatcmd --GTF transcripts.gtf $pe_extra_cmd $@
-        $tophatcmd --GTF transcripts.gtf $pe_extra_cmd $@ > pe_tophat.stdout 2>&1
-        echo $tophatcmd --GTF transcripts.gtf $singles_extra_cmd $@
-        $tophatcmd --GTF transcripts.gtf $singles_extra_cmd  $@ > singles_tophat.stdout 2>&1
-    else
-        singles_extra_cmd=`echo $singles_extra_cmd | sed 's/,read_2.1//'`
-        echo $tophatcmd --GTF transcripts.gtf $singles_extra_cmd $@
-        $tophatcmd --GTF transcripts.gtf $singles_extra_cmd $@ > singles_tophat.stdout 2>&1
-    fi
-
-else # maybe this should be a separate if clause
-
-    if [[ $run_type != 'NULL' ]]
-    then
-        echo "running tophat without precomputed annotations"
         if [[ $seonly -eq 0 ]]
         then
-            echo $tophatcmd $pe_extra_cmd $@
-            $tophatcmd $pe_extra_cmd $@ > pe_tophat.stdout 2>&1
-            echo $tophatcmd $singles_extra_cmd $@
-            $tophatcmd $singles_extra_cmd $@ > singles_tophat.stdout 2>&1
+            echo "running tophat using precomputed annotation file"
+            echo $tophatcmd --GTF transcripts.gtf $pe_extra_cmd $@
+            $tophatcmd --GTF transcripts.gtf $pe_extra_cmd $@ > pe_tophat.stdout 2>&1
+            echo $tophatcmd --GTF transcripts.gtf $singles_extra_cmd $@
+            $tophatcmd --GTF transcripts.gtf $singles_extra_cmd  $@ > singles_tophat.stdout 2>&1
         else
             singles_extra_cmd=`echo $singles_extra_cmd | sed 's/,read_2.1//'`
-            echo $tophatcmd $singles_extra_cmd $@
-            $tophatcmd $singles_extra_cmd $@ > singles_tophat.stdout 2>&1
+            echo $tophatcmd --GTF transcripts.gtf $singles_extra_cmd $@
+            $tophatcmd --GTF transcripts.gtf $singles_extra_cmd $@ > singles_tophat.stdout 2>&1
         fi
-    fi
-fi
-            
-if [[ run_type != 'NULL' ]]
-then
 
-    if [[ -e "merged" ]] || mkdir -p merged
-    then
-        cd merged
+    else # maybe this should be a separate if clause
 
-        if [[ $seonly -eq 0 ]]
+        if [[ $run_type != 'NULL' ]]
         then
+            echo "running tophat without precomputed annotations"
+            if [[ $seonly -eq 0 ]]
+            then
+                echo $tophatcmd $pe_extra_cmd $@
+                $tophatcmd $pe_extra_cmd $@ > pe_tophat.stdout 2>&1
+                echo $tophatcmd $singles_extra_cmd $@
+                $tophatcmd $singles_extra_cmd $@ > singles_tophat.stdout 2>&1
+            else
+                singles_extra_cmd=`echo $singles_extra_cmd | sed 's/,read_2.1//'`
+                echo $tophatcmd $singles_extra_cmd $@
+                $tophatcmd $singles_extra_cmd $@ > singles_tophat.stdout 2>&1
+            fi
+        fi
+    fi
+                
+    if [[ run_type != 'NULL' ]]
+    then
 
-            echo "merging PE and SE bam files"
-            samtools merge merged.bam ../*/accepted_hits.bam
+        if [[ -e "merged" ]] || mkdir -p merged
+        then
+            cd merged
 
+            if [[ $seonly -eq 0 ]]
+            then
+
+                echo "merging PE and SE bam files"
+                samtools merge merged.bam ../*/accepted_hits.bam
+
+            else
+
+                ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+            fi
+
+            cd ..
         else
-
-            ln -s ../singles_tophat_out/accepted_hits.bam ./merged.bam
+            echo "can't create merged directory"
         fi
 
-        cd ..
-    else
-        echo "can't create merged directory"
     fi
-
 fi
+
+# run cufflinks
 
 #if [[ $run_type = full ]] # not sure why this is just for full runs
-if [[ $run_type = full ]] || [[ $run_type = partial ]]
+if [[ $run_type = full ]] || [[ $run_type = partial ]] 
 then
 
 #    mkdir -p merged
