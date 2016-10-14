@@ -35,6 +35,7 @@ cufflinks=$(which cufflinks)
 #cutadapt='/ircf/ircfapps/opt/cutadapt/bin/cutadapt'
 cutadapt=$(which cutadapt)
 use_cutadapt=1
+samfile="accepted_hits.sam"
 
 osname=`uname -s`
 echo "osname '$osname'"
@@ -60,7 +61,7 @@ esac
 # the default is unstranded, fr_firstrand = R, fr_secondstrand = F
 #
 
-librarytype=""
+librarytype='NULL'
 
 #
 # fasta_file contains the root of the fasta file that contains the reference sequence that
@@ -121,6 +122,39 @@ esac
 
 if [ $? != 0 ] ; then echo "Terminating..." ; exit 1 ; fi
 
+function help_messg () {
+
+    echo "
+
+        -f|--full) run_type='full' ; shift ;;
+        -p|--partial) run_type='partial' ; shift ;;
+        -a|--transcripts) run_type='transcripts' ; shift ;;
+        -k|--nonewtranscripts) no_new_txpts=1 ; shift ;;
+        -r|--mate_inner_distance) mate_inner_distance_r=$2 ; shift 2 ;;
+        -i|--min_intron_length) min_intron_length_i=$2 ; shift 2 ;;
+        -I|--max_intron_length) max_intron_length_I=$2 ; shift 2 ;;
+        -t|--procs) procs=$2 ; shift 2 ;;
+        -l|--librarytype) librarytype=$2 ; shift 2 ;;
+        -e|--seonly) seonly=1 ; shift ;;
+        -A|--adapter_seq) adapter_seq=$2 ; shift 2 ;;
+        -P|--indexpath) HISAT_INDEXES=$2 ; shift 2 ;;
+        -s|--refseq) fasta_file=$2 ; shift 2 ;;
+        -R|--preprocess) preprocess=1 ; shift ;;
+        -O|--preprocess_only) preprocess_only=1; shift ;;
+        -q|--min_qual) min_qual=$2 ; shift 2 ;;
+        -n|--min_length) min_length=$2 ; shift 2 ;;
+        -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
+        -Q|--solexa) qualscores=1 ; shift ;;
+        -B|--solexa_p13) qualscores=2 ; shift ;;
+        -h) help_messg ; exit ;;
+        -d|--dev) dev=1 ; shift ;;
+        -C|--leave_temp) leave_temp=1 ; shift ;;
+        -N|--oldid) oldid=1 ; shift ;;
+        --no_hisat) run_hisat=0 ; shift ;;
+
+        "
+}
+
 # Note the quotes around `$TEMP': they are essential!
 
 eval set -- "$TEMP"
@@ -164,11 +198,11 @@ echo "run type is " $run_type
 # hisat, so it contains arguments and options passed to the program
 #
 
-hisatcmd="$hisat --downstream-transcriptome-assembly --dta-cufflinks --no-unal --library-type $librarytype -p $procs --min_intronlen $min_intron_length_i --max_intronlen $max_intron_length_I"
-pe_extra_cmd="--met-file hisat_metrics_pe.txt -o pe_hisat_out $HISAT_INDEXES/$fasta_file read_1 read_2 "
-singles_extra_cmd="--met-file hisat_metrics_se.txt -o singles_hisat_out $HISAT_INDEXES/$fasta_file read_1.1,read_2.1 "
+hisatcmd="$hisat --downstream-transcriptome-assembly --dta-cufflinks --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
+pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile $HISAT_INDEXES/$fasta_file read_1 read_2 "
+singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile $HISAT_INDEXES/$fasta_file read_1.1,read_2.1 "
 # 
-cufflinksflgs="-u --max_intron_length $max_intron_length_I --library-type $librarytype -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
+cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -202,6 +236,11 @@ then
 else
     #hisatcmd="$hisatcmd --solexa1.3-quals"
     hisatcmd=$hisatcmd
+fi
+
+if [[ $librarytype -ne 'NULL' ]]
+then
+    hisatcmd="$hisatcmd --rna-strandness $librarytype"
 fi
 
 preprocess_flags="-i $HISAT_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
@@ -322,6 +361,13 @@ fi
 
 if [[ $run_hisat -eq 1 ]]
 then
+
+    $(mkdir singles_hisat_out)
+    if [[ $seonly -eq 0 ]]
+    then
+        $(mkdir -p pe_hisat_out)
+    fi
+
 
     export HISAT_INDEXES=$HISAT_INDEXES # this is the directory containing the index files created with hisat-build
     if [ $run_type = transcripts ]
@@ -459,3 +505,35 @@ fi
 echo "finished"
 echo ""
 
+function help_messg () {
+
+echo "
+
+        -f|--full) run_type='full' ; shift ;;
+        -p|--partial) run_type='partial' ; shift ;;
+        -a|--transcripts) run_type='transcripts' ; shift ;;
+        -k|--nonewtranscripts) no_new_txpts=1 ; shift ;;
+        -r|--mate_inner_distance) mate_inner_distance_r=$2 ; shift 2 ;;
+        -i|--min_intron_length) min_intron_length_i=$2 ; shift 2 ;;
+        -I|--max_intron_length) max_intron_length_I=$2 ; shift 2 ;;
+        -t|--procs) procs=$2 ; shift 2 ;;
+        -l|--librarytype) librarytype=$2 ; shift 2 ;;
+        -e|--seonly) seonly=1 ; shift ;;
+        -A|--adapter_seq) adapter_seq=$2 ; shift 2 ;;
+        -P|--indexpath) HISAT_INDEXES=$2 ; shift 2 ;;
+        -s|--refseq) fasta_file=$2 ; shift 2 ;;
+        -R|--preprocess) preprocess=1 ; shift ;;
+        -O|--preprocess_only) preprocess_only=1; shift ;;
+        -q|--min_qual) min_qual=$2 ; shift 2 ;;
+        -n|--min_length) min_length=$2 ; shift 2 ;;
+        -E|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
+        -Q|--solexa) qualscores=1 ; shift ;;
+        -B|--solexa_p13) qualscores=2 ; shift ;;
+        -h) help_messg ; exit ;;
+        -d|--dev) dev=1 ; shift ;;
+        -C|--leave_temp) leave_temp=1 ; shift ;;
+        -N|--oldid) oldid=1 ; shift ;;
+        --no_hisat) run_hisat=0 ; shift ;;
+
+        "
+}

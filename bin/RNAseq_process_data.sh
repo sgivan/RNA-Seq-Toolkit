@@ -198,11 +198,11 @@ aggregate_junctions=0
 aggregate_transcripts=0
 refseq='refseq'
 threads=8
-library_type='fr-unstranded'
+library_type='NULL'
 use_aggregates=0
 seonly=0
 adapter='NULL'
-indexpath="$wd/index/"
+indexpath="$wd/hisat_index/"
 preprocess=0
 preprocess_only=0
 min_qual=13
@@ -289,9 +289,14 @@ done
 #for arg do echo '--> '"\`$arg'" ; done
 
 echo "run type is '$run_type'"
-flags="-s $refseq -i $min_intron_length -I $max_intron_length -t $threads -l $library_type -P $indexpath/ -q $min_qual -n $min_length -E $percent_high_quality" 
+flags="-s $refseq -i $min_intron_length -I $max_intron_length -t $threads -P $indexpath/ -q $min_qual -n $min_length -E $percent_high_quality" 
 #echo "flags: $flags"
 #exit
+
+if [[ $library_type -ne 'NULL' ]]
+then
+    flags="$flags --rna-strandness $library_type"
+fi
 
 if [[ $run_type = "full" ]]
 then
@@ -323,11 +328,8 @@ then
     fi
 fi
 
-if [[ $run_hisat -eq 1 ]]
+if [[ $run_hisat -eq 0 ]]
 then
-
-
-else
     flags="$flags --no_hisat"
 fi
 
