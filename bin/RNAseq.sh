@@ -30,12 +30,11 @@ export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 #
 
 hisat=$(which hisat2) # because it's in my $PATH
-#cufflinks= # full path to cufflinks
-cufflinks=$(which cufflinks)
-#cutadapt='/ircf/ircfapps/opt/cutadapt/bin/cutadapt'
+stringtie=$(which stringtie)
 cutadapt=$(which cutadapt)
 use_cutadapt=1
 samfile="accepted_hits.sam"
+use_stringtie=1
 
 osname=`uname -s`
 echo "osname '$osname'"
@@ -199,10 +198,13 @@ echo "run type is " $run_type
 #
 
 hisatcmd="$hisat --downstream-transcriptome-assembly --dta-cufflinks --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
-pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile $HISAT_INDEXES/$fasta_file read_1 read_2 "
-singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile $HISAT_INDEXES/$fasta_file read_1.1,read_2.1 "
+pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-gz pe_hisat_out/unaligned.fa.gz --un-conc-gz --un-gz pe_hisat_out/pe_unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1 read_2 "
+singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz pe_hisat_out/unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1.1,read_2.1 "
 # 
-cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
+#cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
+#stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs"
+#stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs -l $bioclass$lane"
+stringtieflgs="-o ../ballgown/$bioclass$lane/"$bioclass$lane"_transcripts.gtf -B -p $procs -l $bioclass$lane"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -419,12 +421,13 @@ then
             if [[ $seonly -eq 0 ]]
             then
 
-                echo "merging PE and SE bam files"
-                samtools merge merged.bam ../*/accepted_hits.bam
+                echo "merging PE and SE sam files"
+                # I don't think this will work bc samfiles aren't sorted
+                $(samtools merge merged.bam ../*/$samfile)
 
             else
 
-                ln -s ../singles_hisat_out/accepted_hits.bam ./merged.bam
+                ln -s ../singles_hisat_out/$samfile ./merged.bam
             fi
 
             cd ..
@@ -435,72 +438,60 @@ then
     fi
 fi
 
-# run cufflinks
+# run stringtie
 
 #if [[ $run_type = full ]] # not sure why this is just for full runs
 if [[ $run_type = full ]] || [[ $run_type = partial ]] 
 then
 
-#    mkdir -p merged
-#    cd merged
+    cd merged
+    # test to see if merged_sorted.bam exists first to save time
+    if [ ! -e merged_sorted.bam ]
+    then
+        $(samtools view -Su merged.sam | samtools sort -o merged_sorted.bam -)
+        ln -s merged_sorted.bam merged.bam
+    fi
+    cd ..
 
     if [[ $seonly -eq 0 ]]
     then
 #        echo "now merging PE and SE alignment data"
-        echo "using cufflinks to build gene models with PE and SE alignment data"
+        echo "using stringtie to build gene models with PE and SE alignment data"
         
-        #echo "creating aggregate_junctions.txt"
-        #cat ../*/junctions.bed | awk '{ if ($1 != "track") {split($11,len,","); split($12,blstrt,","); printf "%s\t%i\t%i\t%s\n", $1, $2 + len[1] - 1, $2 + blstrt[2], $6; }}' | sort -k 1,1 -gk 2,2 | uniq > aggregate_junctions.txt
-#        echo "merging hisat bam files"
-#        samtools merge merged.bam ../*/accepted_hits.bam
-#        echo $cufflinks $cufflinksflgs */accepted_hits.bam
-#        $cufflinks $cufflinksflgs */accepted_hits.bam
-        echo $cufflinks $cufflinksflgs merged/merged.bam
-        $cufflinks $cufflinksflgs merged/merged.bam > cufflinks.log 2>&1
+        echo $stringtie $stringtieflgs merged/merged.bam
+        $($stringtie $stringtieflgs merged/merged.bam > stringtie.log 2>&1)
     else
-        echo "using cufflinks to build gene models with SE alignment data"
-#        ln -fs ../singles_hisat_out/accepted_hits.bam ./merged.bam
-#        echo $cufflinks $cufflinksflgs */accepted_hits.bam
-#        $cufflinks $cufflinksflgs */accepted_hits.bam
-        echo $cufflinks $cufflinksflgs merged/merged.bam
-        #$cufflinks $cufflinksflgs merged/merged.bam
-        $cufflinks $cufflinksflgs merged/merged.bam > cufflinks.log 2>&1
+        echo "using stringtie to build gene models with SE alignment data"
+        echo $stringtie $stringtieflgs merged/merged.bam
+        $($stringtie $stringtieflgs merged/merged.bam > stringtie.log 2>&1)
     fi
 #    cd ..
 fi
 
 if [ $run_type = transcripts ]
 then
-    echo "running cufflinks using transcript file"
-    #samtools merge - ../*/accepted_hits.bam | samtools view -o - - | cuff_sam_to_gff.pl --infile - --outfile all_sorted.gff --source GA2 --type $bioclass$lane
+    cd merged
+    echo 'creating sorted bam file for input to stringtie'
+    if [ ! -e merged_sorted.bam ]
+    then
+        $(samtools view -Su merged.sam | samtools sort -o merged_sorted.bam -)
+        ln -s merged_sorted.bam merged.bam
+    fi
+    cd ..
+
+    echo "running stringtie using transcript file"
     
-    echo "running cufflinks"
+    echo "running stringtie"
     if [[ $no_new_txpts != "NULL" ]]
     then
-        cufflinks_extra_cmd="--GTF transcripts.gtf"
+        stringtie_extra_cmd="-G transcripts.gtf -e"
     else
-        cufflinks_extra_cmd="--GTF-guide transcripts.gtf"
+        stringtie_extra_cmd="-G transcripts.gtf"
     fi
-    echo $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam
-    $cufflinks $cufflinksflgs $cufflinks_extra_cmd */accepted_hits.bam > cufflinks.log 2>&1
+    echo $stringtie $stringtieflgs $stringtie_extra_cmd merged/merged.bam 
+    $($stringtie $stringtieflgs $stringtie_extra_cmd merged/merged.bam > stringtie.log 2>&1)
     
 fi
-
-#mkdir -p merged
-#cd merged
-#
-#if [[ $seonly -eq 0 ]]
-#then
-#
-#    echo "merging PE and SE bam files"
-#    samtools merge merged.bam ../*/accepted_hits.bam
-#
-#else
-#
-#    ln -s ../singles_hisat_out/accepted_hits.bam ./merged.bam
-#fi
-#
-#cd ..
 
 echo "finished"
 echo ""
