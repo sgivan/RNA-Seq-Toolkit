@@ -1,0 +1,19 @@
+#!/usr/bin/env Rscript
+
+library(ballgown)
+library(dplyr)
+library(genefilter)
+pheno_data <- read.csv(file="pheno.txt")
+bg <- ballgown(dataDir="./", pData=pheno_data, samplePattern="sample", meas='FPKM')
+bg_varfilt = subset(bg, "rowVars(texpr(bg)) > 1", genomesubset=T)
+transcript_results_varfilt = stattest(bg_varfilt, feature="transcript", covariate="sample", getFC=T, meas="FPKM")
+transcript_results_varfilt = data.frame(geneName=ballgown::geneNames(bg_varfilt), geneID=ballgown::geneIDs(bg_varfilt), transcript_results_varfilt)
+transcript_results_varfilt = arrange(transcript_results_varfilt, qval)
+write.table(transcript_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="transcript_de.txt")
+#
+gene_results_varfilt = stattest(bg_varfilt, feature="gene", covariate="sample", getFC=T, meas="FPKM")
+#gene_results_varfilt = data.frame(geneName=ballgown::geneNames(bg_varfilt), geneID=ballgown::geneIDs(bg_varfilt), gene_results_varfilt)
+gene_results_varfilt = arrange(gene_results_varfilt, qval)
+write.table(gene_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="gene_de.txt")
+#
+save.image(file="RData")

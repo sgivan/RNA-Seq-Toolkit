@@ -1,0 +1,3 @@
+#for dir in ../ballgown/Bashkin_RNA-SeqECFNV1042-?.fastq; do echo $dir; ln -s $dir ./; done
+#for dir in ../ballgown/Bashkin_RNA-SeqECFC-?.fastq; do echo $dir; ln -s $dir ./; done
+./ballgown_setup.pl --cont '../ballgown/Bashkin_RNA-SeqECFC-?.fastq' --exp '../ballgown/Bashkin_RNA-SeqECFNV1011-?.fastq'
