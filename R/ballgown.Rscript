@@ -7,7 +7,7 @@ pheno_data <- read.csv(file="pheno.txt")
 bg <- ballgown(dataDir="./", pData=pheno_data, samplePattern="sample", meas='FPKM')
 bg_varfilt = subset(bg, "rowVars(texpr(bg)) > 1", genomesubset=T)
 transcript_results_varfilt = stattest(bg_varfilt, feature="transcript", covariate="sample", getFC=T, meas="FPKM")
-transcript_results_varfilt = data.frame(geneName=ballgown::geneNames(bg_varfilt), geneID=ballgown::geneIDs(bg_varfilt), transcript_results_varfilt)
+transcript_results_varfilt = data.frame(geneName=ballgown::geneNames(bg_varfilt), geneID=ballgown::geneIDs(bg_varfilt), transcriptName=ballgown::transcriptNames(bg_varfilt), transcript_results_varfilt)
 transcript_results_varfilt = arrange(transcript_results_varfilt, qval)
 write.table(transcript_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="transcript_de.txt")
 #
@@ -16,4 +16,20 @@ gene_results_varfilt = stattest(bg_varfilt, feature="gene", covariate="sample", 
 gene_results_varfilt = arrange(gene_results_varfilt, qval)
 write.table(gene_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="gene_de.txt")
 #
+texpr = as.data.frame(texpr(bg_varfilt))
+texpr.matrix <- as.matrix(texpr)
+texpr$id <- rownames(texpr)
+
+texpr$FPKM1 <- rowMeans(texpr.matrix[,1:5])
+texpr$FPKM2 <- rowMeans(texpr.matrix[,6:10])
+texpr$log2FC <- log2(texpr$FPKM2/texpr$FPKM1)
+joined <- left_join(transcript_results_varfilt, texpr)
+joined$feature <- NULL
+joined2 <- data.frame(joined$id,joined$geneName, joined$geneID, joined$transcriptName, joined$FPKM.sample01, joined$FPKM.sample02, joined$FPKM.sample03, joined$FPKM.sample04, 
+joined$FPKM.sample05, joined$FPKM.sample06, joined$FPKM.sample07, joined$FPKM.sample08, joined$FPKM.sample09, joined$FPKM.sample10, joined$FPKM1, joined$FPKM2, joined$log2FC,
+joined$fc, joined$pval, joined$qval)
+write.table(joined2, quote=F, sep="\t", row.names=F, col.names=T, file="de_data.txt")
+
+
+
 save.image(file="RData")

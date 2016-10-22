@@ -204,7 +204,8 @@ singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile
 #cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
 #stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs"
 #stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs -l $bioclass$lane"
-stringtieflgs="-o ../ballgown/$bioclass$lane/"$bioclass$lane"_transcripts.gtf -B -p $procs -l $bioclass$lane"
+#stringtieflgs="-o ../ballgown/$bioclass$lane/"$bioclass$lane"_transcripts.gtf -B -p $procs -l $bioclass$lane"
+stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -B -p $procs -l $bioclass$lane"
 
 #
 # END OF USER-DEFINED VARIABLES
