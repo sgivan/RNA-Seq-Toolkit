@@ -3,6 +3,8 @@
 library(ballgown)
 library(dplyr)
 library(genefilter)
+library(rtracklayer)
+#
 pheno_data <- read.csv(file="pheno.txt")
 bg <- ballgown(dataDir="./", pData=pheno_data, samplePattern="sample", meas='FPKM')
 bg_varfilt = subset(bg, "rowVars(texpr(bg)) > 1", genomesubset=T)
@@ -10,11 +12,31 @@ bg_varfilt = subset(bg, "rowVars(texpr(bg)) > 1", genomesubset=T)
 transcript_results_varfilt = stattest(bg_varfilt, feature="transcript", covariate="sample", meas="FPKM")
 transcript_results_varfilt = data.frame(geneName=ballgown::geneNames(bg_varfilt), geneID=ballgown::geneIDs(bg_varfilt), transcriptName=ballgown::transcriptNames(bg_varfilt), transcript_results_varfilt)
 transcript_results_varfilt = arrange(transcript_results_varfilt, qval)
+#
+gff = readGFF(file="../transcripts.gtf")
+#
+lookupGeneSymbol <- function(tid){
+symbol = gff[gff$transcript_id==tid,]$gene_name[1]
+return(symbol) }
+#
+lookupGeneSymbol_by_gene_id <- function (gid) {
+symbol = gff[gff$gene_id==gid,]$gene_name[1]
+return(symbol) }
+#
+# the following lapply step takes a long time
+# comment it if you don't need gene symbols in output
+t_geneNames <- lapply(transcript_results_varfilt$transcriptName, lookupGeneSymbol)
+transcript_results_varfilt$geneSymbol <- unlist(t_geneNames)
+#
 write.table(transcript_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="transcript_de.txt")
 #
 gene_results_varfilt = stattest(bg_varfilt, feature="gene", covariate="sample", getFC=T, meas="FPKM")
 #gene_results_varfilt = data.frame(geneName=ballgown::geneNames(bg_varfilt), geneID=ballgown::geneIDs(bg_varfilt), gene_results_varfilt)
 gene_results_varfilt = arrange(gene_results_varfilt, qval)
+# the following lapply step takes a long time
+# comment it if you don't need gene symbols in output
+gid_geneSymbol = lapply(gene_results_varfilt$id,lookupGeneSymbol_by_gene_id)
+gene_results_varfilt$geneSymbol = unlist(gid_geneSymbol)
 write.table(gene_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="gene_de.txt")
 #
 texpr = as.data.frame(texpr(bg_varfilt))
