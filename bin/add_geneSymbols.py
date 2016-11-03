@@ -25,9 +25,9 @@ if (not os.path.exists(args.gfffile)):
 outfile = open(outfilename, 'w')
 
 if (not os.path.exists('gff.sqlite')): 
-    db = gffutils.create_db(args.gfffile,':memory:', gtf_subfeature='exon', id_spec=None, merge_strategy="merge", disable_infer_transcripts=True, disable_infer_genes=True)
+    db = gffutils.create_db(args.gfffile,'gxf.sqlite', gtf_subfeature='exon', id_spec=None, merge_strategy="merge", disable_infer_transcripts=True, disable_infer_genes=True)
 else:
-    db = gffutils.FeatureDB('gff.sqlite')
+    db = gffutils.FeatureDB('gxf.sqlite')
 
 if (args.verbose):
     print("number of transcripts: %i" % db.count_features_of_type('transcript'))
@@ -41,9 +41,9 @@ for gene in db.features_of_type('gene'):
         gene.attributes['Name'][0] 
     except KeyError: 
         cnt += 1
-        pass
-
-    gene2name[gene.id] = gene.attributes['Name'][0] 
+        continue
+    else:
+        gene2name[gene.id] = gene.attributes['Name'][0] 
 
     cnt2 += 1
     if (args.verbose and cnt2 <= 10):
@@ -61,12 +61,12 @@ for dataline in datafile:
     try:
         gene_name = gene2name[geneid]
     except KeyError:
-        pass
+        continue
+    else:
+        if (args.verbose):
+            print(dataline.rstrip() + "\t" + gene_name + "\n")
 
-    if (args.verbose):
-        print(dataline.rstrip() + "\t" + gene_name + "\n")
-
-    outfile.write(dataline.rstrip() + "\t" + gene_name + "\n")
+        outfile.write(dataline.rstrip() + "\t" + gene_name + "\n")
 
 outfile.close()
 
