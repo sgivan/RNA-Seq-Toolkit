@@ -25,7 +25,7 @@ if (not os.path.exists(args.gfffile)):
 outfile = open(outfilename, 'w')
 
 if (not os.path.exists('gff.sqlite')): 
-    db = gffutils.create_db(args.gfffile,'gff.sqlite')
+    db = gffutils.create_db(args.gfffile,':memory:', gtf_subfeature='exon', id_spec=None, merge_strategy="merge", disable_infer_transcripts=True, disable_infer_genes=True)
 else:
     db = gffutils.FeatureDB('gff.sqlite')
 
@@ -39,9 +39,9 @@ for gene in db.features_of_type('gene'):
 
     try:
         gene.attributes['Name'][0] 
-    except Exception as e: 
+    except KeyError: 
         cnt += 1
-        continue
+        pass
 
     gene2name[gene.id] = gene.attributes['Name'][0] 
 
@@ -56,23 +56,17 @@ cnt = 0
 for dataline in datafile:
 
     geneid = dataline.split()[1]
-    print("geneid: '%s'" % geneid)
-    cnt += 1
-    if (cnt >= 10):
-        break
-#    outfile.write(dataline.rstrip() + "\t" + gene2name[geneid] + "\n")
-
     gene_name = 'n/a'
 
     try:
         gene_name = gene2name[geneid]
-    except:
-        continue
+    except KeyError:
+        pass
 
-    print(dataline.rstrip() + "\t" + gene_name + "\n")
+    if (args.verbose):
+        print(dataline.rstrip() + "\t" + gene_name + "\n")
+
     outfile.write(dataline.rstrip() + "\t" + gene_name + "\n")
-
-#outfile.write("hello world")
 
 outfile.close()
 
