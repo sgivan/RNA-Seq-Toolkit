@@ -1,0 +1,6 @@
+# before running ballgown.Rscript:
+ballgown_setup.pl --cont '../ballgown/Bashkin_RNA-SeqECFC-?.fastq' --exp '../ballgown/Bashkin_RNA-SeqECFNV1111-?.fastq'
+#
+# if you want gene symbols in gene_de.txt, run these commands:
+gtf2gff3 transcripts.gtf > transcripts.gff3
+./add_geneSymbols.py --datafile ballgown_NV1115-2/gene_de.txt --gfffile transcripts.gff3 --verbose
