@@ -24,18 +24,25 @@ if (not os.path.exists(args.gfffile)):
 
 outfile = open(outfilename, 'w')
 
-if (not os.path.exists('gff.sqlite')): 
-    db = gffutils.create_db(args.gfffile,'gxf.sqlite', gtf_subfeature='exon', id_spec=None, merge_strategy="merge", disable_infer_transcripts=True, disable_infer_genes=True)
+if (not os.path.exists('gxf.sqlite')): 
+    #db = gffutils.create_db(args.gfffile,'gxf.sqlite', gtf_subfeature='exon', id_spec=None, merge_strategy="merge", disable_infer_transcripts=True, disable_infer_genes=True)
+    db = gffutils.create_db(args.gfffile,'gxf.sqlite', keep_order=True)
 else:
     db = gffutils.FeatureDB('gxf.sqlite')
 
 if (args.verbose):
     print("number of transcripts: %i" % db.count_features_of_type('transcript'))
+    print("number of genes: %i" % db.count_features_of_type('gene'))
 
 cnt, cnt2 = 0, 0
 gene2name = { }
 
+#for ft in db.featuretypes():
+#    print("feature type: '%s'\n" % ft)
+
 for gene in db.features_of_type('gene'):
+
+#    print("attribute: '%s'" % gene.attributes)
 
     try:
         gene.attributes['Name'][0] 
@@ -44,6 +51,7 @@ for gene in db.features_of_type('gene'):
         continue
     else:
         gene2name[gene.id] = gene.attributes['Name'][0] 
+
 
     cnt2 += 1
     if (args.verbose and cnt2 <= 10):
@@ -58,15 +66,19 @@ for dataline in datafile:
     geneid = dataline.split()[1]
     gene_name = 'n/a'
 
+#   In the following exception handler, you want to pass  even
+#   if an exception is thrown, because some genes may not have a
+#   gene name, but the data is still valid. So, use pass instead
+#   of continue after KeyError.
     try:
         gene_name = gene2name[geneid]
     except KeyError:
-        continue
-    else:
-        if (args.verbose):
-            print(dataline.rstrip() + "\t" + gene_name + "\n")
+        pass
 
-        outfile.write(dataline.rstrip() + "\t" + gene_name + "\n")
+    if (args.verbose):
+        print(dataline.rstrip() + "\t" + gene_name)
+
+    outfile.write(dataline.rstrip() + "\t" + gene_name + "\n")
 
 outfile.close()
 
