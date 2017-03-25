@@ -95,6 +95,6 @@ then
     echo "  - Number of reads that had low quality base calls trimmed"
     echo "  - Number of reads filtered due to overall low quality"
     echo "  - Number of reads that match PhiX, rRNA genes or relevant repeat sequences"
-    echo "  - Number of reads remaining after all quality control steps"
+    echo "  - Number of reads remaining after all quality control steps (aka QC reads)"
     echo "  - Number of QC reads mapped to reference genome"
 fi
