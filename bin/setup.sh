@@ -2,7 +2,7 @@
 
 for dir in $(ls -1d ../data/current/Sample_*)
 do
-#    echo $dir
+    echo $dir
     newdir=$( echo $dir | sed -E 's/.+\///' )
     echo "newdir: "$newdir
     mkdir -p ${newdir}-1 ${newdir}-2
@@ -18,4 +18,4 @@ do
     cd ..
 done
 
-
+ln -s index hisat_index
