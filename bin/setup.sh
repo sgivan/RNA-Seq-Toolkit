@@ -1,6 +1,28 @@
 #!/bin/bash
+#
+# 
 
-for dir in $(ls -1d ../data/current/Sample_*)
+if [[ $# -eq 0 ]]; then
+    echo "
+
+    To use this script, there needs to be
+    a directory ../data/current with directories
+    named like 'Sample_*'. Or, you can pass
+    the name of the data directory as an
+    argument. Also, there needs
+    to be an 'index' directory (or symlink)
+    in the current directory.
+
+    "
+    datadir='../data/current'
+
+elif [[ $# -eq 1 ]]; then
+    datadir=$1
+fi
+
+
+#for dir in $(ls -1d ../data/current/Sample_*)
+for dir in $(ls -1d ${datadir}/Sample_*)
 do
     echo $dir
     newdir=$( echo $dir | sed -E 's/.+\///' )

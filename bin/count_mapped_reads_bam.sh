@@ -9,4 +9,5 @@ file=$1
 # https://www.gnu.org/software/coreutils/manual/html_node/sort-invocation.html
 #
 #samtools view $file | grep -v '^@' | awk '{ if ($2 != 4) { print $0; } }' | cut -f 1 | sort --temporary-directory /scratch | uniq | wc -l > ${file}.cnt
-samtools view -F 4 $file | grep -v '^@' |  cut -f 1 | sort --temporary-directory /mnt/scratch | uniq | wc -l > ${file}.cnt
+#samtools view -F 4 $file | grep -v '^@' |  cut -f 1 | sort --temporary-directory /mnt/scratch | uniq | wc -l > ${file}.cnt
+samtools view -F 4 $file | grep -v '^@' |  cut -f 1 | sort --temporary-directory /scratch | uniq | wc -l > ${file}.cnt
