@@ -37,7 +37,7 @@ function help_messg () {
             echo "-O | --preprocess_only (only run preprocessing routines)"
             echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
             echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
-            echo "-B | --bsub submit to LSF queueing system" 
+            echo "-B | --slurm submit to slurm queueing system" 
             echo "-D | --queue LSF queue [normal]"
             echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
             echo "-i | --min_intron_length [20] (minimum intron length)"
@@ -117,7 +117,7 @@ function help_messg () {
             echo "-p | --partial (will skip preprocessing steps)"
             echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
             echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
-            echo "-B | --bsub submit to LSF queueing system" 
+            echo "-B | --slurm submit to slurm queueing system" 
             echo "-D | --queue LSF queue [normal]"
             echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
             echo "-i | --min_intron_length [20] (minimum intron length)"
@@ -213,7 +213,7 @@ qualscores='NULL'
 dev=0
 oldid=0
 RNAseq_script='NULL'
-bsub=0
+slurm=0
 queue='normal'
 no_new_txpts='NULL'
 leave_temp=0
@@ -229,7 +229,7 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ --long help,full,transcripts,partial,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bsub,queue:,nonewtranscripts,wait,ignore_single_exons,no_hisat -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ --long help,full,transcripts,partial,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,slurm,queue:,nonewtranscripts,wait,ignore_single_exons,no_hisat -- "$@"`
         ;;
 
     Darwin)
@@ -278,7 +278,7 @@ while true ; do
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -J|--ignore_single_exons) ignore_single_exons=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
-        -B|--bsub) bsub=1 ; shift ;;
+        -B|--slurm) slurm=1 ; shift ;;
         -D|--queue) queue=$2 ; shift 2 ;;
         -w|--wait) wait4first=1 ; shift ;;
         --no_hisat) run_hisat=0 ; shift ;;
@@ -385,20 +385,21 @@ do
     echo $dir
     cd $dir
 
-    if [[ $bsub != 0 ]]
+    if [[ $slurm != 0 ]]
     then
         if [[ $wait4first -eq 1 && $cnt -eq 1 ]]
         then
-            RNAseq_script="bsub -K"
+            RNAseq_script="sbatch --wait"
         else
-            RNAseq_script="bsub"
+            RNAseq_script="sbatch"
         fi
 
-        #RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
-        RNAseq_script="$RNAseq_script -R \"rusage[mem=1000] span[hosts=1]\" -o ./${dir}.o -e ./${dir}.e -J $dir -q $queue -n $threads $script"
-        echo "RNAseq_script: '$RNAseq_script'"
+        #RNAseq_script="$RNAseq_script -R \"rusage[mem=1000] span[hosts=1]\" -o ./${dir}.o -e ./${dir}.e -J $dir -q $queue -n $threads $script"
+        RNAseq_script="$RNAseq_script -o ./${dir}.%j.o -e ./${dir}.%j.e --mem-per-cpu 4000 --job-name $dir --cpus-per-task $threads --wrap=\"$script"
+        echo "6 RNAseq_script: '$RNAseq_script\"'"
         #continue
         #break
+        #exit
 
     else
         RNAseq_script="$script"
@@ -410,17 +411,16 @@ do
 	
             # for partial runs (when you don't need to run preprocessing steps
 #            echo "RNAseq.sh $flags --partial" ;
-            echo "$RNAseq_script $flags -p $more_flags" ;
-            eval $RNAseq_script $flags -p $more_flags ;;
+            echo "1 $RNAseq_script $flags -p $more_flags \"" ;
+            eval $RNAseq_script $flags -p $more_flags \" ;;
             #eval $RNAseq_script $flags -p $more_flags > RNAseq.log 2>&1 ;;
 
         full)
 
             # for full runs
-#            echo "RNAseq.sh $flags --full" ;
-            echo "$RNAseq_script $flags -f" ;
+            echo "2 $RNAseq_script $flags -f" ;
 #            RNAseq.sh $flags --full ;;
-            eval $RNAseq_script $flags -f ;;
+            eval $RNAseq_script $flags -f \" ;;
             #eval $RNAseq_script $flags -f > RNAseq.log 2>&1 ;;
 
         transcripts)
@@ -449,22 +449,21 @@ do
 
             echo "running hisat"
 #            echo "RNAseq.sh --transcripts $flags $more_flags" ;
-            echo "$RNAseq_script -a $flags $more_flags" ;
+            echo "3 $RNAseq_script -a $flags $more_flags" ;
 #            RNAseq.sh --transcripts $flags $more_flags ;;
-            eval $RNAseq_script -a $flags $more_flags ;;
+            eval $RNAseq_script -a $flags $more_flags \" ;;
             #eval $RNAseq_script -a $flags $more_flags > RNAseq.log 2>&1 ;;
 
         preprocess)
 
             echo "running preprocessing routines only" ;
-            echo "$RNAseq_script -R -O $flags $more_flags" ;
-            eval $RNAseq_script -R -O $flags $more_flags ;;
+            echo "4 $RNAseq_script -R -O $flags $more_flags" ;
+            eval $RNAseq_script -R -O $flags $more_flags \" ;;
             #eval $RNAseq_script -R -O $flags $more_flags >> RNAseq.log 2>&1 ;;
-            #bsub -R "rusage[mem=500] span[hosts=1]" -J $dir -n $threads -q bioq RNAseq.sh -R -O $flags $more_flags ;;
 
         *)
-            echo "RNAeq.sh $flags"
-            eval $RNAseq_script $flags $more_flags ;;
+            echo "5 RNAeq.sh $flags"
+            eval $RNAseq_script $flags $more_flags \" ;;
 
     esac
 
