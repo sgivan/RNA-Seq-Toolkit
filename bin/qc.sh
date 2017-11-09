@@ -7,6 +7,19 @@ header=0
 comma=0
 cumulative=0
 
+if [[ $# -eq 0 ]];
+then
+    echo "
+    qc.sh directory
+        -q) quiet
+        -h) header & footer
+        -c) comma
+        -u) cumulative
+   "
+   exit;
+fi
+    
+
 eval set -- "$TEMP"
 while true ; do
     case "$1" in
