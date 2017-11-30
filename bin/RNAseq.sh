@@ -319,8 +319,8 @@ then
             echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --newid"
             fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --newid
         else
-            echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN "
-            fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN 
+            echo "fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --oldid"
+            fastq_pe_matchup.pl --read_1 set1.fq --read_2 set2.fq --nomaxN --oldid
         fi
 #
         echo "linking new files"

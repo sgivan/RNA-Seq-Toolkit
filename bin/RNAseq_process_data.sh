@@ -395,7 +395,7 @@ do
         fi
 
         #RNAseq_script="$RNAseq_script -R \"rusage[mem=1000] span[hosts=1]\" -o ./${dir}.o -e ./${dir}.e -J $dir -q $queue -n $threads $script"
-        RNAseq_script="$RNAseq_script -o ./${dir}.%j.o -e ./${dir}.%j.e --mem-per-cpu 4000 --job-name $dir --cpus-per-task $threads --wrap=\"$script"
+        RNAseq_script="$RNAseq_script -o ./${dir}.%j.o -e ./${dir}.%j.e --mem-per-cpu 12000 --job-name $dir --cpus-per-task $threads --wrap=\"$script"
         echo "6 RNAseq_script: '$RNAseq_script\"'"
         #continue
         #break
