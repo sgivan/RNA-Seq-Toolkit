@@ -29,6 +29,11 @@ ln -sf index hisat_index
 echo "moving reference sequence and undesireables into index directory"
 mv chrom3.fa index
 mv Contaminants.fa index
+echo "creating sybolic links"
+cd index
+ln -s chrom3.fa refseq.fa
+ln -s Contaminants.fa filter.fa
+cd ..
 echo "creating sample directories"
 mkdir -p s_6 s_7 s_8
 echo "moving sample fastq files into their respective directories"
@@ -52,12 +57,9 @@ echo "making bowtie indices"
 cd index
 echo "building refseq index"
 #bowtie-build chrom3.fa refseq
-hisat2-build chrom3.fa refseq
-echo "building undesireables index"
-bowtie-build Contaminants.fa filter
-echo "creating sybolic links"
-ln -s chrom3.fa refseq.fa
-ln -s Contaminants.fa filter.fa
+hisat2-build refseq.fa refseq.fa
+echo "building filter index"
+bowtie-build filter.fa filter.fa
 cd ..
 bash cmd
 echo "finished"
