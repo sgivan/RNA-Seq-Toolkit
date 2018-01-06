@@ -43,6 +43,15 @@ sub help {
 
     say <<HELP;
 
+option  explanation
+--cont  quoted wildcard expression of control directories
+--exp   quoted wildcard expression of experimental directories
+--help
+--debug
+--verbose
+
+a typical use is like:
+ballgown_setup.pl --cont "s_[1234]" --exp "s_[5678]"
 
 HELP
 
@@ -53,37 +62,45 @@ say PHENO "ids,replicate,sample";
 
 my $cnt = 1;
 my $repcnt = 1;
-for my $dir (`ls -d $controldir`) {
-    chomp($dir);
-    say "'" . $dir . "'";
-    my $label = "sample";
-    if ($cnt < 10) {
-        $label .= "0$cnt";
-    } else {
-        $label .= $cnt;
+#chomp(my @files = `ls -d $controldir`);
+#say "files (" . scalar(@files) . "): '@files'";
+#exit;
+if ($controldir) {
+    for my $dir (`ls -d $controldir`) {
+        chomp($dir);
+        say "'" . $dir . "'";
+        my $label = "sample";
+        if ($cnt < 10) {
+            $label .= "0$cnt";
+        } else {
+            $label .= $cnt;
+        }
+        symlink("$dir" . "/ballgown",$label);
+        say PHENO "$label,$repcnt,control";
+        ++$cnt;
+        ++$repcnt;
     }
-    symlink($dir,$label);
-    say PHENO "$label,$repcnt,control";
-    ++$cnt;
-    ++$repcnt;
 }
 
 #say "identifying experimental sample directories '$controldir'";
 
-$repcnt = 1;
-for my $dir (`ls -d $expdir`) {
-    chomp($dir);
-    say "'" . $dir . "'";
-    my $label = "sample";
-    if ($cnt < 10) {
-        $label .= "0$cnt";
-    } else {
-        $label .= $cnt;
+if ($expdir) {
+
+    $repcnt = 1;
+    for my $dir (`ls -d $expdir`) {
+        chomp($dir);
+        say "'" . $dir . "'";
+        my $label = "sample";
+        if ($cnt < 10) {
+            $label .= "0$cnt";
+        } else {
+            $label .= $cnt;
+        }
+        symlink("$dir" . "/ballgown",$label);
+        say PHENO "$label,$repcnt,experimental";
+        ++$cnt;
+        ++$repcnt;
     }
-    symlink($dir,$label);
-    say PHENO "$label,$repcnt,experimental";
-    ++$cnt;
-    ++$repcnt;
 }
 
 close(PHENO);
