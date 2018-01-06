@@ -1,4 +1,4 @@
-bin/RNAseq_process_data.sh -e -H 4 -t -f -Y s_? -J
+bin/RNAseq_process_data.sh -e -H 4 -t -f -Y -J s_?
 bin/RNAseq_process_data.sh -e -H 4 -a -Y  s_?
 #cuffdiff -o cuffdiff -N -p 4 -r index/refseq.fa --library-type fr-unstranded transcripts.gtf s_?/merged/merged.bam
 # new version no longer accepts -r, use -b now
