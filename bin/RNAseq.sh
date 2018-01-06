@@ -68,7 +68,7 @@ librarytype='NULL'
 # files made with hisat-build, which is specified by HISAT_INDEXES, below
 #
 
-fasta_file='refseq' # actual file should be have .fa suffix
+fasta_file='refseq.fa' # actual file should be have .fa suffix
 
 #
 # HISAT_INDEXES contains the path to the directory containing the reference index files
@@ -212,8 +212,8 @@ singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile
 # not sure why I use the -B flag, but it is causing an error witout guide the GFF/GTF
 # answer: the -B flag makes stringtie generate a file for ballgown, the DE program
 # So, don't use the -B flag at the merge stage, but use it at the DE stage
-stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -p $procs -l $bioclass$lane"
-# change the above to be more consistent with past directory structurwes.
+#stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -p $procs -l $bioclass$lane"
+# change the above to be more consistent with past directory structures.
 # this will likely require changing the ballgown Rscript
 stringtieflgs="-o ballgown/transcripts.gtf -p $procs -l $bioclass$lane"
 
@@ -500,9 +500,9 @@ then
     echo "running stringtie"
     if [[ $no_new_txpts != "NULL" ]]
     then
-        stringtie_extra_cmd="-G transcripts.gtf -e"
+        stringtie_extra_cmd=" -B -G transcripts.gtf -e"
     else
-        stringtie_extra_cmd="-G transcripts.gtf"
+        stringtie_extra_cmd=" -B -G transcripts.gtf"
     fi
     echo $stringtie $stringtieflgs $stringtie_extra_cmd merged/merged.bam 
     $($stringtie $stringtieflgs $stringtie_extra_cmd merged/merged.bam > stringtie.log 2>&1)

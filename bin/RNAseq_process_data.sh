@@ -46,13 +46,13 @@ function help_messg () {
             echo "-L | --segment-length [25] (segment length)"
 #            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
             echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
-            echo "-s | --refseq [refseq] (name of file containing reference DNA seqeunce)"
+            echo "-s | --refseq [refseq.fa] (name of file containing reference DNA seqeunce)"
             echo "-H | --threads [8] (number of threads to use)"
             echo "-l | --library_type [fr-unstranded] (library type as defined in TopHat manual)"
             #echo "--use_aggregates"
             echo "-e | --seonly (use if NOT working with paired-end sequence data)"
             echo "-A | --adapter (provide the adapter sequence to remove)"
-            echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
+            echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq.fa and filter.fa)"
             echo "-T | --toolpath [.] (provide path to directory containing RNAseq tools)"
             echo "-R | --preprocess (use if you want to ensure running sequence preprocessing routines)"
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
@@ -89,13 +89,13 @@ function help_messg () {
             echo "-L [25] (segment length)"
             echo "-M [2] (segment mismatches [0-3])"
             echo "-t (generate gtf file of empirical transcripts)"
-            echo "-s [refseq] (name of file containing reference DNA seqeunce)"
+            echo "-s [refseq.fa] (name of file containing reference DNA seqeunce)"
             echo "-H [8] (number of threads to use)"
             echo "-l [fr-unstranded] (library type as defined in TopHat manual)"
             #echo "--use_aggregates"
             echo "-e (use if NOT working with paired-end sequence data)"
             echo "-A (provide the adapter sequence to remove)"
-            echo "-P [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
+            echo "-P [index] (provide the path to the directory containing the bowtie indexes for refseq.fa and filter.fa)"
             echo "-T [.] (provide path to directory containing RNAseq tools)"
             echo "-R (use if you want to ensure running sequence preprocessing routines)"
             echo "-q [13] during preprocessing, minimum quality of base to avoid trimming"
@@ -126,13 +126,13 @@ function help_messg () {
 #            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
             echo "-F | --min-isoform-fraction [0.15] (min isoform fraction)"
             echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
-            echo "-s | --refseq [refseq] (name of file containing reference DNA seqeunce)"
+            echo "-s | --refseq.fa [refseq.fa] (name of file containing reference DNA seqeunce)"
             echo "-H | --threads [8] (number of threads to use)"
             echo "-l | --library_type [fr-unstranded] (library type as defined in TopHat manual)"
             #echo "--use_aggregates"
             echo "-e | --seonly (use if NOT working with paired-end sequence data)"
             echo "-A | --adapter (provide the adapter sequence to remove)"
-            echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq and filter)"
+            echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq.fa and filter.fa)"
             echo "-T | --toolpath [.] (provide path to directory containing RNAseq tools)"
             echo "-R | --preprocess (use if you want to ensure running sequence preprocessing routines)"
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
@@ -184,7 +184,7 @@ function mk_agg_txpts_stringtie () {
         stringtie_flags="-o merged_transcripts.gtf --merge ../*/ballgown/transcripts.gtf"
         if [[ $ignore_single_exons -eq 1 ]]
         then
-            stringtie_flags="-M $stringtie_flags"
+            stringtie_flags="-p $threads -M $stringtie_flags"
         fi
 #        echo "stringtie -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
         echo "stringtie $stringtie_flags"
@@ -196,6 +196,20 @@ function mk_agg_txpts_stringtie () {
         # name change means the link above doesn't work
         #ln -sf transcripts/cuffcmp.combined.gtf ./transcripts.gtf
         ln -sf transcripts/merged_transcripts.gtf ./transcripts.gtf
+#
+#       Must now update refseq index to include splice sites and exons
+        cd index
+        mkdir no_transcripts
+        mv *.ht2 no_transcripts
+        echo "building new index of $refseq to include splice sites and exons from transcripts.gtf"
+        $(hisat2_extract_exons.py ../transcripts.gtf > exons.txt)
+        $(hisat2_extract_splice_sites.py ../transcripts.gtf > splice_sites.txt)
+        echo "cmd: hisat2-build -p $threads --ss splice_sites.txt --exon exons.txt $refseq refseq"
+        $(hisat2-build -p $threads --ss splice_sites.txt --exon exons.txt $refseq refseq)
+        echo "build new genome index finished"
+        touch index_with_exons_and_splice_sites_finished
+        cd ..
+
     else
         echo "can't create transcripts directory"
     fi
@@ -206,7 +220,7 @@ min_intron_length=20
 max_intron_length=500000
 aggregate_junctions=0
 aggregate_transcripts=0
-refseq='refseq'
+refseq='refseq.fa'
 threads=8
 library_type='NULL'
 use_aggregates=0
@@ -299,6 +313,8 @@ done
 #for arg do echo '--> '"\`$arg'" ; done
 
 echo "run type is '$run_type'"
+echo "reference sequence file: '$refseq'"
+
 flags="-s $refseq -i $min_intron_length -I $max_intron_length -t $threads -P $indexpath/ -q $min_qual -n $min_length -E $percent_high_quality" 
 #echo "flags: $flags"
 #exit
@@ -443,6 +459,7 @@ do
                 then
                     echo "moving old output files to 'non-aggregate'"
                     mv -f merged cufflinks pe_hisat* singles_hisat* non-aggregate/
+                    mv -f ballgown non-aggregate/
                 else
                     echo "can't create non-aggregate directory"
                 fi
