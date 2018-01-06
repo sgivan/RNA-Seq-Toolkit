@@ -35,21 +35,21 @@ ln -s chrom3.fa refseq.fa
 ln -s Contaminants.fa filter.fa
 cd ..
 echo "creating sample directories"
-mkdir -p s_6 s_7 s_8
+mkdir -p s_5 s_6 s_7 s_8
 echo "moving sample fastq files into their respective directories"
+mv s_5_* s_5
 mv s_6_* s_6
 mv s_7_* s_7
 mv s_8_* s_8
 echo "creating symbolic links inside of sample directories"
-cd s_6
+cd s_5
+ln -sf s_5_1_test.txt set1.fq
+cd ../s_6
 ln -sf s_6_1_test.txt set1.fq
-ln -sf s_6_2_test.txt set2.fq
 cd ../s_7
 ln -sf s_7_1_test.txt set1.fq
-ln -sf s_7_2_test.txt set2.fq
 cd ../s_8
 ln -sf s_8_1_test.txt set1.fq
-ln -sf s_8_2_test.txt set2.fq
 cd ..
 #
 echo "making bowtie indices"
