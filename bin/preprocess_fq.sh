@@ -34,7 +34,7 @@ BOWTIE_INDEXES='index'
 BOWTIE2_INDEXES='index'
 #bowtie_cmd='bowtie2'
 bowtie_cmd='bowtie'
-filter='filter'
+filter='filter.fa'
 nofilter=0
 leave_temp=0
 qualscores='NULL'
@@ -54,7 +54,7 @@ function help_messg {
         -p|--percent_high_quality Minimum % of bases > --min_qual to accept [default = 90]
         -t|--bowtie_threads Number of bowtie threads to use in filter step [default = 8]
         -i|--indexpath path to bowtie index
-        -f|--filter Name of filter bowtie index [default = 'filter']
+        -f|--filter Name of filter bowtie index [default = 'filter.fa']
         -n|--nofilter Don't do sequence similarity filtering
         -Q|--min_qual # this must be a duplicate -> see -q option, above
         -L|--min_length # this must be a duplicate -> see -l option, above
