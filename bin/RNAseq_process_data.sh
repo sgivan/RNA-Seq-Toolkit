@@ -204,8 +204,8 @@ function mk_agg_txpts_stringtie () {
         echo "building new index of $refseq to include splice sites and exons from transcripts.gtf"
         $(hisat2_extract_exons.py ../transcripts.gtf > exons.txt)
         $(hisat2_extract_splice_sites.py ../transcripts.gtf > splice_sites.txt)
-        echo "cmd: hisat2-build -p $threads --ss splice_sites.txt --exon exons.txt $refseq refseq"
-        $(hisat2-build -p $threads --ss splice_sites.txt --exon exons.txt $refseq refseq)
+        echo "cmd: hisat2-build -p $threads --ss splice_sites.txt --exon exons.txt $refseq $refseq"
+        $(hisat2-build -p $threads --ss splice_sites.txt --exon exons.txt $refseq $refseq)
         echo "build new genome index finished"
         touch index_with_exons_and_splice_sites_finished
         cd ..
