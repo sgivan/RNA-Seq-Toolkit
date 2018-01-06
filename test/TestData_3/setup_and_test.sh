@@ -25,6 +25,7 @@ wd=`pwd`
 export PATH=".:$wd:$wd/bin:$PATH"
 echo "making index directory"
 mkdir index
+ln -sf index hisat_index
 echo "moving reference sequence and undesireables into index directory"
 mv chrom3.fa index
 mv Contaminants.fa index
@@ -51,7 +52,7 @@ echo "making bowtie indices"
 cd index
 echo "building refseq index"
 #bowtie-build chrom3.fa refseq
-bowtie2-build chrom3.fa refseq
+hisat2-build chrom3.fa refseq
 echo "building undesireables index"
 bowtie-build Contaminants.fa filter
 echo "creating sybolic links"
