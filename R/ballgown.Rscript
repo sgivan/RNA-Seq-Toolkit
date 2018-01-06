@@ -48,7 +48,7 @@ texpr$FPKM1 <- rowMeans(texpr.matrix[,pheno_data$sample == 'control'])
 #texpr$FPKM2 <- rowMeans(texpr.matrix[,6:10])
 texpr$FPKM2 <- rowMeans(texpr.matrix[,pheno_data$sample == 'experimental'])
 texpr$log2FC <- log2(texpr$FPKM2/texpr$FPKM1)
-joined <- leftjoin(transcript_results_varfilt, texpr)
+joined <- left_join(transcript_results_varfilt, texpr)
 joined$feature <- NULL
 #
 #joined2 <- data.frame(joined$id,joined$geneName, joined$geneID, joined$transcriptName, joined$FPKM.sample01, joined$FPKM.sample02, joined$FPKM.sample03, joined$FPKM.sample04, 
