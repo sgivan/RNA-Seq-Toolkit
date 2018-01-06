@@ -3,5 +3,5 @@ bin/RNAseq_process_data.sh -e -H 4 -a -Y  s_?
 #cuffdiff -o cuffdiff -N -p 4 -r index/refseq.fa --library-type fr-unstranded transcripts.gtf s_?/merged/merged.bam
 # new version no longer accepts -r, use -b now
 #cuffdiff -o cuffdiff -N -p 4 -b index/refseq.fa --library-type fr-unstranded transcripts.gtf s_?/merged/merged.bam
-bin/ballgown_setup.pl --cont s_6 --exp "s_[78]"
+bin/ballgown_setup.pl --cont "s_[56]" --exp "s_[78]"
 ../../R/ballgown.Rscript 
