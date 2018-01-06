@@ -194,10 +194,13 @@ echo "run type is " $run_type
 
 #
 # hisatmcmd, pe_extra_cmd and singles_extra_cmd contain the actual invocation of
-# hisat, so it contains arguments and options passed to the program
+# hisat, so they contain arguments and options passed to the program
 #
+# retain cufflinks compatibility with the --dta-cufflinks option
+#hisatcmd="$hisat --downstream-transcriptome-assembly --dta-cufflinks --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
+# use --dta & stringtie downstream, lose cufflinks compatibility
+hisatcmd="$hisat --dta --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
 
-hisatcmd="$hisat --downstream-transcriptome-assembly --dta-cufflinks --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
 pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-gz pe_hisat_out/unaligned.fa.gz --un-conc-gz --un-gz pe_hisat_out/pe_unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1 read_2 "
 singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1.1,read_2.1 "
 # 
@@ -207,7 +210,12 @@ singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile
 #stringtieflgs="-o ../ballgown/$bioclass$lane/"$bioclass$lane"_transcripts.gtf -B -p $procs -l $bioclass$lane"
 #stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -B -p $procs -l $bioclass$lane"
 # not sure why I use the -B flag, but it is causing an error witout guide the GFF/GTF
+# answer: the -B flag makes stringtie generate a file for ballgown, the DE program
+# So, don't use the -B flag at the merge stage, but use it at the DE stage
 stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -p $procs -l $bioclass$lane"
+# change the above to be more consistent with past directory structurwes.
+# this will likely require changing the ballgown Rscript
+stringtieflgs="-o ballgown/transcripts.gtf -p $procs -l $bioclass$lane"
 
 #
 # END OF USER-DEFINED VARIABLES

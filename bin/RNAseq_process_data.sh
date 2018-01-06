@@ -62,7 +62,7 @@ function help_messg () {
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-C | --leave_temp leave temporary files on file system"
-            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
+#            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "--no_hisat don't run hisat"
             echo "" ;;
@@ -105,7 +105,7 @@ function help_messg () {
             echo "-X Phred quality values encoded as Phred + 33"
             echo "-Y Phred quality values encoded as Phred + 64"
             echo "-C | --leave_temp leave temporary files on file system"
-            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
+#            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h [print this help message]"
             echo "" ;;
 
@@ -142,7 +142,7 @@ function help_messg () {
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-C | --leave_temp leave temporary files on file system"
-            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
+#            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "--no_hisat don't run hisat"
             echo "" ;;
@@ -175,21 +175,31 @@ function mk_agg_txpts () {
     fi
 }
 
-#function mk_agg_txpts () {
-#    cd $wd
-#    echo "generating aggregate transcripts file"
-#    mkdir -p merged_aggregates
-#    cd merged_aggregates
-#    samtools merge all_merged.bam ../*/merged/merged.bam
-#    echo "cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam"
-#    cufflinks -p $threads -N --library-type $library_type -I 25000 -L allmerge -r ../index/$refseq.fa all_merged.bam
-#    cd ..
-#    ln -sf merged_aggregates/transcripts.gtf ./
-#}
+function mk_agg_txpts_stringtie () {
+    cd $wd
+    echo "generating merged transcripts file with stringtie"
+    if [[ -e "transcripts" ]] || mkdir -p transcripts
+    then
+        cd transcripts
+        stringtie_flags="-o merged_transcripts.gtf --merge ../*/ballgown/transcripts.gtf"
+        if [[ $ignore_single_exons -eq 1 ]]
+        then
+            stringtie_flags="-M $stringtie_flags"
+        fi
+#        echo "stringtie -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
+        echo "stringtie $stringtie_flags"
+#        stringtie -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
+        $(stringtie $stringtie_flags > stringtie_merge.log 2>&1)
 
-#function mk_agg_jncts {
-#
-#}
+        cd ..
+        #ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
+        # name change means the link above doesn't work
+        #ln -sf transcripts/cuffcmp.combined.gtf ./transcripts.gtf
+        ln -sf transcripts/merged_transcripts.gtf ./transcripts.gtf
+    else
+        echo "can't create transcripts directory"
+    fi
+}
 
 run_type='NULL'
 min_intron_length=20
@@ -495,7 +505,7 @@ fi
 
 if [ $aggregate_transcripts = 1 ]
     then
-        mk_agg_txpts
+        mk_agg_txpts_stringtie
 fi
 
 if [ $use_aggregates = 1 ]
