@@ -199,13 +199,15 @@ echo "run type is " $run_type
 
 hisatcmd="$hisat --downstream-transcriptome-assembly --dta-cufflinks --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
 pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-gz pe_hisat_out/unaligned.fa.gz --un-conc-gz --un-gz pe_hisat_out/pe_unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1 read_2 "
-singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz pe_hisat_out/unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1.1,read_2.1 "
+singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1.1,read_2.1 "
 # 
 #cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
 #stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs"
 #stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs -l $bioclass$lane"
 #stringtieflgs="-o ../ballgown/$bioclass$lane/"$bioclass$lane"_transcripts.gtf -B -p $procs -l $bioclass$lane"
-stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -B -p $procs -l $bioclass$lane"
+#stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -B -p $procs -l $bioclass$lane"
+# not sure why I use the -B flag, but it is causing an error witout guide the GFF/GTF
+stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -p $procs -l $bioclass$lane"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -375,6 +377,7 @@ then
     export HISAT_INDEXES=$HISAT_INDEXES # this is the directory containing the index files created with hisat-build
     if [ $run_type = transcripts ]
     then
+        echo "run type is " $run_type
         if [[ $no_new_txpts != "NULL" ]]
         then
             pe_extra_cmd=" --transcriptome-mapping-only $pe_extra_cmd"
@@ -390,23 +393,28 @@ then
         else
             singles_extra_cmd=`echo $singles_extra_cmd | sed 's/,read_2.1//'`
             echo "running hisat with these options: "$hisatcmd $singles_extra_cmd $@
+            pwd=`pwd`
+            echo "working directory: "$pwd
             $hisatcmd $singles_extra_cmd $@ > singles_hisat.stdout 2>&1
         fi
 
     else # maybe this should be a separate if clause
 
         if [[ $run_type != 'NULL' ]]
-        then
+        then 
+            echo "run type is " $run_type
             echo "running tophat without precomputed annotations"
+            pwd=`pwd`
+            echo "working directory: "$pwd
             if [[ $seonly -eq 0 ]]
             then
-                echo $hisatcmd $pe_extra_cmd $@
+                echo "running HISAT2 with these options: "$hisatcmd $pe_extra_cmd $@
                 $hisatcmd $pe_extra_cmd $@ > pe_hisat.stdout 2>&1
-                echo $hisatcmd $singles_extra_cmd $@
+                echo "running HISAT2 with these options: "$hisatcmd $singles_extra_cmd $@
                 $hisatcmd $singles_extra_cmd $@ > singles_hisat.stdout 2>&1
             else
                 singles_extra_cmd=`echo $singles_extra_cmd | sed 's/,read_2.1//'`
-                echo $hisatcmd $singles_extra_cmd $@
+                echo "running HISAT2 with these options: "$hisatcmd $singles_extra_cmd $@
                 $hisatcmd $singles_extra_cmd $@ > singles_hisat.stdout 2>&1
             fi
         fi
@@ -427,8 +435,7 @@ then
                 $(samtools merge merged.bam ../*/$samfile)
 
             else
-
-                ln -s ../singles_hisat_out/$samfile ./merged.bam
+                ln -s ../singles_hisat_out/$samfile ./merged.sam
             fi
 
             cd ..
