@@ -1,1 +1,3 @@
 Test non-paired sequence reads.
+Runs an initial mapping to reference genome. Then, creates a merged transcript gtf file. Then, re-runs HISAT2 pipepline using the merged GTF for all
+samples.
