@@ -32,29 +32,33 @@ export PATH=".:$wd:$wd/bin:$PATH"
 mkdir index
 ln -sf index hisat_index
 #echo "moving reference sequence and undesireables into index directory"
-mv Chr19.fa index
-mv Contaminants.fa index
+cp Chr19.fa index
+cp Contaminants.fa index
+cp Chr19.gtf transcripts.gtf
 echo "creating sybolic links"
 cd index
-ln -s chr19.fa refseq.fa
+ln -s Chr19.fa refseq.fa
 ln -s Contaminants.fa filter.fa
-#cd ..
+hisat2_extract_exons.py ../transcripts.gtf > exons.txt
+hisat2_extract_splice_sites.py ../transcripts.gtf > splice_sites.txt
+hisat2-build --exon exons.txt --ss splice_sites.txt refseq.fa refseq.fa
+cd ..
 #echo "creating sample directories"
 mkdir -p s_1 s_2 s_3 s_4
 echo "moving sample fastq files into their respective directories"
-mv s_1.fq s_1
-mv s_2.fq s_2
-mv s_3.fq s_3
-mv s_4.fq s_4
+cp s_1_hits.fastq s_1
+cp s_2_hits.fastq s_2
+cp s_3_hits.fastq s_3
+cp s_4_hits.fastq s_4
 echo "creating symbolic links inside of sample directories"
 cd s_1
-ln -sf s_1.fq set1.fq
+ln -sf s_1_hits.fastq set1.fq
 cd ../s_2
-ln -sf s_2.fq set1.fq
+ln -sf s_2_hits.fastq set1.fq
 cd ../s_3
-ln -sf s_3.fq set1.fq
+ln -sf s_3_hits.fastq set1.fq
 cd ../s_4
-ln -sf s_4.fq set1.fq
+ln -sf s_4_hits.fastq set1.fq
 cd ..
 #
 #echo "making bowtie indices"
@@ -66,7 +70,6 @@ cd index
 echo "building filter index"
 bowtie-build filter.fa filter.fa
 cd ..
-cp Chr19.gtf transcripts.gtf
 echo "running RNAseq_process_data.sh"
 bash cmd
 echo "finished"
