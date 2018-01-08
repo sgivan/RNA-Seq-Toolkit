@@ -375,7 +375,7 @@ fi
 if [[ $run_hisat -eq 1 ]]
 then
 
-    $(mkdir singles_hisat_out)
+    $(mkdir -p singles_hisat_out)
     if [[ $seonly -eq 0 ]]
     then
         $(mkdir -p pe_hisat_out)
