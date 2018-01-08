@@ -23,6 +23,8 @@ module load HISAT2-2.1.0
 module load Python-shared
 module load R-3.3.0-sharedlib
 
+for file in *.gz; do echo "gunzip $file"; gunzip $file; done
+
 echo "creating symbolic link to RNAseq tools directory"
 ln -sf ../../bin ./
 echo "setting PATH"
