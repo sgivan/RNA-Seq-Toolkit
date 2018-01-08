@@ -24,22 +24,22 @@ module load Python-shared
 module load R-3.3.0-sharedlib
 
 echo "creating symbolic link to RNAseq tools directory"
-ln -s ../../bin ./
+ln -sf ../../bin ./
 echo "setting PATH"
 wd=`pwd`
 export PATH=".:$wd:$wd/bin:$PATH"
-echo "making index directory"
+#echo "making index directory"
 mkdir index
 ln -sf index hisat_index
-echo "moving reference sequence and undesireables into index directory"
-mv chr19.fa index
+#echo "moving reference sequence and undesireables into index directory"
+mv Chr19.fa index
 mv Contaminants.fa index
 echo "creating sybolic links"
 cd index
 ln -s chr19.fa refseq.fa
 ln -s Contaminants.fa filter.fa
-cd ..
-echo "creating sample directories"
+#cd ..
+#echo "creating sample directories"
 mkdir -p s_1 s_2 s_3 s_4
 echo "moving sample fastq files into their respective directories"
 mv s_1.fq s_1
@@ -57,14 +57,16 @@ cd ../s_4
 ln -sf s_4.fq set1.fq
 cd ..
 #
-echo "making bowtie indices"
+#echo "making bowtie indices"
 #
 cd index
-echo "building refseq index"
-#bowtie-build chrom3.fa refseq
-hisat2-build refseq.fa refseq.fa
+#echo "building refseq index"
+##bowtie-build chrom3.fa refseq
+#hisat2-build refseq.fa refseq.fa
 echo "building filter index"
 bowtie-build filter.fa filter.fa
 cd ..
+cp Chr19.gtf transcripts.gtf
+echo "running RNAseq_process_data.sh"
 bash cmd
 echo "finished"
