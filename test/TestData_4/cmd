@@ -1,5 +1,5 @@
 bin/RNAseq_process_data.sh -e -H 4 -t -f -X s_?
-#bin/RNAseq_process_data.sh -e -H 4 -a -Y  s_?
+bin/RNAseq_process_data.sh -e -H 4 -a -Y  s_?
 # run ballgown
-#bin/ballgown_setup.pl --cont "s_[56]" --exp "s_[78]"
-#../../R/ballgown.Rscript 
+bin/ballgown_setup.pl --cont "s_[12]" --exp "s_[34]"
+../../R/ballgown.Rscript 

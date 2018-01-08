@@ -66,5 +66,5 @@ hisat2-build refseq.fa refseq.fa
 echo "building filter index"
 bowtie-build filter.fa filter.fa
 cd ..
-#bash cmd
+bash cmd
 echo "finished"
