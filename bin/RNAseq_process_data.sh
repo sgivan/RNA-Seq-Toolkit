@@ -46,6 +46,7 @@ function help_messg () {
             echo "-L | --segment-length [25] (segment length)"
 #            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
             echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
+            echo "-K | --cufflinks_compatible generate output files compatible with cufflinks"
             echo "-s | --refseq [refseq.fa] (name of file containing reference DNA seqeunce)"
             echo "-H | --threads [8] (number of threads to use)"
             echo "-l | --library_type [fr-unstranded] (library type as defined in TopHat manual)"
@@ -89,6 +90,7 @@ function help_messg () {
             echo "-L [25] (segment length)"
             echo "-M [2] (segment mismatches [0-3])"
             echo "-t (generate gtf file of empirical transcripts)"
+            echo "-K generate output files compatible with cufflinks"
             echo "-s [refseq.fa] (name of file containing reference DNA seqeunce)"
             echo "-H [8] (number of threads to use)"
             echo "-l [fr-unstranded] (library type as defined in TopHat manual)"
@@ -126,6 +128,7 @@ function help_messg () {
 #            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
             echo "-F | --min-isoform-fraction [0.15] (min isoform fraction)"
             echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
+            echo "-K | --cufflinks_compatible generate output files compatible with cufflinks"
             echo "-s | --refseq.fa [refseq.fa] (name of file containing reference DNA seqeunce)"
             echo "-H | --threads [8] (number of threads to use)"
             echo "-l | --library_type [fr-unstranded] (library type as defined in TopHat manual)"
@@ -244,6 +247,7 @@ leave_temp=0
 ignore_single_exons=0
 wait4first=0
 run_hisat=1
+cufflinks_compatible=0
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -253,11 +257,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ --long help,full,transcripts,partial,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bsub,queue:,nonewtranscripts,wait,ignore_single_exons,no_hisat -- "$@"`
+        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJK --long help,full,transcripts,partial,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bsub,queue:,nonewtranscripts,wait,ignore_single_exons,no_hisat,cufflinks_compatible -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJ $*`
+        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdC:NXYoG:BD:kwJK $*`
         ;;
 
     *)
@@ -280,6 +284,7 @@ while true ; do
         -I|--max_intron_length) max_intron_length=$2 ; shift 2 ;;
         -j|--agg_junctions) aggregate_junctions=1 ; shift ;;
         -t|--agg_transcripts) aggregate_transcripts=1 ; shift ;;
+        -K|--cufflinks_compatible ) cufflinks_compatible=1 ; shift ;;
         -s|--refseq) refseq=$2 ; shift 2 ;;
         -H|--threads) threads=$2 ; shift 2 ;;
         -l|--library_type) library_type=$2 ; shift 2 ;;
@@ -367,6 +372,11 @@ fi
 if [[ $leave_temp -ne 0 ]]
 then
     flags="$flags -C"
+fi
+
+if [[ $cufflinks_compatible -ne 0 ]]
+then
+    flags="$flags -K"
 fi
 
 #echo "flags: '$flags'"
