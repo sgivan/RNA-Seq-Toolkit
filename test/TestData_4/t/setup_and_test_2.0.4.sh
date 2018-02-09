@@ -17,6 +17,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
+./reset_test
 module load bowtie2-2.3.2
 module load stringtie-1.3.0
 t/test.t 2.0.4 $@
