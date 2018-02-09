@@ -6,6 +6,7 @@ use autodie;
 
 use Test::More;
 
+my $vers  = shift // '2.0.4';
 my $DEBUG = shift // 1;
 
 my $test_log = 'test.log';
@@ -13,7 +14,7 @@ my $test_log = 'test.log';
 warn "Running RNA-Seq-Toolkit tests (this may run for ten minutes or so)\n"; #Ends in newline so warning omits line number
 
 if ($DEBUG) {
-    system("t/versionless_setup_and_test.sh |& tee $test_log"); 
+    system("module load HISAT2-$vers; t/versionless_setup_and_test.sh |& tee $test_log"); 
 }
 else {
     system("t/versionless_setup_and_test.sh &> /dev/null"); 
@@ -28,7 +29,7 @@ for my $file ( qw(
 )
 {
     
-    my $result   = `diff $file t/expected_hisat2-2.0.4/$file`; 
+    my $result   = `diff $file t/expected_hisat2-$vers/$file`; 
     chomp $result;
     my $expected = '';
     
