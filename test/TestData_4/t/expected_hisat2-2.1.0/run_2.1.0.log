@@ -1,0 +1,1083 @@
+gunzip Chr19.fa.gz
+gunzip Chr19.gtf.gz
+gunzip Contaminants.fa.gz
+gunzip de_data.txt.00.gz
+gunzip gene_de.txt.00.gz
+gunzip s_1_hits.fastq.gz
+gunzip s_2_hits.fastq.gz
+gunzip s_3_hits.fastq.gz
+gunzip s_4_hits.fastq.gz
+gunzip transcript_de.txt.00.gz
+creating symbolic link to RNAseq tools directory
+setting PATH
+creating sybolic links
+Settings:
+  Output files: "refseq.fa.*.ht2"
+  Line rate: 7 (line is 128 bytes)
+  Lines per side: 1 (side is 128 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Local offset rate: 3 (one in 8)
+  Local fTable chars: 6
+  Local sequence length: 57344
+  Local sequence overlap between two consecutive indexes: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  refseq.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:01
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+  Time to read SNPs and splice sites: 00:00:00
+Generation 0 (58213311 -> 58213311 nodes, 0 ranks)
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 1
+Generation 1 (58220611 -> 58220611 nodes, 0 ranks)
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 0
+Generation 2 (58235211 -> 58235211 nodes, 0 ranks)
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 0
+Generation 3 (58264420 -> 58264420 nodes, 0 ranks)
+BUILT FROM_INDEX: 0
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 1
+RESIZED NODES: 0
+MADE NEW NODES: 0
+RESIZE NODES: 1
+SORT NODES: 5
+MERGE, UPDATE RANK: 0
+Generation 4 (58322869 -> 58279480 nodes, 49082515 ranks)
+ALLOCATE FROM_TABLE: 1
+BUILD TABLE: 2
+BUILD INDEX: 0
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 1
+MERGEUPDATERANK: 1
+TOTAL TIME: 5
+Generation 5 (58283853 -> 58279648 nodes, 54603236 ranks)
+ALLOCATE FROM_TABLE: 0
+BUILD TABLE: 2
+BUILD INDEX: 0
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 1
+MERGEUPDATERANK: 0
+TOTAL TIME: 3
+Generation 6 (58281595 -> 58280828 nodes, 56646322 ranks)
+ALLOCATE FROM_TABLE: 0
+BUILD TABLE: 2
+BUILD INDEX: 1
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 0
+MERGEUPDATERANK: 0
+TOTAL TIME: 3
+Generation 7 (58282421 -> 58281646 nodes, 57517160 ranks)
+ALLOCATE FROM_TABLE: 0
+BUILD TABLE: 3
+BUILD INDEX: 0
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 0
+MERGEUPDATERANK: 1
+TOTAL TIME: 4
+Generation 8 (58282242 -> 58281873 nodes, 57912534 ranks)
+ALLOCATE FROM_TABLE: 0
+BUILD TABLE: 2
+BUILD INDEX: 0
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 0
+MERGEUPDATERANK: 1
+TOTAL TIME: 3
+Generation 9 (58282129 -> 58282075 nodes, 58119735 ranks)
+ALLOCATE FROM_TABLE: 0
+BUILD TABLE: 2
+BUILD INDEX: 0
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 0
+MERGEUPDATERANK: 1
+TOTAL TIME: 3
+Generation 10 (58282587 -> 58282587 nodes, 58227789 ranks)
+ALLOCATE FROM_TABLE: 0
+BUILD TABLE: 2
+BUILD INDEX: 0
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 0
+MERGEUPDATERANK: 1
+TOTAL TIME: 3
+Generation 11 (58283611 -> 58283611 nodes, 58276313 ranks)
+ALLOCATE FROM_TABLE: 0
+BUILD TABLE: 2
+BUILD INDEX: 0
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 0
+MERGEUPDATERANK: 1
+TOTAL TIME: 3
+Generation 12 (58283733 -> 58283733 nodes, 58283460 ranks)
+ALLOCATE FROM_TABLE: 0
+BUILD TABLE: 2
+BUILD INDEX: 0
+COUNTED NEW NODES: 0
+COUNTED TEMP NODES: 0
+RESIZED NODES: 0
+RESIZED NODES: 0
+MADE NEW NODES: 0
+MERGEUPDATERANK: 1
+TOTAL TIME: 3
+Generation 13 (58283733 -> 58283733 nodes, 58283733 ranks)
+Generating edges... 
+NODE.TO -> GENOME POS: 0
+BUILD FROM_INDEX 0
+COUNTED NEW EDGES: 1
+MADE NEW EDGES: 1
+SORTED NEW EDGES: 2
+RE-SORTED NODES: 3
+PROCESS EDGES: 0
+REMOVE Y: 0
+SORT, Make index: 3
+TOTAL: 10
+Allocating ftab, absorbFtab
+Entering GFM loop
+Exited GFM loop
+fchr[A]: 0
+fchr[C]: 16754644
+fchr[G]: 29224728
+fchr[T]: 41666342
+fchr[$]: 58291037
+Exiting GFM::buildToDisk()
+Returning from initFromVector
+Wrote 40066188 bytes to primary GFM file: refseq.fa.1.ht2
+Wrote 14570940 bytes to secondary GFM file: refseq.fa.2.ht2
+Re-opening _in1 and _in2 as input streams
+Returning from GFM constructor
+Returning from initFromVector
+Wrote 34094933 bytes to primary GFM file: refseq.fa.5.ht2
+Wrote 14826700 bytes to secondary GFM file: refseq.fa.6.ht2
+Re-opening _in5 and _in5 as input streams
+Returning from HierEbwt constructor
+Headers:
+    len: 58205856
+    gbwtLen: 58291038
+    nodes: 58283732
+    sz: 29102928
+    gbwtSz: 29145520
+    lineRate: 7
+    offRate: 4
+    offMask: 0xfffffff0
+    ftabChars: 10
+    eftabLen: 0
+    eftabSz: 0
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 3642734
+    offsSz: 14570936
+    lineSz: 128
+    sideSz: 128
+    sideGbwtSz: 104
+    sideGbwtLen: 208
+    numSides: 280246
+    numLines: 280246
+    gbwtTotLen: 35871488
+    gbwtTotSz: 35871488
+    reverse: 0
+    linearFM: No
+Total time for call to driver() for forward index: 00:02:35
+moving sample fastq files into their respective directories
+creating symbolic links inside of sample directories
+building filter index
+Settings:
+  Output files: "filter.fa.*.ebwt"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 5 (one in 32)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  filter.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:01
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 133250
+Using parameters --bmax 99938 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 99938 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+  Binary sorting into buckets
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Binary sorting into buckets time: 00:00:00
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 1, merged 7; iterating...
+  Binary sorting into buckets
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Binary sorting into buckets time: 00:00:00
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 76142 (target: 99937)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 7
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 63588
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 63589
+Getting block 2 of 7
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 68320
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 68321
+Getting block 3 of 7
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 81383
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 81384
+Getting block 4 of 7
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 71009
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 71010
+Getting block 5 of 7
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 84518
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 84519
+Getting block 6 of 7
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 98931
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 98932
+Getting block 7 of 7
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 65245
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 65246
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 153796
+fchr[G]: 267609
+fchr[T]: 379859
+fchr[$]: 533000
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4347257 bytes to primary EBWT file: filter.fa.1.ebwt
+Wrote 66632 bytes to secondary EBWT file: filter.fa.2.ebwt
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 533000
+    bwtLen: 533001
+    sz: 133250
+    bwtSz: 133251
+    lineRate: 6
+    linesPerSide: 1
+    offRate: 5
+    offMask: 0xffffffe0
+    isaRate: -1
+    isaMask: 0xffffffff
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 16657
+    offsSz: 66628
+    isaLen: 0
+    isaSz: 0
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 56
+    sideBwtLen: 224
+    numSidePairs: 1190
+    numSides: 2380
+    numLines: 2380
+    ebwtTotLen: 152320
+    ebwtTotSz: 152320
+    reverse: 0
+Total time for call to driver() for forward index: 00:00:01
+Reading reference sizes
+  Time reading reference sizes: 00:00:00
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:00
+bmax according to bmaxDivN setting: 133250
+Using parameters --bmax 99938 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 99938 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:00
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:00
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:00
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+  Binary sorting into buckets
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Binary sorting into buckets time: 00:00:00
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 1, merged 6; iterating...
+  Binary sorting into buckets
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Binary sorting into buckets time: 00:00:00
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 66624.1 (target: 99937)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 8
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 94899
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 94900
+Getting block 2 of 8
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 57534
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 57535
+Getting block 3 of 8
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 80482
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 80483
+Getting block 4 of 8
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 61147
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 61148
+Getting block 5 of 8
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 66227
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 66228
+Getting block 6 of 8
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 71265
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 71266
+Getting block 7 of 8
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 77733
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 77734
+Getting block 8 of 8
+  Reserving size (99938) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:00
+  Sorting block of length 23706
+  (Using difference cover)
+  Sorting block time: 00:00:00
+Returning block of 23707
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 153796
+fchr[G]: 267609
+fchr[T]: 379859
+fchr[$]: 533000
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 4347257 bytes to primary EBWT file: filter.fa.rev.1.ebwt
+Wrote 66632 bytes to secondary EBWT file: filter.fa.rev.2.ebwt
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 533000
+    bwtLen: 533001
+    sz: 133250
+    bwtSz: 133251
+    lineRate: 6
+    linesPerSide: 1
+    offRate: 5
+    offMask: 0xffffffe0
+    isaRate: -1
+    isaMask: 0xffffffff
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 16657
+    offsSz: 66628
+    isaLen: 0
+    isaSz: 0
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 56
+    sideBwtLen: 224
+    numSidePairs: 1190
+    numSides: 2380
+    numLines: 2380
+    ebwtTotLen: 152320
+    ebwtTotSz: 152320
+    reverse: 0
+Total time for backward call to driver() for mirror index: 00:00:00
+running RNAseq_process_data.sh
+script "/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh"
+run type is 'preprocess'
+reference sequence file: 'refseq.fa'
+RNAseq_script = 'NULL'
+flags =  -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e -C
+cnt = '1'
+Fri Feb 9 11:27:42 CST 2018
+s_1
+running preprocessing routines only
+/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh -R -O -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e -C 
+osname 'Linux'
+extra arguments: 
+run type is  NULL
+passing reads through preprocessing routines
+working with single-end seuqence data
+preprocess_fq.sh -i /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -t 4 -Q 13 -L 32 -H 90 -e -C
+BOWTIE2_INDEXES: index
+min_qual min_length percent_high_quality bowtie_threads indexpath = 13 32 90 4 index
+creating preprocess directory in /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/s_1
+quality trimming and filtering
+trimmer_flags=-t 13 -l 32 -v
+filter_flags=-p 90 -q 13
+bowtie_flags=-q --threads 4
+fastq_quality_trimmer -i set1.fq -t 13 -l 32 -v -Q 33 2> set1_qt.log | fastq_quality_filter -p 90 -q 13 -Q 33 -o set1_qt_qf.fq -v | tee set1_qt_qf.log
+Quality cut-off: 13
+Minimum percentage: 90
+Input: 136746 reads.
+Output: 136746 reads.
+discarded 0 (0%) low-quality reads.
+sequence similarity filtering using bowtie
+reads that fail to align are retained, reads that align are filtered out of data
+first data file ...
+bowtie -q --threads 4 --un set1_qt_qf_sf.fq filter.fa set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+# reads processed: 136746
+# reads with at least one reported alignment: 0 (0.00%)
+# reads that failed to align: 136746 (100.00%)
+No alignments
+creating symlinks to final files
+preprocess only
+success!
+cnt = '2'
+Fri Feb 9 11:27:53 CST 2018
+--
+running preprocessing routines only
+/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh -R -O -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e -C 
+osname 'Linux'
+extra arguments: 
+run type is  NULL
+passing reads through preprocessing routines
+working with single-end seuqence data
+preprocess_fq.sh -i /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -t 4 -Q 13 -L 32 -H 90 -e -C
+BOWTIE2_INDEXES: index
+min_qual min_length percent_high_quality bowtie_threads indexpath = 13 32 90 4 index
+creating preprocess directory in /home/bottomsc
+ln: failed to create symbolic link './index': File exists
+quality trimming and filtering
+trimmer_flags=-t 13 -l 32 -v
+filter_flags=-p 90 -q 13
+bowtie_flags=-q --threads 4
+fastq_quality_trimmer -i set1.fq -t 13 -l 32 -v -Q 33 2> set1_qt.log | fastq_quality_filter -p 90 -q 13 -Q 33 -o set1_qt_qf.fq -v | tee set1_qt_qf.log
+sequence similarity filtering using bowtie
+reads that fail to align are retained, reads that align are filtered out of data
+first data file ...
+bowtie -q --threads 4 --un set1_qt_qf_sf.fq filter.fa set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+fastq_quality_filter: Premature End-Of-File (filename ='-')
+Warning: Could not open read file "set1_qt_qf.fq" for reading; skipping...
+Command: bowtie --wrapper basic-0 -q --threads 4 --un set1_qt_qf_sf.fq filter.fa set1_qt_qf.fq 
+creating symlinks to final files
+preprocess only
+success!
+cnt = '3'
+Fri Feb 9 11:27:53 CST 2018
+s_2
+running preprocessing routines only
+/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh -R -O -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e -C 
+osname 'Linux'
+extra arguments: 
+run type is  NULL
+passing reads through preprocessing routines
+working with single-end seuqence data
+preprocess_fq.sh -i /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -t 4 -Q 13 -L 32 -H 90 -e -C
+BOWTIE2_INDEXES: index
+min_qual min_length percent_high_quality bowtie_threads indexpath = 13 32 90 4 index
+creating preprocess directory in /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/s_2
+quality trimming and filtering
+trimmer_flags=-t 13 -l 32 -v
+filter_flags=-p 90 -q 13
+bowtie_flags=-q --threads 4
+fastq_quality_trimmer -i set1.fq -t 13 -l 32 -v -Q 33 2> set1_qt.log | fastq_quality_filter -p 90 -q 13 -Q 33 -o set1_qt_qf.fq -v | tee set1_qt_qf.log
+Quality cut-off: 13
+Minimum percentage: 90
+Input: 183938 reads.
+Output: 183938 reads.
+discarded 0 (0%) low-quality reads.
+sequence similarity filtering using bowtie
+reads that fail to align are retained, reads that align are filtered out of data
+first data file ...
+bowtie -q --threads 4 --un set1_qt_qf_sf.fq filter.fa set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+# reads processed: 183938
+# reads with at least one reported alignment: 0 (0.00%)
+# reads that failed to align: 183938 (100.00%)
+No alignments
+creating symlinks to final files
+preprocess only
+success!
+cnt = '4'
+Fri Feb 9 11:28:04 CST 2018
+s_3
+running preprocessing routines only
+/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh -R -O -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e -C 
+osname 'Linux'
+extra arguments: 
+run type is  NULL
+passing reads through preprocessing routines
+working with single-end seuqence data
+preprocess_fq.sh -i /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -t 4 -Q 13 -L 32 -H 90 -e -C
+BOWTIE2_INDEXES: index
+min_qual min_length percent_high_quality bowtie_threads indexpath = 13 32 90 4 index
+creating preprocess directory in /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/s_3
+quality trimming and filtering
+trimmer_flags=-t 13 -l 32 -v
+filter_flags=-p 90 -q 13
+bowtie_flags=-q --threads 4
+fastq_quality_trimmer -i set1.fq -t 13 -l 32 -v -Q 33 2> set1_qt.log | fastq_quality_filter -p 90 -q 13 -Q 33 -o set1_qt_qf.fq -v | tee set1_qt_qf.log
+Quality cut-off: 13
+Minimum percentage: 90
+Input: 139110 reads.
+Output: 139110 reads.
+discarded 0 (0%) low-quality reads.
+sequence similarity filtering using bowtie
+reads that fail to align are retained, reads that align are filtered out of data
+first data file ...
+bowtie -q --threads 4 --un set1_qt_qf_sf.fq filter.fa set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+# reads processed: 139110
+# reads with at least one reported alignment: 0 (0.00%)
+# reads that failed to align: 139110 (100.00%)
+No alignments
+creating symlinks to final files
+preprocess only
+success!
+cnt = '5'
+Fri Feb 9 11:28:15 CST 2018
+s_4
+running preprocessing routines only
+/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh -R -O -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e -C 
+osname 'Linux'
+extra arguments: 
+run type is  NULL
+passing reads through preprocessing routines
+working with single-end seuqence data
+preprocess_fq.sh -i /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -t 4 -Q 13 -L 32 -H 90 -e -C
+BOWTIE2_INDEXES: index
+min_qual min_length percent_high_quality bowtie_threads indexpath = 13 32 90 4 index
+creating preprocess directory in /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/s_4
+quality trimming and filtering
+trimmer_flags=-t 13 -l 32 -v
+filter_flags=-p 90 -q 13
+bowtie_flags=-q --threads 4
+fastq_quality_trimmer -i set1.fq -t 13 -l 32 -v -Q 33 2> set1_qt.log | fastq_quality_filter -p 90 -q 13 -Q 33 -o set1_qt_qf.fq -v | tee set1_qt_qf.log
+Quality cut-off: 13
+Minimum percentage: 90
+Input: 139892 reads.
+Output: 139892 reads.
+discarded 0 (0%) low-quality reads.
+sequence similarity filtering using bowtie
+reads that fail to align are retained, reads that align are filtered out of data
+first data file ...
+bowtie -q --threads 4 --un set1_qt_qf_sf.fq filter.fa set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+# reads processed: 139892
+# reads with at least one reported alignment: 0 (0.00%)
+# reads that failed to align: 139892 (100.00%)
+No alignments
+creating symlinks to final files
+preprocess only
+success!
+script "/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh"
+run type is 'transcripts'
+reference sequence file: 'refseq.fa'
+RNAseq_script = 'NULL'
+flags =  -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e
+cnt = '1'
+Fri Feb 9 11:28:26 CST 2018
+s_1
+moving old output files to 'non-aggregate'
+mv: cannot stat 'merged': No such file or directory
+mv: cannot stat 'cufflinks': No such file or directory
+mv: cannot stat 'pe_hisat*': No such file or directory
+mv: cannot stat 'singles_hisat*': No such file or directory
+mv: cannot stat 'ballgown': No such file or directory
+creating symbolic link to transcript.gtf
+running hisat
+/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh -a -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e  -k
+osname 'Linux'
+extra arguments: 
+run type is  transcripts
+run type is  transcripts
+running hisat with these options: /share/apps/HISAT/hisat2-2.1.0/hisat2 --no-unal -p 4 --min-intronlen 20 --max-intronlen 500000 --dta --transcriptome-mapping-only --met-file hisat_metrics_se.txt -S singles_hisat_out/accepted_hits.sam --un-gz singles_hisat_out/unaligned.fa.gz /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index///refseq.fa read_1.1
+working directory: /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/s_1
+creating sorted bam file for input to stringtie
+running stringtie using transcript file
+running stringtie
+/share/apps/stringtie/stringtie-1.3.0.Linux_x86_64/stringtie -o ballgown/transcripts.gtf -p 4 -l TestData_4s1 -B -G transcripts.gtf -e merged/merged.bam
+finished
+
+success!
+cnt = '2'
+Fri Feb 9 11:28:30 CST 2018
+s_2
+moving old output files to 'non-aggregate'
+mv: cannot stat 'merged': No such file or directory
+mv: cannot stat 'cufflinks': No such file or directory
+mv: cannot stat 'pe_hisat*': No such file or directory
+mv: cannot stat 'singles_hisat*': No such file or directory
+mv: cannot stat 'ballgown': No such file or directory
+creating symbolic link to transcript.gtf
+running hisat
+/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh -a -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e  -k
+osname 'Linux'
+extra arguments: 
+run type is  transcripts
+run type is  transcripts
+running hisat with these options: /share/apps/HISAT/hisat2-2.1.0/hisat2 --no-unal -p 4 --min-intronlen 20 --max-intronlen 500000 --dta --transcriptome-mapping-only --met-file hisat_metrics_se.txt -S singles_hisat_out/accepted_hits.sam --un-gz singles_hisat_out/unaligned.fa.gz /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index///refseq.fa read_1.1
+working directory: /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/s_2
+creating sorted bam file for input to stringtie
+running stringtie using transcript file
+running stringtie
+/share/apps/stringtie/stringtie-1.3.0.Linux_x86_64/stringtie -o ballgown/transcripts.gtf -p 4 -l TestData_4s2 -B -G transcripts.gtf -e merged/merged.bam
+finished
+
+success!
+cnt = '3'
+Fri Feb 9 11:28:34 CST 2018
+s_3
+moving old output files to 'non-aggregate'
+mv: cannot stat 'merged': No such file or directory
+mv: cannot stat 'cufflinks': No such file or directory
+mv: cannot stat 'pe_hisat*': No such file or directory
+mv: cannot stat 'singles_hisat*': No such file or directory
+mv: cannot stat 'ballgown': No such file or directory
+creating symbolic link to transcript.gtf
+running hisat
+/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh -a -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e  -k
+osname 'Linux'
+extra arguments: 
+run type is  transcripts
+run type is  transcripts
+running hisat with these options: /share/apps/HISAT/hisat2-2.1.0/hisat2 --no-unal -p 4 --min-intronlen 20 --max-intronlen 500000 --dta --transcriptome-mapping-only --met-file hisat_metrics_se.txt -S singles_hisat_out/accepted_hits.sam --un-gz singles_hisat_out/unaligned.fa.gz /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index///refseq.fa read_1.1
+working directory: /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/s_3
+creating sorted bam file for input to stringtie
+running stringtie using transcript file
+running stringtie
+/share/apps/stringtie/stringtie-1.3.0.Linux_x86_64/stringtie -o ballgown/transcripts.gtf -p 4 -l TestData_4s3 -B -G transcripts.gtf -e merged/merged.bam
+finished
+
+success!
+cnt = '4'
+Fri Feb 9 11:28:38 CST 2018
+s_4
+moving old output files to 'non-aggregate'
+mv: cannot stat 'merged': No such file or directory
+mv: cannot stat 'cufflinks': No such file or directory
+mv: cannot stat 'pe_hisat*': No such file or directory
+mv: cannot stat 'singles_hisat*': No such file or directory
+mv: cannot stat 'ballgown': No such file or directory
+creating symbolic link to transcript.gtf
+running hisat
+/share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/bin/RNAseq.sh -a -s refseq.fa -i 20 -I 500000 -t 4 -P /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index// -q 13 -n 32 -E 90 -e  -k
+osname 'Linux'
+extra arguments: 
+run type is  transcripts
+run type is  transcripts
+running hisat with these options: /share/apps/HISAT/hisat2-2.1.0/hisat2 --no-unal -p 4 --min-intronlen 20 --max-intronlen 500000 --dta --transcriptome-mapping-only --met-file hisat_metrics_se.txt -S singles_hisat_out/accepted_hits.sam --un-gz singles_hisat_out/unaligned.fa.gz /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/hisat_index///refseq.fa read_1.1
+working directory: /share/apps/ircf/RNA-Seq-Toolkit/testing_2.1.0/test/TestData_4/s_4
+creating sorted bam file for input to stringtie
+running stringtie using transcript file
+running stringtie
+/share/apps/stringtie/stringtie-1.3.0.Linux_x86_64/stringtie -o ballgown/transcripts.gtf -p 4 -l TestData_4s4 -B -G transcripts.gtf -e merged/merged.bam
+finished
+
+success!
+'s_1'
+'s_3'
+'s_2'
+'s_4'
+Loading required package: methods
+
+Attaching package: 'ballgown'
+
+The following object is masked from 'package:base':
+
+    structure
+
+
+Attaching package: 'dplyr'
+
+The following objects are masked from 'package:ballgown':
+
+    contains, last
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+Fri Feb  9 11:28:47 2018
+Fri Feb  9 11:28:47 2018: Reading linking tables
+Fri Feb  9 11:28:47 2018: Reading intron data files
+Fri Feb  9 11:28:47 2018: Reading exon data files
+Fri Feb  9 11:28:47 2018: Reading transcript data files
+Fri Feb  9 11:28:47 2018: Merging transcript data
+Wrapping up the results
+Fri Feb  9 11:28:47 2018
+Joining, by = "id"
+Warning message:
+Column `id` joining factor and character vector, coercing into character vector 
+finished
