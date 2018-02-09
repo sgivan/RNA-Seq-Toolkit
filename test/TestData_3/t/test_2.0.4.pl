@@ -10,6 +10,8 @@ my $DEBUG = shift // 1;
 
 my $test_log = 'test.log';
 
+warn "Running RNA-Seq-Toolkit tests (this may run for ten minutes or so)\n"; #Ends in newline so warning omits line number
+
 if ($DEBUG) {
     system("t/versionless_setup_and_test.sh |& tee $test_log"); 
 }
