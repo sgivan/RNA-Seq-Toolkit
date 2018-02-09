@@ -17,11 +17,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
-module load bowtie2-2.3.2
-module load stringtie-1.3.0
-module load HISAT2-2.0.4
 module load Python-shared
 module load R-3.3.0-sharedlib
+
+echo "running using hisat2 version '`hisat2 --version | head -n1`'"
 
 echo "creating symbolic link to RNAseq tools directory"
 ln -s ../../bin ./
