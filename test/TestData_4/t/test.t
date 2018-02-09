@@ -5,6 +5,7 @@ use warnings;
 use autodie;
 
 use Test::More;
+use File::Slurp qw(slurp);
 
 my $vers  = shift // '2.0.4';
 my $DEBUG = shift // 1;
@@ -29,9 +30,8 @@ for my $file ( qw(
 )
 {
     
-    my $result   = `diff $file t/expected_hisat2-$vers/$file`; 
-    chomp $result;
-    my $expected = '';
+    my $result   = slurp $file;
+    my $expected = slurp "t/expected_hisat2-$vers/$file";
     
     is $result, $expected, "$file is as expected";
 }
