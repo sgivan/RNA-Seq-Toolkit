@@ -20,5 +20,4 @@
 module load bowtie2-2.3.2
 module load stringtie-1.3.0
 module load HISAT2-2.0.4
-t/versionless_setup_and_test.sh
-t/test_2.0.4.pl
+t/test_2.0.4.pl $@
