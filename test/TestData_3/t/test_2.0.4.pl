@@ -6,6 +6,17 @@ use autodie;
 
 use Test::More;
 
+my $DEBUG = shift // 1;
+
+my $test_log = 'test.log';
+
+if ($DEBUG) {
+    system("t/versionless_setup_and_test.sh |& tee $test_log"); 
+}
+else {
+    system("t/versionless_setup_and_test.sh &> /dev/null"); 
+}
+
 for my $file ( qw(
                      de_data.txt
                      gene_de.txt
@@ -20,6 +31,13 @@ for my $file ( qw(
     my $expected = '';
     
     is $result, $expected, "$file is as expected";
+}
+
+if ($DEBUG) {
+    say "To reset the test files, please run 'reset_test'";
+}
+else {
+    system "./reset_test";
 }
 
 done_testing();
