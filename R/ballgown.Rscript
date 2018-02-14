@@ -3,59 +3,53 @@
 library(ballgown)
 library(dplyr)
 library(genefilter)
-#library(rtracklayer)
-#
-pheno_data <- read.csv(file="pheno.txt", stringsAsFactors=F)
-bg <- ballgown(dataDir="./", pData=pheno_data, samplePattern="sample", meas='FPKM')
-bg_varfilt = subset(bg, "rowVars(texpr(bg)) > 1", genomesubset=T)
-#transcript_results_varfilt = stattest(bg_varfilt, feature="transcript", covariate="sample", getFC=T, meas="FPKM")
-transcript_results_varfilt = stattest(bg_varfilt, feature="transcript", covariate="sample", meas="FPKM")
-transcript_results_varfilt = data.frame(geneName=ballgown::geneNames(bg_varfilt), geneID=ballgown::geneIDs(bg_varfilt), transcriptName=ballgown::transcriptNames(bg_varfilt), transcript_results_varfilt)
-transcript_results_varfilt = arrange(transcript_results_varfilt, qval)
-#
-#gff = readGFF(file="../transcripts.gtf")
-##
-#lookupGeneSymbol <- function(tid){
-#symbol = gff[gff$transcript_id==tid,]$gene_name[1]
-#return(symbol) }
-##
-#lookupGeneSymbol_by_gene_id <- function (gid) {
-#symbol = gff[gff$gene_id==gid,]$gene_name[1]
-#return(symbol) }
-#
-# the following lapply step takes a long time
-# comment it if you don't need gene symbols in output
-#t_geneNames <- lapply(transcript_results_varfilt$transcriptName, lookupGeneSymbol)
-#transcript_results_varfilt$geneSymbol <- unlist(t_geneNames)
-#
-write.table(transcript_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="transcript_de.txt")
-#
-gene_results_varfilt = stattest(bg_varfilt, feature="gene", covariate="sample", getFC=T, meas="FPKM")
-#gene_results_varfilt = data.frame(geneName=ballgown::geneNames(bg_varfilt), geneID=ballgown::geneIDs(bg_varfilt), gene_results_varfilt)
-gene_results_varfilt = arrange(gene_results_varfilt, qval)
-# the following lapply step takes a long time
-# comment it if you don't need gene symbols in output
-#gid_geneSymbol = lapply(gene_results_varfilt$id,lookupGeneSymbol_by_gene_id)
-#gene_results_varfilt$geneSymbol = unlist(gid_geneSymbol)
-write.table(gene_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="gene_de.txt")
-#
-texpr = as.data.frame(texpr(bg_varfilt))
-texpr.matrix <- as.matrix(texpr)
-texpr$id <- rownames(texpr)
 
-#texpr$FPKM1 <- rowMeans(texpr.matrix[,1:5])
-texpr$FPKM1 <- rowMeans(texpr.matrix[,pheno_data$sample == 'control'])
-#texpr$FPKM2 <- rowMeans(texpr.matrix[,6:10])
-texpr$FPKM2 <- rowMeans(texpr.matrix[,pheno_data$sample == 'experimental'])
-texpr$log2FC <- log2(texpr$FPKM2/texpr$FPKM1)
-joined <- left_join(transcript_results_varfilt, texpr)
-joined$feature <- NULL
-#
-#joined2 <- data.frame(joined$id,joined$geneName, joined$geneID, joined$transcriptName, joined$FPKM.sample01, joined$FPKM.sample02, joined$FPKM.sample03, joined$FPKM.sample04, 
-#joined$FPKM.sample05, joined$FPKM.sample06, joined$FPKM.sample07, joined$FPKM.sample08, joined$FPKM.sample09, joined$FPKM.sample10, joined$FPKM1, joined$FPKM2, joined$log2FC,
-#joined$fc, joined$pval, joined$qval)
-#write.table(joined2, quote=F, sep="\t", row.names=F, col.names=T, file="de_data.txt")
-#
-write.table(joined, quote=F, sep="\t", row.names=F, col.names=T, file="de_data.txt")
+pheno_data <- read.csv(file="./pheno.txt", stringsAsFactors=F)
+bg <- ballgown(dataDir="./", pData=pheno_data, samplePattern="sample", meas='FPKM')
+bg_varfilt = subset(bg, "rowVars(gexpr(bg)) > 1", genomesubset=T)
+
+#Stat test on Genes
+gene_results_varfilt = stattest(bg_varfilt, feature="gene", 
+	covariate="sample", getFC=T, meas="FPKM")
+
+# Add symbols. Use the pairing of transcripts, genes, and symbols, in output of texpr(,'all').
+indices <- match(gene_results_varfilt$id,  texpr(bg, 'all')$gene_id)
+gene_names_for_result <- texpr(bg, 'all')$gene_name[indices]
+gene_results_varfilt <- data.frame(geneNames=gene_names_for_result, gene_results_varfilt)
+gene_results_varfilt <- gene_results_varfilt[!is.na(gene_results_varfilt$qval),]
+write.table(gene_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="gene_de.txt")
+
+# Add FPKMs for each entry
+gene_expr = as.data.frame(gexpr(bg_varfilt))
+gene_expr.matrix = as.matrix(gene_expr)
+gene_expr$id <- rownames(gene_expr)
+gene_joined <- right_join(gene_results_varfilt, gene_expr)
+lg_fc <- log(gene_joined$fc,2)
+gene_joined <- cbind(gene_joined,lg_fc)
+gene_joined <- gene_joined[!is.na(gene_joined$qval),]
+write.table(gene_joined, quote=F, sep="\t", row.names=F, col.names=T, file="de_gene_data.txt")
+
+# Stat test on Transcripts
+transcript_results_varfilt = stattest(bg_varfilt, feature="transcript", covariate="sample", meas="FPKM", getFC=T)
+transcript_results_varfilt = data.frame(geneName=ballgown::geneNames(bg_varfilt), 
+	geneID=ballgown::geneIDs(bg_varfilt), 
+	transcriptName=ballgown::transcriptNames(bg_varfilt), transcript_results_varfilt)
+transcript_results_varfilt = arrange(transcript_results_varfilt, qval)
+transcript_results_varfilt <- transcript_results_varfilt[!is.na(transcript_results_varfilt$qval),]
+write.table(transcript_results_varfilt, sep="\t", row.names=F, col.names=T, quote=F, file="transcript_de.txt")
+
+# Add FPKMs for each entry
+trans_expr = as.data.frame(texpr(bg_varfilt))
+trans_expr.matrix <- as.matrix(trans_expr)
+trans_expr$id <- rownames(trans_expr)
+#trans_expr$FPKM1 <- rowMeans(trans_expr.matrix[,pheno_data$sample == 'control'])
+#trans_expr$FPKM2 <- rowMeans(trans_expr.matrix[,pheno_data$sample == 'experimental'])
+#trans_expr$log2FC <- log2(trans_expr$FPKM2/trans_expr$FPKM1)
+joined <- left_join(transcript_results_varfilt, trans_expr)
+lg_fc <- log(joined$fc,2)
+joined <- cbind(joined,lg_fc)
+
+# Write out table of transcript results with FPKMs.
+write.table(joined, quote=F, sep="\t", row.names=F, col.names=T, file="de_transcript_data.txt")
 
 save.image(file="RData")
