@@ -1,1 +1,21 @@
-../reset_tests
+rm -rfv RData
+rm -rfv bin
+rm -rfv de_gene_data.txt
+rm -rfv de_transcript_data.txt
+rm -rfv gene_de.txt
+rm -rfv hisat_index
+rm -rfv index/
+rm -rfv pheno.txt
+rm -rfv s_5/
+rm -rfv s_6/
+rm -rfv s_7/
+rm -rfv s_8/
+rm -rfv sample01
+rm -rfv sample02
+rm -rfv sample03
+rm -rfv sample04
+rm -rfv test.log
+rm -rfv transcript_de.txt
+rm -rfv transcripts.gtf
+rm -rfv transcripts/
+git checkout -- .
