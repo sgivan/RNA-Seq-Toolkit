@@ -18,6 +18,8 @@ system("module load HISAT2-$vers; t/versionless_setup_and_test.sh |& tee $test_l
 for my $file ( qw(
                      de_data.txt
                      gene_de.txt
+                     de_gene_data.txt
+                     de_transcript_data.txt
                      transcript_de.txt
                      transcripts.gtf
                    )
