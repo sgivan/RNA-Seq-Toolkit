@@ -19,6 +19,13 @@
 #
 module load Python-shared
 module load R-3.3.0-sharedlib
+module load bowtie2-2.3.2
+module load stringtie-1.3.0
+module load HISAT2-$HISAT_VERSION_BEING_TESTED
+
+./reset_test
+echo 'Running RNA-Seq-Toolkit tests (may run for a long time)'
+TESTDATA_4_TEST_LOG="test_${HISAT_VERSION_BEING_TESTED}.log";
 
 for file in *.gz; do echo "gunzip $file"; gunzip $file; done
 

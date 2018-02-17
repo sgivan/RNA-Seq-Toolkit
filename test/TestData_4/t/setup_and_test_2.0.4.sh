@@ -17,12 +17,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
-HISAT_VERSION_BEING_TESTED=2.0.4
-./reset_test
-module load bowtie2-2.3.2
-module load stringtie-1.3.0
-module load HISAT2-$HISAT_VERSION_BEING_TESTED
-echo 'Running RNA-Seq-Toolkit tests (may run for a long time)'
-TESTDATA_4_TEST_LOG="test_${HISAT_VERSION_BEING_TESTED}.log";
+export HISAT_VERSION_BEING_TESTED=2.0.4
 t/versionless_setup_and_test.sh |& tee $TESTDATA_4_TEST_LOG
 t/test.t $@
