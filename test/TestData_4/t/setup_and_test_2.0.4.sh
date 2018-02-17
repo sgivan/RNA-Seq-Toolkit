@@ -17,6 +17,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
+./reset_test
 export HISAT_VERSION_BEING_TESTED=2.0.4
 TESTDATA_4_TEST_LOG="test_${HISAT_VERSION_BEING_TESTED}.log";
 t/versionless_setup_and_test.sh |& tee $TESTDATA_4_TEST_LOG
