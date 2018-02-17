@@ -13,6 +13,8 @@ rm -rfv s_4_hits.fastq
 rm -rfv transcript_de.txt.00
 rm -rfv transcripts.gtf
 rm -rfv test*.log
+rm -rfv s_?
+rm -rfv sample0?
 git checkout -- Chr19.fa.gz
 git checkout -- Chr19.gtf.gz
 git checkout -- Contaminants.fa.gz
