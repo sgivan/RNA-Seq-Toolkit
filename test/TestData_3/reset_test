@@ -14,7 +14,6 @@ rm -rfv sample01
 rm -rfv sample02
 rm -rfv sample03
 rm -rfv sample04
-rm -rfv test.log
 rm -rfv transcript_de.txt
 rm -rfv transcripts.gtf
 rm -rfv transcripts/

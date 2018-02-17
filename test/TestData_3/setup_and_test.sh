@@ -1,1 +1,1 @@
-t/setup_and_test_2.0.4.sh
+../common_to_3_4/setup_and_test.sh
