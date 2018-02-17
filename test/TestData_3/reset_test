@@ -18,4 +18,5 @@ rm -rfv test.log
 rm -rfv transcript_de.txt
 rm -rfv transcripts.gtf
 rm -rfv transcripts/
+rm -rf test*.log
 git checkout -- .
