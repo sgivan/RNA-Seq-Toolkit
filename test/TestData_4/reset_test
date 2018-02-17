@@ -1,1 +1,25 @@
-../reset_tests
+rm -rfv Chr19.fa
+rm -rfv Chr19.gtf
+rm -rfv Contaminants.fa
+rm -rfv bin
+rm -rfv de_data.txt.00
+rm -rfv gene_de.txt.00
+rm -rfv hisat_index
+rm -rfv index/
+rm -rfv s_1_hits.fastq
+rm -rfv s_2_hits.fastq
+rm -rfv s_3_hits.fastq
+rm -rfv s_4_hits.fastq
+rm -rfv transcript_de.txt.00
+rm -rfv transcripts.gtf
+rm -rfv test*.log
+git checkout -- Chr19.fa.gz
+git checkout -- Chr19.gtf.gz
+git checkout -- Contaminants.fa.gz
+git checkout -- de_data.txt.00.gz
+git checkout -- gene_de.txt.00.gz
+git checkout -- s_1_hits.fastq.gz
+git checkout -- s_2_hits.fastq.gz
+git checkout -- s_3_hits.fastq.gz
+git checkout -- s_4_hits.fastq.gz
+git checkout -- transcript_de.txt.00.gz
