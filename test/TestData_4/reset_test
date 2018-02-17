@@ -1,3 +1,9 @@
+rm -rfv RData
+rm -rfv de_gene_data.txt
+rm -rfv de_transcript_data.txt
+rm -rfv gene_de.txt
+rm -rfv pheno.txt
+rm -rfv transcript_de.txt
 rm -rfv Chr19.fa
 rm -rfv Chr19.gtf
 rm -rfv Contaminants.fa
