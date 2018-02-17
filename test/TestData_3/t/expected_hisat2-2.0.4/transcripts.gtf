@@ -89,7 +89,7 @@ Chr3	StringTie	exon	189713	189976	1000	+	.	gene_id "MSTRG.17"; transcript_id "MS
 Chr3	StringTie	exon	190056	190198	1000	+	.	gene_id "MSTRG.17"; transcript_id "MSTRG.17.2"; exon_number "5"; 
 Chr3	StringTie	exon	190285	190356	1000	+	.	gene_id "MSTRG.17"; transcript_id "MSTRG.17.2"; exon_number "6"; 
 Chr3	StringTie	exon	190447	190763	1000	+	.	gene_id "MSTRG.17"; transcript_id "MSTRG.17.2"; exon_number "7"; 
-Chr3	StringTie	transcript	194739	197854	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; 
+Chr3	StringTie	transcript	194739	197863	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; 
 Chr3	StringTie	exon	194739	194891	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; exon_number "1"; 
 Chr3	StringTie	exon	195179	195511	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; exon_number "2"; 
 Chr3	StringTie	exon	195609	195694	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; exon_number "3"; 
@@ -98,8 +98,8 @@ Chr3	StringTie	exon	195982	196098	1000	-	.	gene_id "MSTRG.18"; transcript_id "MS
 Chr3	StringTie	exon	196207	196255	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; exon_number "6"; 
 Chr3	StringTie	exon	196356	196505	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; exon_number "7"; 
 Chr3	StringTie	exon	196664	196725	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; exon_number "8"; 
-Chr3	StringTie	exon	197652	197854	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; exon_number "9"; 
-Chr3	StringTie	transcript	194982	197854	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; 
+Chr3	StringTie	exon	197652	197863	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.1"; exon_number "9"; 
+Chr3	StringTie	transcript	194982	197863	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; 
 Chr3	StringTie	exon	194982	195337	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; exon_number "1"; 
 Chr3	StringTie	exon	195406	195511	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; exon_number "2"; 
 Chr3	StringTie	exon	195609	195694	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; exon_number "3"; 
@@ -108,7 +108,7 @@ Chr3	StringTie	exon	195982	196098	1000	-	.	gene_id "MSTRG.18"; transcript_id "MS
 Chr3	StringTie	exon	196207	196255	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; exon_number "6"; 
 Chr3	StringTie	exon	196356	196505	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; exon_number "7"; 
 Chr3	StringTie	exon	196664	196725	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; exon_number "8"; 
-Chr3	StringTie	exon	197652	197854	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; exon_number "9"; 
+Chr3	StringTie	exon	197652	197863	1000	-	.	gene_id "MSTRG.18"; transcript_id "MSTRG.18.2"; exon_number "9"; 
 Chr3	StringTie	transcript	198671	199531	1000	-	.	gene_id "MSTRG.19"; transcript_id "MSTRG.19.1"; 
 Chr3	StringTie	exon	198671	198977	1000	-	.	gene_id "MSTRG.19"; transcript_id "MSTRG.19.1"; exon_number "1"; 
 Chr3	StringTie	exon	199104	199248	1000	-	.	gene_id "MSTRG.19"; transcript_id "MSTRG.19.1"; exon_number "2"; 
