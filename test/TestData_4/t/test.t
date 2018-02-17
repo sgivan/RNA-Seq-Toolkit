@@ -9,16 +9,13 @@ use File::Slurp qw(slurp);
 
 my $vers  = shift // '2.0.4';
 
-my $test_log = 'test.log';
-
-warn "Running RNA-Seq-Toolkit tests (may run for a long time)\n"; #Ends in newline so warning omits line number
-
-system("module load HISAT2-$vers; t/versionless_setup_and_test.sh |& tee $test_log"); 
+my $test_log = "test_$vers.log";
 
 for my $file ( qw(
-                     de_data.txt
                      gene_de.txt
+                     de_gene_data.txt
                      transcript_de.txt
+                     de_transcript_data.txt
                      transcripts.gtf
                    )
 )
