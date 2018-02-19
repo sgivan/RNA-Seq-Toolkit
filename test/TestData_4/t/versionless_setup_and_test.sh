@@ -45,7 +45,7 @@ ln -s Chr19.fa refseq.fa
 ln -s Contaminants.fa filter.fa
 hisat2_extract_exons.py ../transcripts.gtf > exons.txt
 hisat2_extract_splice_sites.py ../transcripts.gtf > splice_sites.txt
-hisat2-build --exon exons.txt --ss splice_sites.txt refseq.fa refseq.fa
+hisat2-build --threads 4 --exon exons.txt --ss splice_sites.txt refseq.fa refseq.fa
 cd ..
 #echo "creating sample directories"
 mkdir -p s_1 s_2 s_3 s_4
@@ -70,7 +70,7 @@ cd ..
 cd index
 #echo "building refseq index"
 ##bowtie-build chrom3.fa refseq
-#hisat2-build refseq.fa refseq.fa
+#hisat2-build --threads 4 refseq.fa refseq.fa
 echo "building filter index"
 bowtie-build filter.fa filter.fa
 cd ..
