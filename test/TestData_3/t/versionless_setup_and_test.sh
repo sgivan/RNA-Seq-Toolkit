@@ -64,7 +64,7 @@ echo "making bowtie indices"
 cd index
 echo "building refseq index"
 #bowtie-build chrom3.fa refseq
-hisat2-build refseq.fa refseq.fa
+hisat2-build --threads 4 refseq.fa refseq.fa
 echo "building filter index"
 bowtie-build filter.fa filter.fa
 cd ..
