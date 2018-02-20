@@ -1,11 +1,13 @@
+#EXPLANATION OF FLAGS USED (listed alphabetically)
+# -a use "transcripts.gtf" for gene models and skip preprocessing
+# -C leave temporary files on file system
 # -e Single-end reads
 # -H number of threads to use
 # -O preprocess data
-# -C leave temporary files on file system
-# -a use transcripts.gtf for gene models and skip preprocessing
 # -X Phred quality values encoded as Phred + 33
 bin/RNAseq_process_data.sh -e -H 4 -O -C s_?
 bin/RNAseq_process_data.sh -e -H 4 -a -X s_?
+
 # run ballgown
 bin/ballgown_setup.pl --cont "s_[13]" --exp "s_[24]"
 ../../R/ballgown.Rscript 
