@@ -56,6 +56,4 @@ sanity_check
 sanity_check
 
 # Test result files
-t/test.t 2.0.4
-
-
+t/test.t $HISAT_VERSION_BEING_TESTED
