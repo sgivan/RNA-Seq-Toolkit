@@ -17,36 +17,55 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+# Sanity check (Are we where we want to be and have the files been copied?):
+sanity_check() {
+    echo "------------- Files in `pwd` and subfolders -------------"
+    ls -A *
+    echo "---------------------------------------------------------"
+}
+
+sanity_check
+
 module load Python-shared
 module load R-3.3.0-sharedlib
 module load bowtie2-2.3.2
 module load stringtie-1.3.0
 module load HISAT2-$HISAT_VERSION_BEING_TESTED
 
-echo 'Running RNA-Seq-Toolkit tests (may run for a long time)'
+echo "running using hisat2 version '`hisat2 --version | head -n1`' (expected $HISAT_VERSION_BEING_TESTED)"
 
 for file in *.gz; do echo "gunzip $file"; gunzip $file; done
+
+sanity_check
 
 echo "creating symbolic link to RNAseq tools directory"
 ln -sf ../../bin ./
 echo "setting PATH"
 wd=`pwd`
 export PATH=".:$wd:$wd/bin:$PATH"
-#echo "making index directory"
+echo "making index directory"
 mkdir index
 ln -sf index hisat_index
-#echo "moving reference sequence and undesireables into index directory"
+echo "moving reference sequence and undesireables into index directory"
 cp Chr19.fa index
 cp Contaminants.fa index
 cp Chr19.gtf transcripts.gtf
-echo "creating sybolic links"
+echo "creating symbolic links"
 cd index
 ln -s Chr19.fa refseq.fa
 ln -s Contaminants.fa filter.fa
+
 hisat2_extract_exons.py ../transcripts.gtf > exons.txt
 hisat2_extract_splice_sites.py ../transcripts.gtf > splice_sites.txt
 hisat2-build --threads 4 --exon exons.txt --ss splice_sites.txt refseq.fa refseq.fa
+
+sanity_check
+
 cd ..
+
+sanity_check
+
 #echo "creating sample directories"
 mkdir -p s_1 s_2 s_3 s_4
 echo "moving sample fastq files into their respective directories"
@@ -54,6 +73,9 @@ cp s_1_hits.fastq s_1
 cp s_2_hits.fastq s_2
 cp s_3_hits.fastq s_3
 cp s_4_hits.fastq s_4
+
+sanity_check
+
 echo "creating symbolic links inside of sample directories"
 cd s_1
 ln -sf s_1_hits.fastq set1.fq
@@ -73,7 +95,9 @@ cd index
 #hisat2-build --threads 4 refseq.fa refseq.fa
 echo "building filter index"
 bowtie-build filter.fa filter.fa
+
+sanity_check
+
 cd ..
-echo "running RNAseq_process_data.sh"
-bash cmd
-echo "finished"
+
+sanity_check
