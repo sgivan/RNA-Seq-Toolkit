@@ -31,4 +31,9 @@ t/remove_old_test_results
 t/restore_original_files
 
 # Log test stdout and stderr
-t/test.sh |& tee $RNASEQ_TEST_LOG
+t/test.sh &> $RNASEQ_TEST_LOG &
+
+# Tell the user that it is okay to Ctrl-C out of the streaming output
+echo "Running job in the background. Saving output to $RNASEQ_TEST_LOG"
+echo "Following output via 'tail -f $RNASEQ_TEST_LOG'. Feel free to hit 'Ctrl-C' to cancel streaming output"
+tail -f $RNASEQ_TEST_LOG
