@@ -47,7 +47,7 @@ sanity_check
 sanity_check
 
 # run ballgown
-bin/ballgown_setup.pl --cont "s_[56]" --exp "s_[78]"
+../../bin/ballgown_setup.pl --cont "s_[56]" --exp "s_[78]"
 
 sanity_check
 
