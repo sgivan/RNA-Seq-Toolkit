@@ -12,3 +12,8 @@ rm -rfv transcripts.gtf
 rm -rfv transcripts/
 rm -rfv test*.log
 rm -rfv s_*
+rm -rfv RData
+rm -rfv index/exons.txt
+rm -rfv index/index_with_exons_and_splice_sites_finished
+rm -rfv index/no_transcripts/
+rm -rfv index/splice_sites.txt
