@@ -17,8 +17,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
-./reset_test
-export HISAT_VERSION_BEING_TESTED=2.1.0
-TESTDATA_TEST_LOG="test_${HISAT_VERSION_BEING_TESTED}.log";
-t/versionless_setup_and_test.sh |& tee $TESTDATA_TEST_LOG
-t/test.t $HISAT_VERSION_BEING_TESTED $@ |& tee --append $TESTDATA_TEST_LOG
+module load Python-shared
+module load R-3.3.0-sharedlib
+module load bowtie2-2.3.2
+module load stringtie-1.3.0
+module load HISAT2-2.1.0
+
+bash cmd
+echo "finished"

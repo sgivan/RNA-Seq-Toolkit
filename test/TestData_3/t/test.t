@@ -7,8 +7,6 @@ use autodie;
 use Test::More;
 use File::Slurp qw(slurp);
 
-my $vers  = shift // '2.0.4';
-
 for my $file ( qw(
                      gene_de.txt
                      de_gene_data.txt
@@ -20,7 +18,7 @@ for my $file ( qw(
 {
     
     my $result   = slurp $file;
-    my $expected = slurp "t/expected_hisat2-$vers/$file";
+    my $expected = slurp "t/expected/$file";
     
     is $result, $expected, "$file is as expected";
 }
