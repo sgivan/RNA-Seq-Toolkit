@@ -22,9 +22,8 @@ cd ../../bin
 RNASEQ_BIN_PATH=$PWD
 cd $RNASEQ_STARTING_PATH
 export PATH="$RNASEQ_BIN_PATH:$PATH"
-export HISAT_VERSION_BEING_TESTED=2.0.4
 
-export RNASEQ_TEST_LOG=test_${HISAT_VERSION_BEING_TESTED}.log
+export RNASEQ_TEST_LOG=test_2.1.0.log
 
 # Clean up before starting a new test run
 t/remove_old_test_results

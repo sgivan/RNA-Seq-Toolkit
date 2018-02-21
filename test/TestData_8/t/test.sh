@@ -5,15 +5,13 @@
 # Creates a merged transcript gtf file.
 # Then, re-runs HISAT2 pipepline using the merged GTF for all samples.
 
-HISAT_VERSION_BEING_TESTED=2.0.4
-
 module load Python-shared
 module load R-3.3.0-sharedlib
 module load bowtie2-2.3.2
 module load stringtie-1.3.0
-module load HISAT2-$HISAT_VERSION_BEING_TESTED
+module load HISAT2-2.1.0
 
-echo "running using hisat2 version '`hisat2 --version | head -n1`' (expected $HISAT_VERSION_BEING_TESTED)"
+echo "running using hisat2 version '`hisat2 --version | head -n1`'"
 
 # Sanity check (Are we where we want to be and have the files been copied?):
 sanity_check() {
