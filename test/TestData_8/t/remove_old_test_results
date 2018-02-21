@@ -11,4 +11,4 @@ rm -rfv transcript_de.txt
 rm -rfv transcripts.gtf
 rm -rfv transcripts/
 rm -rfv test*.log
-rm -rfv s_?/transcripts.gtf
+rm -rfv s_*

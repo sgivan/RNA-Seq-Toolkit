@@ -5,8 +5,9 @@
 # Creates a merged transcript gtf file.
 # Then, re-runs HISAT2 pipepline using the merged GTF for all samples.
 
-# First remove old test result files
-./remove_old_test_results
+# Clean up before starting a new test run
+t/remove_old_test_results
+t/restore_original_files
 
 HISAT_VERSION_BEING_TESTED=2.0.4
 
