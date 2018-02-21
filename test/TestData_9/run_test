@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+#   Copyright Scott A. Givan, University of Missouri, July 6, 2012.
+#
+#    This file is part of the RNA-seq Toolkit, or RST.
+#
+#    RST is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    RST is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with RST.  If not, see <http://www.gnu.org/licenses/>.
+#
+RNASEQ_STARTING_PATH=$PWD
+cd ../../bin
+RNASEQ_BIN_PATH=$PWD
+cd $RNASEQ_STARTING_PATH
+export PATH="$RNASEQ_BIN_PATH:$PATH"
+
+export RNASEQ_TEST_LOG=test_2.1.0.log
+
+# Clean up before starting a new test run
+t/remove_old_test_results
+t/restore_original_files
+
+# Log test stdout and stderr
+t/test.sh &> $RNASEQ_TEST_LOG &
+
+# Tell the user that it is okay to Ctrl-C out of the streaming output
+echo "Running job in the background. Saving output to $RNASEQ_TEST_LOG"
+echo "Following output via 'tail -f $RNASEQ_TEST_LOG'. Feel free to hit 'Ctrl-C' to cancel streaming output"
+tail -f $RNASEQ_TEST_LOG
