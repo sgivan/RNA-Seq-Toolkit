@@ -56,6 +56,6 @@ sanity_check
 sanity_check
 
 # Test result files
-t/test.pl 2.0.4
+t/test.t 2.0.4
 
 
