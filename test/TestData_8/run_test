@@ -25,5 +25,10 @@ export PATH="$RNASEQ_BIN_PATH:$PATH"
 export HISAT_VERSION_BEING_TESTED=2.0.4
 
 export RNASEQ_TEST_LOG=test_${HISAT_VERSION_BEING_TESTED}.log
+
+# Clean up before starting a new test run
+t/remove_old_test_results
+t/restore_original_files
+
 # Log test stdout and stderr
 t/test.sh |& tee $RNASEQ_TEST_LOG
