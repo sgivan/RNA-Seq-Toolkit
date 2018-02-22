@@ -1,0 +1,3 @@
+rm -rf fastq.dir
+rm -rf reference.dir
+rm config.json
