@@ -6,11 +6,6 @@
 # Then, re-runs HISAT2 pipepline using the merged GTF for all samples.
 #TODO: Are all those notes above correct for this test?
 
-module load Python-shared
-module load R-3.3.0-sharedlib
-module load bowtie2-2.3.2
-module load stringtie-1.3.0
-module load HISAT2-2.1.0
 
 DEBUG=0
 
@@ -33,17 +28,17 @@ echo 'running RNAseq_process_data.sh -e -H 4 -O -C s_?'
 # -H number of threads to use
 # -O preprocess data
 # -X Phred quality values encoded as Phred + 33
-../../bin/RNAseq_process_data.sh -e -H 4 -O -C s_?
+RNAseq_process_data.sh -e -H 4 -O -C s_?
 
 debug_check_pwd_and_files
 
 echo 'running RNAseq_process_data.sh -e -H 4 -a -X s_?'
-../../bin/RNAseq_process_data.sh -e -H 4 -a -X s_?
+RNAseq_process_data.sh -e -H 4 -a -X s_?
 
 debug_check_pwd_and_files
 
 # run ballgown
-../../bin/ballgown_setup.pl --cont "s_[13]" --exp "s_[24]"
+ballgown_setup.pl --cont "s_[13]" --exp "s_[24]"
 
 debug_check_pwd_and_files
 
