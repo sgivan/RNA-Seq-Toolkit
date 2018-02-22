@@ -6,4 +6,4 @@ module load bowtie2-2.3.2
 module load stringtie-1.3.0
 module load HISAT2-2.1.0
 
-bsub -J test_9 -o test_9.o_%J -e test_9.e_%J -R "rusage[mem=5000] span[hosts=1]" -n 4 './run_test_bare'
+bsub -J RNASeqToolkit_TestData_9 -o RNASeqToolkit_TestData_9.o_%J -e RNASeqToolkit_TestData_9.e_%J -R "rusage[mem=5000] span[hosts=1]" -n 4 './run_test_bare'
