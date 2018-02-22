@@ -11,7 +11,7 @@ DEBUG=0
 
 # Sanity check (Are we where we want to be with the files we expect?)
 debug_check_pwd_and_files() {
-    if [ $DEBUG -eq 1 ]; then 
+    if [ $DEBUG -eq 1 ]; then
         echo "------------- Files in `pwd` and subfolders -------------"
         ls -A *
         echo "---------------------------------------------------------"
@@ -42,7 +42,7 @@ ballgown_setup.pl --cont "s_[13]" --exp "s_[24]"
 
 debug_check_pwd_and_files
 
-../../R/ballgown.Rscript 
+ballgown.Rscript
 
 debug_check_pwd_and_files
 

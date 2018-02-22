@@ -50,8 +50,8 @@ if [ -t 1 ]; then
     echo "Saving output to $RNASEQ_TEST_LOG"
     echo "Following output via 'tail -f $RNASEQ_TEST_LOG'."
     echo "Feel free to hit 'Ctrl-C' to cancel streaming output"
-    tail -f $RNASEQ_TEST_LOG
     echo "---------------------------------------------------"
+    tail -f $RNASEQ_TEST_LOG
 else
     echo "---------------------------------------------------"
     echo "Running non-interactively"
