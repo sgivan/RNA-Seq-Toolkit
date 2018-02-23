@@ -1,3 +1,6 @@
 rm -rf fastq.dir
 rm -rf reference.dir
 rm config.json
+rm -rfv experiment_*
+rm -rfv transcripts.gtf
+rm -rfv setting_up_dirs.[eo]_*
