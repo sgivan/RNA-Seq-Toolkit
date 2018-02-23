@@ -67,25 +67,30 @@ my $fastq_dir = $cfg{FASTQ_DIR};
 
 for my $experiment ( keys %exp_samples_for) {
 
-    # Create and enter "index" directory
+    # Create and enter "experiment" directory
     my $exp_dir = "experiment_$experiment";
     system "mkdir $exp_dir"; # should die if it already exists
     chdir $exp_dir;
 
-    system "ln -s ../index";
-    system "ln -s index hisat_index";
-
     # Copy (not link) transcripts.gtf, thus modifying the copy won't affect the original
     system "cp ../transcripts.gtf .";
 
+    # It seems hisat indices get rewritten later, so we better make a copy
+    # to avoid rewriting of the original
+    system "cp -r ../index index";
+    system "ln -s index hisat_index";
+
+    my $dir_num = 1;
     for my $sample (@control_samples, @{$exp_samples_for{$experiment}}) {
-        state $dir_num = 1;
         my $name_of_dir = "s$dir_num";
         system( "mkdir $name_of_dir");
         chdir $name_of_dir;
+
+
         for my $direction ( 1 .. 2 ) {
-            my $command = "ln -s ../$fastq_dir/${sample}_R${direction}_001.fastq.gz set${direction}.fq.gz";
-            system($command);
+            my $expected_filename = "${sample}_R${direction}_001.fastq"; 
+            system("cp ../../$fastq_dir/$expected_filename .");
+            system("ln -s $expected_filename set$direction.fq");
         }
         chdir '..';
         $dir_num++;
