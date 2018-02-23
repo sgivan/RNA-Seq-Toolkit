@@ -1,6 +1,7 @@
-rm -rf fastq.dir
-rm -rf reference.dir
-rm config.json
+rm -rfv fastq.dir
+rm -rfv reference.dir
+rm -rfv config.json
 rm -rfv experiment_*
 rm -rfv transcripts.gtf
 rm -rfv setting_up_dirs.[eo]_*
+rm -rfv index
