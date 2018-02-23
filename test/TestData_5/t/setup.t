@@ -49,7 +49,7 @@ my $JSON_text = <<"END";
     },
     "REFERENCE" : {
         "GTF": "$reference_dir/$species.gtf",
-        "FA":  "$reference_dir/$species..fa"
+        "FA":  "$reference_dir/$species.fa"
     },
     "FILTER": {
         "FA": "reference/filter.fa"
