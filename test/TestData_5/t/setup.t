@@ -59,6 +59,11 @@ END
     write_file('config.json', $JSON_text);
 }
 
+# Make index directory (for now) 
+system('mkdir index');
+
+# WARNING: Don't do this without an index directory (for now)
+system('./setup_exp_dirs');
 
 my @result = `ls [XY]/*`;
 
