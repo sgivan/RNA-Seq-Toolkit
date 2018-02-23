@@ -1,0 +1,105 @@
+#!/usr/bin/env perl
+use v5.10;
+use strict;
+use warnings;
+use autodie;
+
+use JSON;
+use Data::Show;
+
+# Get number of threads from the command line (or default to 24)
+my $THREADS = shift // 24; 
+
+my $config_string = slurp('config.json');
+
+my $config_href = decode_json $config_string;
+
+my %cfg = %{ $config_href };
+
+my @control_samples = @{ $cfg{SAMPLES}{CONTROL} };
+
+my %exp_samples_for = %{ $cfg{SAMPLES}{EXPERIMENTS} };
+
+for my $key (keys %exp_samples_for) {
+    my @samples = @{ $exp_samples_for{$key} };
+}
+
+if (! -e 'transcripts.gtf') {
+    my $gtf = $cfg{REFERENCE}{GTF};
+    system("ln -s $gtf transcripts.gtf");
+}
+
+# Set up index files
+my $index_dir = 'index';
+
+if (! -d $index_dir ) {
+
+    # Create and enter "index" directory
+    system("mkdir -p $index_dir");
+    chdir $index_dir;
+
+    my $original_refseq = $cfg{REFERENCE}{FA};
+    my $original_filter = $cfg{FILTER}{FA};
+
+    my $refseq = 'refseq.fa';
+    my $filter = 'filter.fa';
+
+    system("ln -s $original_refseq $refseq");
+
+    # Get exons and splice sites and build hisat2 indices 
+    system("hisat2_extract_exons.py        ../transcripts.gtf > exons.txt");
+    system("hisat2_extract_splice_sites.py ../transcripts.gtf > splice_sites.txt");
+    system("hisat2-build --threads $THREADS --exon exons.txt --ss splice_sites.txt refseq.fa refseq.fa");
+
+    # create hisat2 and bowtie indices for filter
+    system("ln -s $original_filter $filter");
+    system("bowtie-build --threads $THREADS $filter $filter");
+    system("hisat2-build --threads $THREADS $filter $filter");
+
+    # Return to the starting directory
+    chdir '..';
+}
+
+# Set up separate directory for each experiment (ballgown_setup.pl is designed
+# to work with one set of controls and one set of experiment samples)
+ 
+my $fastq_dir = $cfg{FASTQ_DIR};
+
+for my $experiment ( keys %exp_samples_for) {
+
+    # Create and enter "index" directory
+    my $exp_dir = "experiment_$experiment";
+    system "mkdir $exp_dir"; # should die if it already exists
+    chdir $exp_dir;
+
+    system "ln -s ../index";
+    system "ln -s index hisat_index";
+
+    # Copy (not link) transcripts.gtf, thus modifying the copy won't affect the original
+    system "cp ../transcripts.gtf .";
+
+    for my $sample (@control_samples, @{$exp_samples_for{$experiment}}) {
+        state $dir_num = 1;
+        my $name_of_dir = "s$dir_num";
+        system( "mkdir $name_of_dir");
+        chdir $name_of_dir;
+        for my $direction ( 1 .. 2 ) {
+            my $command = "ln -s ../$fastq_dir/${sample}_R${direction}_001.fastq.gz set${direction}.fq.gz";
+            system($command);
+        }
+        chdir '..';
+        $dir_num++;
+    }
+    chdir '..';
+}
+
+exit;
+
+sub slurp {
+    my $file = shift;
+    open my $fh, '<', $file;
+    local $/ = undef;
+    my $content = <$fh>;
+    close $fh;
+    return $content;
+}

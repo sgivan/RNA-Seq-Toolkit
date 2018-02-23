@@ -1,0 +1,14 @@
+#!/bin/bash
+#BSUB -J setting_up_dirs
+#BSUB -o setting_up_dirs.o_%J
+#BSUB -e setting_up_dirs.e_%J
+#BSUB -R "rusage[mem=1000] span[hosts=1]"
+#BSUB -n 24
+#MODULE_LOAD Python-shared
+#MODULE_LOAD bowtie/bowtie-1.2.2
+#MODULE_LOAD HISAT2-2.1.0
+#MODULE_LOAD R-3.3.0-sharedlib
+#MODULE_LOAD stringtie-1.3.0
+#MODULE_LOAD perl/perl-5.26.1
+
+./setup_exp_dirs 24

@@ -59,11 +59,16 @@ END
     write_file('config.json', $JSON_text);
 }
 
+
+my @result = `ls [XY]/*`;
+
+my @result = sort @result;
+
+is(@result, expected(), 'Reassembled files in the correct directory structure');
+
 # system("rm -rf fastq.dir");
 # system("rm -rf reference.dir");
 # system("rm config.json");
-
-expected();
 
 sub expected {
 
@@ -88,5 +93,7 @@ sub expected {
            $index_sample_name++;
         }
     }
-    show @expected;
+
+    @expected = sort @expected;
+    return @expected;
 }
