@@ -17,6 +17,14 @@ rm -rfv index/exons.txt
 rm -rfv index/index_with_exons_and_splice_sites_finished
 rm -rfv index/no_transcripts/
 rm -rfv index/splice_sites.txt
-
-# Remove stdout and stderr files
 rm -rfv RNASeqToolkit_TestData_*.[eo]_*
+rm -rfv preprocess*
+rm -rfv finished
+rm -rfv read_1.1
+rm -rfv set1.fq
+rm -rfv stringtie.log
+rm -rfv merged
+rm -rfv non-aggregate
+rm -rfv singles_hisat*
+rm -rfv index/hisat_index
+rm -rfv ballgown
