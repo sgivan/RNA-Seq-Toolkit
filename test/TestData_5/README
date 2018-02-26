@@ -1,0 +1,2 @@
+# Run with "1" as a commandline argument for DEUBG mode (e.g. to see the directory structure this sets up)
+./test.sh 1

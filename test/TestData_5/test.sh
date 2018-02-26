@@ -1,1 +1,1 @@
-perl t/setup.t
+perl t/setup.t $@

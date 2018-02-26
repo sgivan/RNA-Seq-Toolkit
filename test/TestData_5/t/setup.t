@@ -9,7 +9,7 @@ use File::Slurp qw(write_file);
 
 use Data::Show;
 
-my $DEBUG = 0;
+my $DEBUG = shift // 0;
 
 my @direction = qw(R1 R2);
 my @sample_names = ( 'C1' .. 'C5', 'D6' .. 'D9', 'D10', 'E11' .. 'E15');
@@ -78,12 +78,14 @@ show @result if $DEBUG;
 
 is_deeply(\@result, expected(), 'Reassembled files in the correct directory structure');
 
+system('./reset_test') unless $DEBUG;
+
 done_testing;
 
 sub expected {
 
     my @expected;
-    my @generic_dirs = ('s1' .. 's9', 's10');
+    my @generic_dirs = qw( s_1 s_2 s_3 s_4 s_5 s_6 s_7 s_8 s_9 s_10);
     my @links = ('set1.fq', 'set2.fq');
     
     my $index_sample_name=0;

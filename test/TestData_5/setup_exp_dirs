@@ -82,7 +82,7 @@ for my $experiment ( keys %exp_samples_for) {
 
     my $dir_num = 1;
     for my $sample (@control_samples, @{$exp_samples_for{$experiment}}) {
-        my $name_of_dir = "s$dir_num";
+        my $name_of_dir = "s_$dir_num";
         system( "mkdir $name_of_dir");
         chdir $name_of_dir;
 
