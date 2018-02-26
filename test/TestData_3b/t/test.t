@@ -16,7 +16,6 @@ for my $file ( qw(
                    )
 )
 {
-    
     my $result   = slurp $file;
     my $expected = slurp "t/expected/$file";
     
