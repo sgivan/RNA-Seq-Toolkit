@@ -1,0 +1,20 @@
+echo 'Deleting result files from previous test run'
+rm -rfv de_gene_data.txt
+rm -rfv de_transcript_data.txt
+rm -rfv gene_de.txt
+rm -rfv pheno.txt
+rm -rfv sample01
+rm -rfv sample02
+rm -rfv sample03
+rm -rfv sample04
+rm -rfv transcript_de.txt
+rm -rfv transcripts.gtf
+rm -rfv transcripts/
+rm -rfv test*.log
+rm -rfv s_*
+rm -rfv RData
+rm -rfv index/exons.txt
+rm -rfv index/index_with_exons_and_splice_sites_finished
+rm -rfv index/no_transcripts/
+rm -rfv index/splice_sites.txt
+rm -rfv RNASeqToolkit_TestData_8.[eo]_*

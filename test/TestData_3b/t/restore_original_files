@@ -1,0 +1,11 @@
+git checkout -- index/refseq.fa.1.ht2
+git checkout -- index/refseq.fa.2.ht2
+git checkout -- index/refseq.fa.5.ht2
+git checkout -- index/refseq.fa.6.ht2
+git checkout -- index/refseq.fa.7.ht2
+git checkout -- index/refseq.fa.8.ht2
+git checkout -- s_5
+git checkout -- s_6
+git checkout -- s_7
+git checkout -- s_8
+
