@@ -27,7 +27,7 @@ module load HISAT2-2.1.0
 
 echo 'Running all tests.'
 
-for dir in `ls -1d TestData_*`
+for dir in `ls -1d TestData_* Test_RNAseq_setup_dirs`
 do
     echo ""
     echo "$dir"
