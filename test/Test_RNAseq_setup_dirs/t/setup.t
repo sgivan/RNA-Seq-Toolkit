@@ -66,7 +66,7 @@ system('mkdir index');
 sleep 2;
 
 # WARNING: Don't do this without an index directory (for now)
-system('./RNAseq_setup_dirs');
+system('../../bin/RNAseq_setup_dirs');
 
 my @result_files = `ls experiment_[XY]/*/* experiment_[XY]/*.gtf`;
 my @result_dirs  = `ls -d experiment_[XY]/*index*`;
