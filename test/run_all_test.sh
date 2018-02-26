@@ -24,7 +24,6 @@ do
     echo "$dir"
     cd $dir
     ./setup_and_test.sh
-    ./test_result
     cd ..
 done
 
