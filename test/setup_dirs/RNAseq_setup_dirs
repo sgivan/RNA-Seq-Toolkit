@@ -89,6 +89,8 @@ for my $experiment ( keys %exp_samples_for) {
 
         for my $direction ( 1 .. 2 ) {
             my $expected_filename = "${sample}_R${direction}_001.fastq"; 
+
+            # copy the file (so that if there are modifications the original is not affected)
             system("cp ../../$fastq_dir/$expected_filename .");
             system("ln -s $expected_filename set$direction.fq");
         }
