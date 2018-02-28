@@ -1,0 +1,50 @@
+These results only apply to Stahl.
+
+Using module load HISAT2/HISAT2-2.1.0
+
+ok 1 - gene_de.txt is as expected
+ok 2 - de_gene_data.txt is as expected
+ok 3 - de_transcript_data.txt is as expected
+ok 4 - transcript_de.txt is as expected
+ok 5 - transcripts.gtf is as expected
+###########################################
+
+using module load HISAT2/HISAT2-2.1.0-handcompiled
+
+ok 1 - gene_de.txt is as expected
+ok 2 - de_gene_data.txt is as expected
+ok 3 - de_transcript_data.txt is as expected
+ok 4 - transcript_de.txt is as expected
+ok 5 - transcripts.gtf is as expected
+
+###########################################
+
+using module load HISAT2-2.0.4 (and t/expected_HISAT2-2.0.4/test.t)
+
+ok 1 - gene_de.txt is as expected
+ok 2 - de_gene_data.txt is as expected
+ok 3 - de_transcript_data.txt is as expected
+ok 4 - transcript_de.txt is as expected
+ok 5 - transcripts.gtf is as expected
+
+###########################################
+
+using module load HISAT2-2.1.0
+
+ok 1 - gene_de.txt is as expected
+ok 2 - de_gene_data.txt is as expected
+ok 3 - de_transcript_data.txt is as expected
+ok 4 - transcript_de.txt is as expected
+ok 5 - transcripts.gtf is as expected
+
+###########################################
+
+using module load /share/ircf/modulefiles/HISAT2-2.1.0
+
+Error in rep(texpr(x, "all")$gene_id[i], texpr(x, "all")$num_exons[i]) : 
+  invalid 'times' argument
+Calls: stattest -> gexpr -> gexpr -> lapply -> lapply -> FUN
+Execution halted
+read_file 'gene_de.txt' - sysopen: No such file or directory at t/test.t line 20
+
+###########################################
