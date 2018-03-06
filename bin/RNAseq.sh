@@ -463,7 +463,7 @@ then
                         echo "$i is a directory. Checking if it contains $samfile"
                         if [[ -e $i/$samfile ]]
                         then
-                            echo "$i/$samfile exists. Sorting it and converting it to $i/$samfile"
+                            echo "$i/$samfile exists. Sorting it and converting it to $i/$bamfile"
 
                             # samtools 1.3 and later required to sort and convert in one step
                             command="samtools sort -@ $procs -o $i/$bamfile $i/$samfile"
