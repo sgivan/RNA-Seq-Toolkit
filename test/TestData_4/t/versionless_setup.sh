@@ -27,13 +27,7 @@ sanity_check() {
 
 sanity_check
 
-module load Python-shared
-module load R-3.3.0-sharedlib
-module load bowtie2-2.3.2
-module load stringtie-1.3.0
-module load HISAT2-$HISAT_VERSION_BEING_TESTED
-
-echo "running using hisat2 version '`hisat2 --version | head -n1`' (expected $HISAT_VERSION_BEING_TESTED)"
+echo "running using hisat2 version '`hisat2 --version | head -n1`' (specifically: `which hisat2`)"
 
 for file in *.gz; do echo "gunzip $file"; gunzip $file; done
 

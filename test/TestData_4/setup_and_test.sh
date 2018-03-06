@@ -18,8 +18,8 @@
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
 ./reset_test
-export HISAT_VERSION_BEING_TESTED=2.0.4
+export HISAT_VERSION_BEING_TESTED=2.1.0
 TESTDATA_TEST_LOG="test_${HISAT_VERSION_BEING_TESTED}.log";
 t/versionless_setup.sh |& tee $TESTDATA_TEST_LOG
 t/run_test.sh          |& tee --append $TESTDATA_TEST_LOG
-t/test.t $@            |& tee --append $TESTDATA_TEST_LOG
+t/test.t $HISAT_VERSION_BEING_TESTED $@ |& tee --append $TESTDATA_TEST_LOG

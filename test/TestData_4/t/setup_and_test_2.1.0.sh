@@ -20,5 +20,5 @@
 ./reset_test
 export HISAT_VERSION_BEING_TESTED=2.1.0
 TESTDATA_TEST_LOG="test_${HISAT_VERSION_BEING_TESTED}.log";
-t/versionless_setup_and_test.sh |& tee $TESTDATA_TEST_LOG
+t/versionless_setup.sh |& tee $TESTDATA_TEST_LOG
 t/test.t $HISAT_VERSION_BEING_TESTED $@ |& tee --append $TESTDATA_TEST_LOG
