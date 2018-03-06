@@ -7,22 +7,21 @@ use autodie;
 use JSON;
 use Data::Show;
 
-# Get number of threads from the command line (or default to 24)
-my $THREADS = shift // 24; 
+my $directions    = shift // 2;
 
 my $config_string = slurp('config.json');
 
-my $config_href = decode_json $config_string;
+my $config_href   = decode_json $config_string;
 
 my %cfg = %{ $config_href };
 
-my @control_samples = @{ $cfg{SAMPLES}{CONTROL} };
+my @control_samples = @{ $cfg{SAMPLES}{CONTROL}{ALL} };
 
 my %exp_samples_for = %{ $cfg{SAMPLES}{EXPERIMENTS} };
 
-for my $key (keys %exp_samples_for) {
-    my @samples = @{ $exp_samples_for{$key} };
-}
+my @samples = @control_samples;
+
+push @samples, @{ $exp_samples_for{$_} } for keys %exp_samples_for;
 
 if (! -e 'transcripts.gtf') {
     my $gtf = $cfg{REFERENCE}{GTF};
@@ -32,72 +31,32 @@ if (! -e 'transcripts.gtf') {
 # Set up index files
 my $index_dir = 'index';
 
-if (! -d $index_dir ) {
+my $original_index_dir = $cfg{INDEX};
 
-    # Create and enter "index" directory
-    system("mkdir -p $index_dir");
-    chdir $index_dir;
+# In the production copy of this code, might want to change this to copying, unless there are multiple known backups
+system "ln -s $original_index_dir $index_dir";
+system "ln -s $index_dir hisat_index";
 
-    my $original_refseq = $cfg{REFERENCE}{FA};
-    my $original_filter = $cfg{FILTER}{FA};
+# Check that required files are present
+die "hisat2 indices required for $index_dir/refseq.fa" unless -e "$index_dir/refseq.fa.1.ht2";
+die "bowtie indices required for $index_dir/filter.fa" unless -e "$index_dir/filter.fa.1.ebwt";
 
-    my $refseq = 'refseq.fa';
-    my $filter = 'filter.fa';
-
-    system("ln -s $original_refseq $refseq");
-
-    # Get exons and splice sites and build hisat2 indices 
-    system("hisat2_extract_exons.py        ../transcripts.gtf > exons.txt");
-    system("hisat2_extract_splice_sites.py ../transcripts.gtf > splice_sites.txt");
-    system("hisat2-build --threads $THREADS --exon exons.txt --ss splice_sites.txt refseq.fa refseq.fa");
-
-    # create hisat2 and bowtie indices for filter
-    system("ln -s $original_filter $filter");
-    system("bowtie-build --threads $THREADS $filter $filter");
-    system("hisat2-build --threads $THREADS $filter $filter");
-
-    # Return to the starting directory
-    chdir '..';
-}
-
-# Set up separate directory for each experiment (ballgown_setup.pl is designed
-# to work with one set of controls and one set of experiment samples)
- 
 my $fastq_dir = $cfg{FASTQ_DIR};
 
-for my $experiment ( keys %exp_samples_for) {
+for my $sample ( @samples) {
+    state $dir_num = 1;
+    my $name_of_dir = "s_$dir_num";
+    system( "mkdir $name_of_dir");
+    chdir $name_of_dir;
 
-    # Create and enter "experiment" directory
-    my $exp_dir = "experiment_$experiment";
-    system "mkdir $exp_dir"; # should die if it already exists
-    chdir $exp_dir;
+    for my $direction ( 1 .. $directions ) {
+        my $expected_filename = "${sample}_R${direction}_001.fastq";
 
-    # Copy (not link) transcripts.gtf, thus modifying the copy won't affect the original
-    system "cp ../transcripts.gtf .";
-
-    # It seems hisat indices get rewritten later, so we better make a copy
-    # to avoid rewriting of the original
-    system "cp -r ../index index";
-    system "ln -s index hisat_index";
-
-    my $dir_num = 1;
-    for my $sample (@control_samples, @{$exp_samples_for{$experiment}}) {
-        my $name_of_dir = "s_$dir_num";
-        system( "mkdir $name_of_dir");
-        chdir $name_of_dir;
-
-
-        for my $direction ( 1 .. 2 ) {
-            my $expected_filename = "${sample}_R${direction}_001.fastq"; 
-
-            # copy the file (so that if there are modifications the original is not affected)
-            system("cp ../../$fastq_dir/$expected_filename .");
-            system("ln -s $expected_filename set$direction.fq");
-        }
-        chdir '..';
-        $dir_num++;
+        system("ln -s ../$fastq_dir/$expected_filename");
+        system("ln -s $expected_filename set$direction.fq");
     }
     chdir '..';
+    $dir_num++;
 }
 
 exit;
