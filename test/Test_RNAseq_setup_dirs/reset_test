@@ -6,3 +6,4 @@ rm -rf transcripts.gtf
 rm -rf setting_up_dirs.[eo]_*
 rm -rf index
 rm -rf hisat_index
+rm -rf s_*
