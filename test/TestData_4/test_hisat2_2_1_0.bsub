@@ -1,0 +1,8 @@
+#!/bin/env bash
+#BSUB -J hisat2_2_1_0
+#BSUB -o hisat2_2_1_0.o_%J
+#BSUB -e hisat2_2_1_0.e_%J
+#BSUB -R "rusage[mem=5000] span[hosts=1]"
+#BSUB -n 4
+
+t/setup_and_test_2.1.0.sh
