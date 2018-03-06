@@ -41,8 +41,9 @@ system("touch $reference_dir/$species.gtf");
 my $JSON_text = <<"END";
 {
     "FASTQ_DIR" : "$fastq_dir",
+    "INDEX" :     "t/index",
     "SAMPLES": {
-        "CONTROL": [ "C1", "C2", "C3", "C4", "C5" ],
+        "CONTROL": { "ALL": [ "C1", "C2", "C3", "C4", "C5" ]},
         "EXPERIMENTS": { "X": [  "D6",  "D7",  "D8",  "D9", "D10" ],
                          "Y": [ "E11", "E12", "E13", "E14", "E15" ]
         }
@@ -59,17 +60,14 @@ END
     
 write_file('config.json', $JSON_text);
 
-# Make index directory (for now) 
-system('mkdir index');
-
 # let file system get caught up
 sleep 2;
 
-# WARNING: Don't do this without an index directory (for now)
+# # WARNING: Don't do this without an index directory (for now)
 system('../../bin/RNAseq_setup_dirs');
 
-my @result_files = `ls experiment_[XY]/*/* experiment_[XY]/*.gtf`;
-my @result_dirs  = `ls -d experiment_[XY]/*index*`;
+my @result_files = `ls s_*/* *.gtf`;
+my @result_dirs  = `ls -d *index*`;
 
 my @result = grep {$_} sort (@result_files, @result_dirs);
 chomp @result;
@@ -90,26 +88,21 @@ sub expected {
     
     my $index_sample_name=0;
     
-    for my $exp ('X', 'Y') {
+    push @expected, 'transcripts.gtf';
+    push @expected, 'index';
+    push @expected, 'hisat_index';
 
-        my $exp_dir = "experiment_$exp";
-
-        push @expected, "$exp_dir/transcripts.gtf";
-        push @expected, "$exp_dir/index";
-        push @expected, "$exp_dir/hisat_index";
-
-        #TODO: Index files
-        for my $generic_dir (@generic_dirs) { 
-           for my $link (@links) {
-                push @expected, "$exp_dir/$generic_dir/$link";
-           }
-           my $sample_name
-                = $sample_names_with_repeated_controls[$index_sample_name];
-           for my $direction (@direction) {
-               push @expected, "$exp_dir/$generic_dir/${sample_name}_${direction}_001.fastq";
-           }
-           $index_sample_name++;
-        }
+    #TODO: Index files
+    for my $generic_dir (@generic_dirs) { 
+       for my $link (@links) {
+            push @expected, "$generic_dir/$link";
+       }
+       my $sample_name
+            = $sample_names_with_repeated_controls[$index_sample_name];
+       for my $direction (@direction) {
+           push @expected, "$generic_dir/${sample_name}_${direction}_001.fastq";
+       }
+       $index_sample_name++;
     }
 
     @expected = sort @expected;
