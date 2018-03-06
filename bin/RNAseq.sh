@@ -496,7 +496,7 @@ then
     if [ ! -e merged.bam ]
     then
         echo 'Error: merged.bam does not exist!'
-        exit(1)
+        exit 1
     fi
     cd ..
 
@@ -523,7 +523,7 @@ then
     if [ ! -e merged.bam ]
     then
         echo 'Error: merged.bam does not exist!'
-        exit(1)
+        exit 1
     fi
     cd ..
 
