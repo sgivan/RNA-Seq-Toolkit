@@ -13,8 +13,6 @@ my $DEBUG = shift // 0;
 
 my @direction = qw(R1 R2);
 my @sample_names = ( 'C1' .. 'C5', 'D6' .. 'D9', 'D10', 'E11' .. 'E15');
-my @sample_names_with_repeated_controls =
-    ( 'C1' .. 'C5', 'D6' .. 'D9', 'D10', 'C1' .. 'C5', 'E11' .. 'E15');
 
 system('./reset_test') unless $DEBUG;
 
@@ -97,8 +95,7 @@ sub expected {
        for my $link (@links) {
             push @expected, "$sample_dir/$link";
        }
-       my $sample_name
-            = $sample_names_with_repeated_controls[$index_sample_name];
+       my $sample_name = $sample_names[$index_sample_name];
        for my $direction (@direction) {
            push @expected, "$sample_dir/${sample_name}_${direction}_001.fastq";
        }
