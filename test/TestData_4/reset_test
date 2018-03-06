@@ -21,6 +21,7 @@ rm -rfv transcripts.gtf
 rm -rfv test*.log
 rm -rfv s_?
 rm -rfv sample0?
+rm -rfv *hisat2_2_1_0.[eo]_*
 git checkout -- Chr19.fa.gz
 git checkout -- Chr19.gtf.gz
 git checkout -- Contaminants.fa.gz
