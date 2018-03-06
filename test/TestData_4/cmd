@@ -9,6 +9,22 @@ debug_check_pwd_and_files() {
     fi
 }
 
+# Keep track of where we started from
+RNASEQ_STARTING_PATH=$PWD
+
+# To PATH, add absolute values for ../../bin and ../../R
+
+cd ../../bin
+RNASEQ_BIN_PATH=$PWD
+cd $RNASEQ_STARTING_PATH
+
+cd ../../R
+RNASEQ_BIN_PATH="$PWD:$RNASEQ_BIN_PATH"
+cd $RNASEQ_STARTING_PATH
+
+export PATH="$RNASEQ_BIN_PATH:$PATH"
+
+
 debug_check_pwd_and_files
 
 echo 'running RNAseq_process_data.sh -e -H 4 -O -C s_?'
@@ -19,20 +35,20 @@ echo 'running RNAseq_process_data.sh -e -H 4 -O -C s_?'
 # -H number of threads to use
 # -O preprocess data
 # -X Phred quality values encoded as Phred + 33
-bin/RNAseq_process_data.sh -e -H 4 -O -C s_?
+RNAseq_process_data.sh -e -H 4 -O -C s_?
 
 debug_check_pwd_and_files
 
 echo 'running RNAseq_process_data.sh -e -H 4 -a -X s_?'
-bin/RNAseq_process_data.sh -e -H 4 -a -X s_?
+RNAseq_process_data.sh -e -H 4 -a -X s_?
 
 debug_check_pwd_and_files
 
 # run ballgown
-bin/ballgown_setup.pl --cont "s_[13]" --exp "s_[24]"
+ballgown_setup.pl --cont "s_[13]" --exp "s_[24]"
 
 debug_check_pwd_and_files
 
-../../R/ballgown.Rscript 
+ballgown.Rscript 
 
 debug_check_pwd_and_files
