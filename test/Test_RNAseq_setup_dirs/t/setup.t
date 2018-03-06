@@ -83,7 +83,7 @@ done_testing;
 sub expected {
 
     my @expected;
-    my @generic_dirs = qw( s_1 s_2 s_3 s_4 s_5 s_6 s_7 s_8 s_9 s_10);
+    my @sample_dirs = qw( s_1 s_2 s_3 s_4 s_5 s_6 s_7 s_8 s_9 s_10 s_11 s_12 s_13 s_14 s_15);
     my @links = ('set1.fq', 'set2.fq');
     
     my $index_sample_name=0;
@@ -93,14 +93,14 @@ sub expected {
     push @expected, 'hisat_index';
 
     #TODO: Index files
-    for my $generic_dir (@generic_dirs) { 
+    for my $sample_dir (@sample_dirs) { 
        for my $link (@links) {
-            push @expected, "$generic_dir/$link";
+            push @expected, "$sample_dir/$link";
        }
        my $sample_name
             = $sample_names_with_repeated_controls[$index_sample_name];
        for my $direction (@direction) {
-           push @expected, "$generic_dir/${sample_name}_${direction}_001.fastq";
+           push @expected, "$sample_dir/${sample_name}_${direction}_001.fastq";
        }
        $index_sample_name++;
     }
