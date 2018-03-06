@@ -34,8 +34,10 @@ my $index_dir = 'index';
 my $original_index_dir = $cfg{INDEX};
 
 # In the production copy of this code, might want to change this to copying, unless there are multiple known backups
-system "ln -s $original_index_dir $index_dir";
-system "ln -s $index_dir hisat_index";
+if (! -d $index_dir) {
+    system "ln -s $original_index_dir $index_dir";
+    system "ln -s $index_dir hisat_index";
+}
 
 # Check that required files are present
 die "hisat2 indices required for $index_dir/refseq.fa" unless -e "$index_dir/refseq.fa.1.ht2";

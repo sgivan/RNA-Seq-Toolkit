@@ -21,6 +21,7 @@
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
+DEBUG=0
 # set path to find RNAseq scripts
 wd=`pwd`
 #export PATH=# <-- make sure the RST scripts are in your path
@@ -457,21 +458,20 @@ then
                 # Find all sam files, sort them, and then merge them
                 for i in `ls -d ../*`;
                 do
-                    echo "Checking if $i is a directory"
                     if [[ -d $i ]]
                     then
-                        echo "$i is a directory. Checking if it contains $samfile"
                         if [[ -e $i/$samfile ]]
                         then
                             echo "$i/$samfile exists. Sorting it and converting it to $i/$bamfile"
 
                             # samtools 1.3 and later required to sort and convert in one step
-                            command="samtools sort -@ $procs -o $i/$bamfile $i/$samfile"
-                            echo "     command to do so: '$command'"
-                            $( $command )
+                            sort_and_convert_command="samtools sort -@ $procs -o $i/$bamfile $i/$samfile"
+                            $( $sort_and_convert_command )
                         fi
                     fi
                 done
+
+                # Merge bam files
                 $(samtools merge merged.bam ../*/$bamfile)
 
             else
