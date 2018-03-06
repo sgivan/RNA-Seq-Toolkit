@@ -209,8 +209,8 @@ else
     hisatcmd="$hisatcmd --dta"
 fi
 
-pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-gz pe_hisat_out/unaligned.fa.gz --un-conc-gz --un-gz pe_hisat_out/pe_unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1 read_2 "
-singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1.1,read_2.1 "
+pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-conc-gz pe_hisat_out/pe_unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -1 read_1 -2 read_2 "
+singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -U read_1.1,read_2.1 "
 
 if [[ cufflinks_compatible -ne 0 ]]
 then
