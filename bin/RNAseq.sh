@@ -34,6 +34,7 @@ stringtie=$(which stringtie)
 cutadapt=$(which cutadapt)
 use_cutadapt=1
 samfile="accepted_hits.sam"
+bamfile="accepted_hits.bam"
 use_stringtie=1
 
 osname=`uname -s`
@@ -452,11 +453,29 @@ then
             then
 
                 echo "merging PE and SE sam files"
-                # I don't think this will work bc samfiles aren't sorted
-                $(samtools merge merged.bam ../*/$samfile)
+
+                # Find all sam files, sort them, and then merge them
+                for i in `ls -d ../*`;
+                do
+                    echo "Checking if $i is a directory"
+                    if [[ -d $i ]]
+                    then
+                        echo "$i is a directory. Checking if it contains $samfile"
+                        if [[ -e $i/$samfile ]]
+                        then
+                            echo "$i/$samfile exists. Sorting it and converting it to $i/$samfile"
+
+                            # samtools 1.3 and later required to sort and convert in one step
+                            command="samtools sort -@ $procs -o $i/$bamfile $i/$samfile"
+                            echo "     command to do so: '$command'"
+                            $( $command )
+                        fi
+                    fi
+                done
+                $(samtools merge merged.bam ../*/$bamfile)
 
             else
-                ln -s ../singles_hisat_out/$samfile ./merged.sam
+                samtools sort -@ $procs -o ./merged.bam ../singles_hisat_out/$samfile
             fi
 
             cd ..
@@ -474,11 +493,10 @@ if [[ $run_type = full ]] || [[ $run_type = partial ]]
 then
 
     cd merged
-    # test to see if merged_sorted.bam exists first to save time
-    if [ ! -e merged_sorted.bam ]
+    if [ ! -e merged.bam ]
     then
-        $(samtools view -Su merged.sam | samtools sort -o merged_sorted.bam -)
-        ln -s merged_sorted.bam merged.bam
+        echo 'Error: merged.bam does not exist!'
+        exit(1)
     fi
     cd ..
 
@@ -499,12 +517,13 @@ fi
 
 if [ $run_type = transcripts ]
 then
+
     cd merged
-    echo 'creating sorted bam file for input to stringtie'
-    if [ ! -e merged_sorted.bam ]
+    echo 'checking that sorted merged bam file exists for input to stringtie'
+    if [ ! -e merged.bam ]
     then
-        $(samtools view -Su merged.sam | samtools sort -o merged_sorted.bam -)
-        ln -s merged_sorted.bam merged.bam
+        echo 'Error: merged.bam does not exist!'
+        exit(1)
     fi
     cd ..
 
