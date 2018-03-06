@@ -17,6 +17,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
+module load Python-shared
+module load R-3.3.0-sharedlib
+module load bowtie2-2.3.2
+module load stringtie-1.3.0
+module load HISAT2-2.1.0
 
 # Sanity check (Are we where we want to be and have the files been copied?):
 sanity_check() {
