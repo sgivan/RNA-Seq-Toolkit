@@ -100,22 +100,22 @@ leave_temp=0
 oldid=0
 no_new_txpts='NULL'
 run_hisat=1
-
+cufflinks_compatible=0
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kC --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,nonewtranscripts,leave_temp,no_hisat -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kCK --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,nonewtranscripts,leave_temp,no_hisat,cufflinks_compatible -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kC $*`
+            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kCK $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG:kC --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,nonewtranscripts,leave_temp,no_hisat -- "$@"`
+            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG:kCK --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,nonewtranscripts,leave_temp,no_hisat,cufflinks_compatible -- "$@"`
             ;;
 esac
 
@@ -150,6 +150,7 @@ function help_messg () {
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
         --no_hisat) run_hisat=0 ; shift ;;
+        -K|--cufflinks_compatible) generate output files compatible with cufflinks
 
         "
 }
@@ -184,6 +185,7 @@ while true ; do
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
         --no_hisat) run_hisat=0 ; shift ;;
+        -K|--cufflinks_compatible) cufflinks_compatible=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -197,12 +199,23 @@ echo "run type is " $run_type
 # hisat, so they contain arguments and options passed to the program
 #
 # retain cufflinks compatibility with the --dta-cufflinks option
-#hisatcmd="$hisat --downstream-transcriptome-assembly --dta-cufflinks --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
-# use --dta & stringtie downstream, lose cufflinks compatibility
-hisatcmd="$hisat --dta --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
+#hisatcmd="$hisat --dta --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
+hisatcmd="$hisat --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
 
-pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-gz pe_hisat_out/unaligned.fa.gz --un-conc-gz --un-gz pe_hisat_out/pe_unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1 read_2 "
-singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz $HISAT_INDEXES/$fasta_file read_1.1,read_2.1 "
+if [[ cufflinks_compatible -ne 0 ]]
+then
+    hisatcmd="$hisatcmd --dta-cufflinks"
+else
+    hisatcmd="$hisatcmd --dta"
+fi
+
+pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-conc-gz pe_hisat_out/pe_unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -1 read_1 -2 read_2 "
+singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -U read_1.1,read_2.1 "
+
+if [[ cufflinks_compatible -ne 0 ]]
+then
+    pe_extra_cmd="$pe_extra_cmd --dta-cufflinks"
+fi
 # 
 #cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
 #stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs"
@@ -375,7 +388,7 @@ fi
 if [[ $run_hisat -eq 1 ]]
 then
 
-    $(mkdir singles_hisat_out)
+    $(mkdir -p singles_hisat_out)
     if [[ $seonly -eq 0 ]]
     then
         $(mkdir -p pe_hisat_out)
