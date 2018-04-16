@@ -58,7 +58,7 @@ esac
 # librarytype contains the "library type", as defined in the hisat documentation:
 # http://ccb.jhu.edu/software/hisat2/manual.shtml#running-hisat2 
 # the default is unstranded, fr_firstrand = R, fr_secondstrand = F
-#
+# Illumina TruSeq stranded libraries should be fr-firststrand
 
 librarytype='NULL'
 

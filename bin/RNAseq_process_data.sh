@@ -37,7 +37,7 @@ function help_messg () {
             echo "-O | --preprocess_only (only run preprocessing routines)"
             echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
             echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
-            echo "-B | --bsub submit to LSF queueing system" 
+            echo "-B | --bsub submit to Slurm job queue"
             echo "-D | --queue LSF queue [normal]"
             echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
             echo "-i | --min_intron_length [20] (minimum intron length)"
@@ -119,7 +119,7 @@ function help_messg () {
             echo "-p | --partial (will skip preprocessing steps)"
             echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
             echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
-            echo "-B | --bsub submit to LSF queueing system" 
+            echo "-B | --bsub submit to Slurm queueing system" 
             echo "-D | --queue LSF queue [normal]"
             echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
             echo "-i | --min_intron_length [20] (minimum intron length)"
@@ -241,7 +241,7 @@ dev=0
 oldid=0
 RNAseq_script='NULL'
 bsub=0
-queue='normal'
+queue='CLUSTER'
 no_new_txpts='NULL'
 leave_temp=0
 ignore_single_exons=0
@@ -326,6 +326,7 @@ flags="-s $refseq -i $min_intron_length -I $max_intron_length -t $threads -P $in
 
 if [[ $library_type -ne 'NULL' ]]
 then
+    # Illumina TruSeq stranded should be fr-firststrand
     flags="$flags --rna-strandness $library_type"
 fi
 
@@ -411,6 +412,7 @@ echo "flags = " $flags
 #exit
 
 let "cnt = 0"
+let "slurm_id = 0"
 for dir 
 do
     let "++cnt"
@@ -421,24 +423,28 @@ do
     echo $dir
     cd $dir
 
-    if [[ $bsub != 0 ]]
-    then
-        if [[ $wait4first -eq 1 && $cnt -eq 1 ]]
-        then
-            RNAseq_script="bsub -K"
-        else
-            RNAseq_script="bsub"
-        fi
+#    if [[ $bsub != 0 ]]
+#    then
+#        if [[ $wait4first -eq 1 && $cnt -eq 1 ]]
+#        then
+#            #RNAseq_script="bsub -K"
+#            RNAseq_script="sbatch "
+#        else
+#            RNAseq_script="sbatch "
+#        fi
+#
+#        #RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
+#        #RNAseq_script="$RNAseq_script -o ./${dir}.o -e ./${dir}.e -J $dir -q $queue -n $threads $script"
+#        RNAseq_script="$RNAseq_script -o ./${dir}.o -e ./${dir}.e -J $dir --partition CLUSTER --ntasks 1 --cpus-per-task $threads --wrap=\"$script"
+#        echo "RNAseq_script: '$RNAseq_script'"
+#        #continue
+#        #break
+#
+#    else
+#        RNAseq_script="$script"
+#    fi
 
-        #RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
-        RNAseq_script="$RNAseq_script -R \"rusage[mem=1000] span[hosts=1]\" -o ./${dir}.o -e ./${dir}.e -J $dir -q $queue -n $threads $script"
-        echo "RNAseq_script: '$RNAseq_script'"
-        #continue
-        #break
-
-    else
-        RNAseq_script="$script"
-    fi
+    RNAseq_script="$script"
 
     case "$run_type" in
 
@@ -447,7 +453,7 @@ do
             # for partial runs (when you don't need to run preprocessing steps
 #            echo "RNAseq.sh $flags --partial" ;
             echo "$RNAseq_script $flags -p $more_flags" ;
-            eval $RNAseq_script $flags -p $more_flags ;;
+            echo "$RNAseq_script $flags -p $more_flags " > cmd ;;
             #eval $RNAseq_script $flags -p $more_flags > RNAseq.log 2>&1 ;;
 
         full)
@@ -456,7 +462,7 @@ do
 #            echo "RNAseq.sh $flags --full" ;
             echo "$RNAseq_script $flags -f" ;
 #            RNAseq.sh $flags --full ;;
-            eval $RNAseq_script $flags -f ;;
+            echo "$RNAseq_script $flags -f " > cmd ;;
             #eval $RNAseq_script $flags -f > RNAseq.log 2>&1 ;;
 
         transcripts)
@@ -488,22 +494,36 @@ do
 #            echo "RNAseq.sh --transcripts $flags $more_flags" ;
             echo "$RNAseq_script -a $flags $more_flags" ;
 #            RNAseq.sh --transcripts $flags $more_flags ;;
-            eval $RNAseq_script -a $flags $more_flags ;;
+            echo "$RNAseq_script -a $flags $more_flags " > cmd ;;
             #eval $RNAseq_script -a $flags $more_flags > RNAseq.log 2>&1 ;;
 
         preprocess)
 
             echo "running preprocessing routines only" ;
             echo "$RNAseq_script -R -O $flags $more_flags" ;
-            eval $RNAseq_script -R -O $flags $more_flags ;;
-            #eval $RNAseq_script -R -O $flags $more_flags >> RNAseq.log 2>&1 ;;
-            #bsub -R "rusage[mem=500] span[hosts=1]" -J $dir -n $threads -q bioq RNAseq.sh -R -O $flags $more_flags ;;
+            echo "$RNAseq_script -R -O $flags $more_flags " > cmd ;;
 
         *)
             echo "RNAeq.sh $flags"
-            eval $RNAseq_script $flags $more_flags ;;
+            echo "$RNAseq_script $flags $more_flags " > cmd ;;
 
     esac
+
+    if [[ $bsub != 0 ]]
+    then
+        if [[ $wait4first -eq 1 && $cnt -ne 1 ]]
+        then
+            #RNAseq_script="bsub -K"
+            OUTPUT="$(sbatch --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+        else
+            OUTPUT="$(sbatch -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+            slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
+            echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
+        fi
+    fi
+    echo "OUTPUT: "$OUTPUT 
+#    slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
+#    echo "JOB ID: '"$slurm_id"'"
 
     RETVAL=$?
     if [[ $RETVAL -eq 0 ]]
