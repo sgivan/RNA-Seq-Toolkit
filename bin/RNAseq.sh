@@ -29,9 +29,9 @@ export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 # some variables to set ...
 #
 
-hisat=$(which hisat2) # because it's in my $PATH
-stringtie=$(which stringtie)
-cutadapt=$(which cutadapt)
+#hisat=$(which hisat2) # because it's in my $PATH
+#stringtie=$(which stringtie)
+#cutadapt=$(which cutadapt)
 use_cutadapt=1
 samfile="accepted_hits.sam"
 use_stringtie=1
@@ -195,40 +195,40 @@ echo "run type is " $run_type
 #exit
 
 #
-# hisatmcmd, pe_extra_cmd and singles_extra_cmd contain the actual invocation of
-# hisat, so they contain arguments and options passed to the program
+## hisatmcmd, pe_extra_cmd and singles_extra_cmd contain the actual invocation of
+## hisat, so they contain arguments and options passed to the program
+##
+## retain cufflinks compatibility with the --dta-cufflinks option
+##hisatcmd="$hisat --dta --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
+#hisatcmd="$hisat --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
 #
-# retain cufflinks compatibility with the --dta-cufflinks option
-#hisatcmd="$hisat --dta --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
-hisatcmd="$hisat --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
-
-if [[ cufflinks_compatible -ne 0 ]]
-then
-    hisatcmd="$hisatcmd --dta-cufflinks"
-else
-    hisatcmd="$hisatcmd --dta"
-fi
-
-pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-conc-gz pe_hisat_out/pe_unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -1 read_1 -2 read_2 "
-singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -U read_1.1,read_2.1 "
-
-if [[ cufflinks_compatible -ne 0 ]]
-then
-    pe_extra_cmd="$pe_extra_cmd --dta-cufflinks"
-fi
-# 
-#cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
-#stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs"
-#stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs -l $bioclass$lane"
-#stringtieflgs="-o ../ballgown/$bioclass$lane/"$bioclass$lane"_transcripts.gtf -B -p $procs -l $bioclass$lane"
-#stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -B -p $procs -l $bioclass$lane"
-# not sure why I use the -B flag, but it is causing an error witout guide the GFF/GTF
-# answer: the -B flag makes stringtie generate a file for ballgown, the DE program
-# So, don't use the -B flag at the merge stage, but use it at the DE stage
-#stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -p $procs -l $bioclass$lane"
-# change the above to be more consistent with past directory structures.
-# this will likely require changing the ballgown Rscript
-stringtieflgs="-o ballgown/transcripts.gtf -p $procs -l $bioclass$lane"
+#if [[ cufflinks_compatible -ne 0 ]]
+#then
+#    hisatcmd="$hisatcmd --dta-cufflinks"
+#else
+#    hisatcmd="$hisatcmd --dta"
+#fi
+#
+#pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-conc-gz pe_hisat_out/pe_unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -1 read_1 -2 read_2 "
+#singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -U read_1.1,read_2.1 "
+#
+#if [[ cufflinks_compatible -ne 0 ]]
+#then
+#    pe_extra_cmd="$pe_extra_cmd --dta-cufflinks"
+#fi
+## 
+##cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
+##stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs"
+##stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs -l $bioclass$lane"
+##stringtieflgs="-o ../ballgown/$bioclass$lane/"$bioclass$lane"_transcripts.gtf -B -p $procs -l $bioclass$lane"
+##stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -B -p $procs -l $bioclass$lane"
+## not sure why I use the -B flag, but it is causing an error witout guide the GFF/GTF
+## answer: the -B flag makes stringtie generate a file for ballgown, the DE program
+## So, don't use the -B flag at the merge stage, but use it at the DE stage
+##stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -p $procs -l $bioclass$lane"
+## change the above to be more consistent with past directory structures.
+## this will likely require changing the ballgown Rscript
+#stringtieflgs="-o ballgown/transcripts.gtf -p $procs -l $bioclass$lane"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -317,6 +317,7 @@ then
                 touch adapter_trim_finished
             else
                 echo "use cutadapt"
+                cutadapt=$(which cutadapt)
                 echo "$cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq 2> cutadapt_set1.log"
                 $($cutadapt --anywhere=$adapter_seq --output=set1_noadapters.fq set1.fq 2> cutadapt_set1.err 1> cutadapt_set1.log)
                 echo "$cutadapt --anywhere=$adapter_seq --output=set2_noadapters.fq set2.fq 2> cutadapt_set2.log"
@@ -384,6 +385,43 @@ then
 fi
 
 # run hisat
+hisat=$(which hisat2) # because it's in my $PATH
+stringtie=$(which stringtie)
+
+# hisatmcmd, pe_extra_cmd and singles_extra_cmd contain the actual invocation of
+# hisat, so they contain arguments and options passed to the program
+#
+# retain cufflinks compatibility with the --dta-cufflinks option
+#hisatcmd="$hisat --dta --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
+hisatcmd="$hisat --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
+
+if [[ cufflinks_compatible -ne 0 ]]
+then
+    hisatcmd="$hisatcmd --dta-cufflinks"
+else
+    hisatcmd="$hisatcmd --dta"
+fi
+
+pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-conc-gz pe_hisat_out/pe_unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -1 read_1 -2 read_2 "
+singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -U read_1.1,read_2.1 "
+
+if [[ cufflinks_compatible -ne 0 ]]
+then
+    pe_extra_cmd="$pe_extra_cmd --dta-cufflinks"
+fi
+# 
+#cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
+#stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs"
+#stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs -l $bioclass$lane"
+#stringtieflgs="-o ../ballgown/$bioclass$lane/"$bioclass$lane"_transcripts.gtf -B -p $procs -l $bioclass$lane"
+#stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -B -p $procs -l $bioclass$lane"
+# not sure why I use the -B flag, but it is causing an error witout guide the GFF/GTF
+# answer: the -B flag makes stringtie generate a file for ballgown, the DE program
+# So, don't use the -B flag at the merge stage, but use it at the DE stage
+#stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -p $procs -l $bioclass$lane"
+# change the above to be more consistent with past directory structures.
+# this will likely require changing the ballgown Rscript
+stringtieflgs="-o ballgown/transcripts.gtf -p $procs -l $bioclass$lane"
 
 if [[ $run_hisat -eq 1 ]]
 then
