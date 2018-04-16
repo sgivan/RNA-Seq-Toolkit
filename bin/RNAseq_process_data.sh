@@ -514,11 +514,12 @@ do
         if [[ $wait4first -eq 1 && $cnt -ne 1 ]]
         then
             #RNAseq_script="bsub -K"
+            echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
             OUTPUT="$(sbatch --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
         else
             OUTPUT="$(sbatch -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
             slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
-            echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
+            #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
         fi
     fi
     echo "OUTPUT: "$OUTPUT 
