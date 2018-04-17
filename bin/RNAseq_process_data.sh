@@ -515,9 +515,9 @@ do
         then
             #RNAseq_script="bsub -K"
             echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
-            OUTPUT="$(sbatch --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+            OUTPUT="$(sbatch --mem=50G --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
         else
-            OUTPUT="$(sbatch -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+            OUTPUT="$(sbatch --mem=50G -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
             slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
             #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
         fi
