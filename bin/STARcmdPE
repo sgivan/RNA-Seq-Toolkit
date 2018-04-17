@@ -4,5 +4,5 @@
 #SBATCH --cpus-per-task=5
 #SBATCH --mem=50G
 
-STAR --limitBAMsortRAM 20000000000 --genomeLoad LoadAndRemove --quantMode GeneCounts --outSAMtype BAM SortedByCoordinate \
-    --outFileNamePrefix PE_ --runMode alignReads --genomeDir ../../index --runThreadN 5 --readFilesIn ../read_1 ../read_2
+STAR --genomeLoad LoadAndRemove --quantMode GeneCounts --outFileNamePrefix PE_ --runMode alignReads \
+    --genomeDir ../../index --runThreadN 5 --readFilesIn ../read_1 ../read_2
