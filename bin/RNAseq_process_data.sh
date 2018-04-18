@@ -35,25 +35,18 @@ function help_messg () {
             echo "-f | --full (will run full analysis, including short read preprocessing)"
             echo "-p | --partial (will skip preprocessing steps)"
             echo "-O | --preprocess_only (only run preprocessing routines)"
-            echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
-            echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
-            echo "-B | --bsub submit to Slurm job queue"
-            echo "-D | --queue LSF queue [normal]"
-            echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
+            echo "-B | --submit submit to Slurm job manager" 
+            echo "-D | --partition Slurm partition [CLUSTER]"
+            echo "-w | --wait wait for first job submitted to Slurm job manager to finish before running other jobs"
             echo "-i | --min_intron_length [20] (minimum intron length)"
             echo "-I | --max_intron_length [500000] (maximum intron length)"
-            echo "-F | --min-isoform-fraction [0.15] (min isoform fraction)"
-            echo "-L | --segment-length [25] (segment length)"
 #            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
-            echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
-            echo "-K | --cufflinks_compatible generate output files compatible with cufflinks"
-            echo "-s | --refseq [refseq.fa] (name of file containing reference DNA seqeunce)"
             echo "-H | --threads [8] (number of threads to use)"
             echo "-l | --library_type [fr-unstranded] (library type as defined in TopHat manual)"
             #echo "--use_aggregates"
             echo "-e | --seonly (use if NOT working with paired-end sequence data)"
             echo "-A | --adapter (provide the adapter sequence to remove)"
-            echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq.fa and filter.fa)"
+            echo "-P | --indexpath [index] (provide the path to the directory containing the STAR indexes for ref seq and bowtie index for filter.fa)"
             echo "-T | --toolpath [.] (provide path to directory containing RNAseq tools)"
             echo "-R | --preprocess (use if you want to ensure running sequence preprocessing routines)"
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
@@ -65,7 +58,6 @@ function help_messg () {
             echo "-C | --leave_temp leave temporary files on file system"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
-            echo "--no_hisat don't run hisat"
             echo "" ;;
 
         Darwin)
@@ -73,25 +65,21 @@ function help_messg () {
             echo "invoke script with the following options [default value]:"
             echo "-f (will run full analysis, including short read preprocessing)"
             echo "-p (will skip preprocessing steps)"
-            echo "-a (use transcripts.gtf for gene models and skip preprocessing)"
-            echo "-B submit to LSF queueing system" 
-            echo "-D LSF queue [normal]"
-            echo "-w wait for first job submitted to LSF queue finish before running other jobs"
+            echo "-B submit to Slurm job manager" 
+            echo "-D Slurm Partition [CLUSTER]"
+            echo "-w wait for first job submitted to Slurm job manager to finish before running other jobs"
             echo "-r [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i [50] (minimum intron length)"
             echo "-I [25000] (maximum intron length)"
             echo "-m [0] (max number of mismatches in anchor region of spliced alignment)"
             echo "-c [8] (minimum number of reads on each side of splice junction)"
             echo "-S [20] (std dev for inner distances between mate pairs)"
-            echo "-F [0.15] (min isoform fraction)"
             echo "-g [20] (max multihits)"
             echo "-G [2] (max mismatches)"
             echo "-v (enables coverage search)"
-            echo "-L [25] (segment length)"
             echo "-M [2] (segment mismatches [0-3])"
             echo "-t (generate gtf file of empirical transcripts)"
             echo "-K generate output files compatible with cufflinks"
-            echo "-s [refseq.fa] (name of file containing reference DNA seqeunce)"
             echo "-H [8] (number of threads to use)"
             echo "-l [fr-unstranded] (library type as defined in TopHat manual)"
             #echo "--use_aggregates"
@@ -117,25 +105,18 @@ function help_messg () {
             echo "you can use either - or -- flags"
             echo "-f | --full (will run full analysis, including short read preprocessing)"
             echo "-p | --partial (will skip preprocessing steps)"
-            echo "-a | --transcripts (use transcripts.gtf for gene models and skip preprocessing)"
-            echo "-k | --nonewtranscripts (if using --transcripts, only align to known transcripts)"
-            echo "-B | --bsub submit to Slurm queueing system" 
-            echo "-D | --queue LSF queue [normal]"
-            echo "-w | --wait wait for first job submitted to LSF queue finish before running other jobs"
+            echo "-B | --submit submit to Slurm job manager" 
+            echo "-D | --partition Slurm partition [CLUSTER]"
+            echo "-w | --wait wait for first job submitted to Slurm job manager to finish before running other jobs"
             echo "-i | --min_intron_length [20] (minimum intron length)"
             echo "-I | --max_intron_length [500000] (maximum intron length)"
-            echo "-L | --segment-length [25] (segment length)"
 #            echo "-M | --segment-mismatches [2] (segment mismatches [0-3])"
-            echo "-F | --min-isoform-fraction [0.15] (min isoform fraction)"
-            echo "-t | --agg_transcripts (generate gtf file of empirical transcripts)"
-            echo "-K | --cufflinks_compatible generate output files compatible with cufflinks"
-            echo "-s | --refseq.fa [refseq.fa] (name of file containing reference DNA seqeunce)"
             echo "-H | --threads [8] (number of threads to use)"
             echo "-l | --library_type [fr-unstranded] (library type as defined in TopHat manual)"
             #echo "--use_aggregates"
             echo "-e | --seonly (use if NOT working with paired-end sequence data)"
             echo "-A | --adapter (provide the adapter sequence to remove)"
-            echo "-P | --indexpath [index] (provide the path to the directory containing the bowtie indexes for refseq.fa and filter.fa)"
+            echo "-P | --indexpath [index] (provide the path to the directory containing the STAR indexes for ref seq and bowtie index for filter.fa)"
             echo "-T | --toolpath [.] (provide path to directory containing RNAseq tools)"
             echo "-R | --preprocess (use if you want to ensure running sequence preprocessing routines)"
             echo "-q | --min_qual [13] during preprocessing, minimum quality of base to avoid trimming"
@@ -147,75 +128,9 @@ function help_messg () {
             echo "-C | --leave_temp leave temporary files on file system"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
-            echo "--no_hisat don't run hisat"
             echo "" ;;
 
     esac
-}
-
-function mk_agg_txpts () {
-    cd $wd
-    echo "generating transcripts file"
-    if [[ -e "transcripts" ]] || mkdir -p transcripts
-    then
-        cd transcripts
-        cuffcompare_flags="-s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
-        if [[ $ignore_single_exons -eq 1 ]]
-        then
-            cuffcompare_flags="-M $cuffcompare_flags"
-        fi
-#        echo "cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
-        echo "cuffcompare $cuffcompare_flags"
-#        cuffcompare -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
-        cuffcompare $cuffcompare_flags
-
-        cd ..
-        #ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
-        # name change means the link above doesn't work
-        ln -sf transcripts/cuffcmp.combined.gtf ./transcripts.gtf
-    else
-        echo "can't create transcripts directory"
-    fi
-}
-
-function mk_agg_txpts_stringtie () {
-    cd $wd
-    echo "generating merged transcripts file with stringtie"
-    if [[ -e "transcripts" ]] || mkdir -p transcripts
-    then
-        cd transcripts
-        stringtie_flags="-o merged_transcripts.gtf --merge ../*/ballgown/transcripts.gtf"
-        if [[ $ignore_single_exons -eq 1 ]]
-        then
-            stringtie_flags="-p $threads -M $stringtie_flags"
-        fi
-#        echo "stringtie -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf"
-        echo "stringtie $stringtie_flags"
-#        stringtie -s $wd/index/$refseq.fa ../*/cufflinks/transcripts.gtf
-        $(stringtie $stringtie_flags > stringtie_merge.log 2>&1)
-
-        cd ..
-        #ln -sf transcripts/stdout.combined.gtf ./transcripts.gtf
-        # name change means the link above doesn't work
-        #ln -sf transcripts/cuffcmp.combined.gtf ./transcripts.gtf
-        ln -sf transcripts/merged_transcripts.gtf ./transcripts.gtf
-#
-#       Must now update refseq index to include splice sites and exons
-        cd index
-        mkdir no_transcripts
-        mv *.ht2 no_transcripts
-        echo "building new index of $refseq to include splice sites and exons from transcripts.gtf"
-        $(hisat2_extract_exons.py ../transcripts.gtf > exons.txt)
-        $(hisat2_extract_splice_sites.py ../transcripts.gtf > splice_sites.txt)
-        echo "cmd: hisat2-build -p $threads --ss splice_sites.txt --exon exons.txt $refseq $refseq"
-        $(hisat2-build -p $threads --ss splice_sites.txt --exon exons.txt $refseq $refseq)
-        echo "build new genome index finished"
-        touch index_with_exons_and_splice_sites_finished
-        cd ..
-
-    else
-        echo "can't create transcripts directory"
-    fi
 }
 
 run_type='NULL'
@@ -223,13 +138,12 @@ min_intron_length=20
 max_intron_length=500000
 aggregate_junctions=0
 aggregate_transcripts=0
-refseq='refseq.fa'
 threads=8
 library_type='NULL'
 use_aggregates=0
 seonly=0
 adapter='NULL'
-indexpath="$wd/hisat_index/"
+indexpath="$wd/index/"
 preprocess=0
 preprocess_only=0
 min_qual=13
@@ -246,7 +160,7 @@ no_new_txpts='NULL'
 leave_temp=0
 ignore_single_exons=0
 wait4first=0
-run_hisat=1
+run_STAR=1
 cufflinks_compatible=0
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
@@ -257,11 +171,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pafhr:i:I:jts:H:l:ueA:P:T:ROm:c:S:F:g:vbL:M:q:n:E:QdCNXYoG:BD:kwJK --long help,full,transcripts,partial,min_intron_length:,max_intron_length:,agg_junctions,agg_transcripts,refseq:,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,bsub,queue:,nonewtranscripts,wait,ignore_single_exons,no_hisat,cufflinks_compatible -- "$@"`
+        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXYoG:B:wJ --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,partition:,wait,ignore_single_exons -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pafhr:i:I:jts:H:l:ueA:P:T:Rm:c:S:F:g:vbL:M:q:n:E:QdCNXYoG:BD:kwJK $*`
+        TEMP=`getopt pfhr:i:I:jH:l:ueA:P:T:Rm:c:S:g:vbM:q:n:E:QdCNXYoG:B:wJ $*`
         ;;
 
     *)
@@ -278,14 +192,9 @@ while true ; do
     case "$1" in
         -f|--full) run_type='full' ; shift ;;
         -p|--partial) run_type='partial' ; shift ;;
-        -a|--transcripts) run_type='transcripts' ; shift ;;
-        -k|--nonewtranscripts) no_new_txpts=1 ; shift ;;
         -i|--min_intron_length) min_intron_length=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length=$2 ; shift 2 ;;
         -j|--agg_junctions) aggregate_junctions=1 ; shift ;;
-        -t|--agg_transcripts) aggregate_transcripts=1 ; shift ;;
-        -K|--cufflinks_compatible ) cufflinks_compatible=1 ; shift ;;
-        -s|--refseq) refseq=$2 ; shift 2 ;;
         -H|--threads) threads=$2 ; shift 2 ;;
         -l|--library_type) library_type=$2 ; shift 2 ;;
         -u|--use_aggregates) use_aggregates=1 ; shift ;;
@@ -294,7 +203,6 @@ while true ; do
         -P|--indexpath) indexpath=$2 ; shift 2 ;;
         -T|--toolpath) toolpath=$2 ; shift 2 ;;
         -R|--preprocess) preprocess=1 ; shift ;;
-#        -O|--preprocess_only) preprocess_only=1 ; shift ;;
         -O|--preprocess_only) run_type='preprocess' ; shift ;;
         -q|--min_qual) min_qual=$2 ; shift 2 ;;
         -n|--min_length) min_length=$2 ; shift 2 ;;
@@ -307,20 +215,18 @@ while true ; do
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -J|--ignore_single_exons) ignore_single_exons=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
-        -B|--bsub) bsub=1 ; shift ;;
-        -D|--queue) queue=$2 ; shift 2 ;;
+        -B|--submit) bsub=1 ; shift ;;
+        -D|--partition) queue=$2 ; shift 2 ;;
         -w|--wait) wait4first=1 ; shift ;;
-        --no_hisat) run_hisat=0 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
 done
-#for arg do echo '--> '"\`$arg'" ; done
+for arg do echo '--> '"\`$arg'" ; done
 
 echo "run type is '$run_type'"
-echo "reference sequence file: '$refseq'"
 
-flags="-s $refseq -i $min_intron_length -I $max_intron_length -t $threads -P $indexpath/ -q $min_qual -n $min_length -E $percent_high_quality" 
+flags="-i $min_intron_length -I $max_intron_length -t $threads -P $indexpath/ -q $min_qual -n $min_length -E $percent_high_quality" 
 #echo "flags: $flags"
 #exit
 
@@ -360,11 +266,6 @@ then
     fi
 fi
 
-if [[ $run_hisat -eq 0 ]]
-then
-    flags="$flags --no_hisat"
-fi
-
 if [[ $oldid -ne 0 ]]
 then
     flags="$flags -N"
@@ -373,11 +274,6 @@ fi
 if [[ $leave_temp -ne 0 ]]
 then
     flags="$flags -C"
-fi
-
-if [[ $cufflinks_compatible -ne 0 ]]
-then
-    flags="$flags -K"
 fi
 
 #echo "flags: '$flags'"
@@ -403,6 +299,7 @@ if [[ $dev -ne 0 ]]
 then
     # this works in-house at IRCF
     export PATH="/ircf/ircfapps/dev/bin:$PATH"
+    export PATH="/home/sgivan/projects/RNA-Seq-Toolkit/bin:$PATH"
     flags="$flags -d"
 fi
 
@@ -413,6 +310,8 @@ echo "flags = " $flags
 
 let "cnt = 0"
 let "slurm_id = 0"
+
+echo "entering loop"
 for dir 
 do
     let "++cnt"
@@ -423,37 +322,25 @@ do
     echo $dir
     cd $dir
 
-#    if [[ $bsub != 0 ]]
-#    then
-#        if [[ $wait4first -eq 1 && $cnt -eq 1 ]]
-#        then
-#            #RNAseq_script="bsub -K"
-#            RNAseq_script="sbatch "
-#        else
-#            RNAseq_script="sbatch "
-#        fi
-#
-#        #RNAseq_script="bsub -R \"rusage[mem=1000] span[hosts=1]\" -o %J.o -e %J.e -J $dir -q $queue -n $threads $script"
-#        #RNAseq_script="$RNAseq_script -o ./${dir}.o -e ./${dir}.e -J $dir -q $queue -n $threads $script"
-#        RNAseq_script="$RNAseq_script -o ./${dir}.o -e ./${dir}.e -J $dir --partition CLUSTER --ntasks 1 --cpus-per-task $threads --wrap=\"$script"
-#        echo "RNAseq_script: '$RNAseq_script'"
-#        #continue
-#        #break
-#
-#    else
-#        RNAseq_script="$script"
-#    fi
+
+
+
+
 
     RNAseq_script="$script"
+    echo "RNAseq_script set to'${script}'"
 
+    batch=0
     case "$run_type" in
 
         partial)
-	
+            echo "run type still 'partial'"	
             # for partial runs (when you don't need to run preprocessing steps
 #            echo "RNAseq.sh $flags --partial" ;
             echo "$RNAseq_script $flags -p $more_flags" ;
-            echo "$RNAseq_script $flags -p $more_flags " > cmd ;;
+            $($RNAseq_script $flags -p $more_flags) ;
+#            echo "$RNAseq_script $flags -p $more_flags " > cmd ;
+            batch=1;;
             #eval $RNAseq_script $flags -p $more_flags > RNAseq.log 2>&1 ;;
 
         full)
@@ -462,40 +349,9 @@ do
 #            echo "RNAseq.sh $flags --full" ;
             echo "$RNAseq_script $flags -f" ;
 #            RNAseq.sh $flags --full ;;
-            echo "$RNAseq_script $flags -f " > cmd ;;
+            echo "$RNAseq_script $flags -f " > cmd ;
+            batch=1;;
             #eval $RNAseq_script $flags -f > RNAseq.log 2>&1 ;;
-
-        transcripts)
-
-            # for transcripts runs
-            # must have already run script with --agg_transcripts flag
-            if [[ $run_hisat -eq 1 ]]
-            then
-                if [[ -e "non-aggregate" ]] || mkdir -p non-aggregate
-                then
-                    echo "moving old output files to 'non-aggregate'"
-                    mv -f merged cufflinks pe_hisat* singles_hisat* non-aggregate/
-                    mv -f ballgown non-aggregate/
-                else
-                    echo "can't create non-aggregate directory"
-                fi
-            fi
-
-            # add '-k' flag if needed and not already included
-            if [[ $no_new_txps != "NULL" ]] && [[ "$more_flags" != *" -k"* ]]
-            then
-                more_flags="$more_flags -k"
-            fi
-
-            echo "creating symbolic link to transcript.gtf"
-            ln -sf $wd/transcripts.gtf ./
-
-            echo "running hisat"
-#            echo "RNAseq.sh --transcripts $flags $more_flags" ;
-            echo "$RNAseq_script -a $flags $more_flags" ;
-#            RNAseq.sh --transcripts $flags $more_flags ;;
-            echo "$RNAseq_script -a $flags $more_flags " > cmd ;;
-            #eval $RNAseq_script -a $flags $more_flags > RNAseq.log 2>&1 ;;
 
         preprocess)
 
@@ -513,13 +369,26 @@ do
     then
         if [[ $wait4first -eq 1 && $cnt -ne 1 ]]
         then
-            #RNAseq_script="bsub -K"
             echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
-            OUTPUT="$(sbatch --mem=50G --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+            if [[ $batch -eq 1 ]]
+            then
+                OUTPUT="$(sbatch -J $dir cmd)"
+            else
+                OUTPUT="$(sbatch --mem=50G --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+            fi
+
         else
-            OUTPUT="$(sbatch --mem=50G -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
-            slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
-            #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
+            if [[ $batch -eq 1 ]]
+            then
+                OUTPUT="$(sbatch -J ${dir} cmd)"
+                slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
+                #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
+            else
+
+                OUTPUT="$(sbatch --mem=50G -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads --wrap='sh cmd')"
+                slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
+                #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
+            fi
         fi
     fi
     echo "OUTPUT: "$OUTPUT 
@@ -537,27 +406,4 @@ do
 
     cd $wd
 done
-
-if [ $aggregate_junctions = 1 ]
-    then
-        echo "generating aggregate junctions file"
-        if [[ -e "merged_aggregates" ]] || mkdir -p merged_aggregates
-        then
-            cd merged_aggregates
-            cat ../*/*/junctions.bed | awk '{ if ($1 != "track") {split($11,len,","); split($12,blstrt,","); printf "%s\t%i\t%i\t%s\n", $1, $2 + len[1] - 1, $2 + blstrt[2], $6; }}' | sort -k 1,1 -gk 2,2 | uniq > aggregate_junctions.txt
-            cd ..
-        else
-            echo "can't create merged_aggregates directory"
-        fi
-fi
-
-if [ $aggregate_transcripts = 1 ]
-    then
-        mk_agg_txpts_stringtie
-fi
-
-if [ $use_aggregates = 1 ]
-    then
-        echo "re-running pipeline using aggregate files"
-fi
 

@@ -29,12 +29,8 @@ export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 # some variables to set ...
 #
 
-#hisat=$(which hisat2) # because it's in my $PATH
-#stringtie=$(which stringtie)
-#cutadapt=$(which cutadapt)
 use_cutadapt=1
 samfile="accepted_hits.sam"
-use_stringtie=1
 
 osname=`uname -s`
 echo "osname '$osname'"
@@ -55,26 +51,11 @@ case "$osname" in
 
 esac
 #
-# librarytype contains the "library type", as defined in the hisat documentation:
-# http://ccb.jhu.edu/software/hisat2/manual.shtml#running-hisat2 
-# the default is unstranded, fr_firstrand = R, fr_secondstrand = F
-# Illumina TruSeq stranded libraries should be fr-firststrand
-
-librarytype='NULL'
-
 #
-# fasta_file contains the root of the fasta file that contains the reference sequence that
-# the index files are derived from. It should be in the same location as the hisat index
-# files made with hisat-build, which is specified by HISAT_INDEXES, below
+# INDEXES contains the path to the directory containing the reference index files.
+# Be sure to end with a "/".
 #
-
-fasta_file='refseq.fa' # actual file should be have .fa suffix
-
-#
-# HISAT_INDEXES contains the path to the directory containing the reference index files
-# built by the hisat-build program. Be sure to end with a "/".
-#
-HISAT_INDEXES='hisat_index'
+INDEXES='index'
 
 #
 # some other variables that are typically required by tophat ...
@@ -84,8 +65,8 @@ HISAT_INDEXES='hisat_index'
 seonly=0 # for single-end sequence data only -- no paired-end 
 procs=8 # number of processors to use
 run_type='NULL'
-mate_inner_distance_r=165
-min_intron_length_i=20
+mate_inner_distance_r=0
+min_intron_length_i=21
 max_intron_length_I=500000
 adapter_seq='NULL'
 preprocess=0
@@ -99,23 +80,23 @@ dev=0
 leave_temp=0
 oldid=0
 no_new_txpts='NULL'
-run_hisat=1
-cufflinks_compatible=0
+run_STAR=1
+STARcmd="STAR"
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kCK --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,nonewtranscripts,leave_temp,no_hisat,cufflinks_compatible -- "$@"`
+            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:CK --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:kCK $*`
+            TEMP=`getopt et:pfhr:i:I:P:aA:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:CK $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pafhr:i:I:P:l:as:A:ROm:c:S:F:g:q:n:E:QdNoBG:kCK --long full,transcripts,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,librarytype:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,nonewtranscripts,leave_temp,no_hisat,cufflinks_compatible -- "$@"`
+            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:F:g:q:n:E:QdNoBG:CK --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp -- "$@"`
             ;;
 esac
 
@@ -127,17 +108,13 @@ function help_messg () {
 
         -f|--full) run_type='full' ; shift ;;
         -p|--partial) run_type='partial' ; shift ;;
-        -a|--transcripts) run_type='transcripts' ; shift ;;
-        -k|--nonewtranscripts) no_new_txpts=1 ; shift ;;
         -r|--mate_inner_distance) mate_inner_distance_r=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length_i=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length_I=$2 ; shift 2 ;;
         -t|--procs) procs=$2 ; shift 2 ;;
-        -l|--librarytype) librarytype=$2 ; shift 2 ;;
         -e|--seonly) seonly=1 ; shift ;;
         -A|--adapter_seq) adapter_seq=$2 ; shift 2 ;;
-        -P|--indexpath) HISAT_INDEXES=$2 ; shift 2 ;;
-        -s|--refseq) fasta_file=$2 ; shift 2 ;;
+        -P|--indexpath) INDEXES=$2 ; shift 2 ;;
         -R|--preprocess) preprocess=1 ; shift ;;
         -O|--preprocess_only) preprocess_only=1; shift ;;
         -q|--min_qual) min_qual=$2 ; shift 2 ;;
@@ -149,8 +126,6 @@ function help_messg () {
         -d|--dev) dev=1 ; shift ;;
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
-        --no_hisat) run_hisat=0 ; shift ;;
-        -K|--cufflinks_compatible) generate output files compatible with cufflinks
 
         "
 }
@@ -162,17 +137,13 @@ while true ; do
     case "$1" in
         -f|--full) run_type='full' ; shift ;;
         -p|--partial) run_type='partial' ; shift ;;
-        -a|--transcripts) run_type='transcripts' ; shift ;;
-        -k|--nonewtranscripts) no_new_txpts=1 ; shift ;;
         -r|--mate_inner_distance) mate_inner_distance_r=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length_i=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length_I=$2 ; shift 2 ;;
         -t|--procs) procs=$2 ; shift 2 ;;
-        -l|--librarytype) librarytype=$2 ; shift 2 ;;
         -e|--seonly) seonly=1 ; shift ;;
         -A|--adapter_seq) adapter_seq=$2 ; shift 2 ;;
-        -P|--indexpath) HISAT_INDEXES=$2 ; shift 2 ;;
-        -s|--refseq) fasta_file=$2 ; shift 2 ;;
+        -P|--indexpath) INDEXES=$2 ; shift 2 ;;
         -R|--preprocess) preprocess=1 ; shift ;;
         -O|--preprocess_only) preprocess_only=1; shift ;;
         -q|--min_qual) min_qual=$2 ; shift 2 ;;
@@ -184,8 +155,6 @@ while true ; do
         -d|--dev) dev=1 ; shift ;;
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
-        --no_hisat) run_hisat=0 ; shift ;;
-        -K|--cufflinks_compatible) cufflinks_compatible=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -193,42 +162,6 @@ done
 echo "extra arguments: $@"
 echo "run type is " $run_type
 #exit
-
-#
-## hisatmcmd, pe_extra_cmd and singles_extra_cmd contain the actual invocation of
-## hisat, so they contain arguments and options passed to the program
-##
-## retain cufflinks compatibility with the --dta-cufflinks option
-##hisatcmd="$hisat --dta --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
-#hisatcmd="$hisat --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
-#
-#if [[ cufflinks_compatible -ne 0 ]]
-#then
-#    hisatcmd="$hisatcmd --dta-cufflinks"
-#else
-#    hisatcmd="$hisatcmd --dta"
-#fi
-#
-#pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-conc-gz pe_hisat_out/pe_unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -1 read_1 -2 read_2 "
-#singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -U read_1.1,read_2.1 "
-#
-#if [[ cufflinks_compatible -ne 0 ]]
-#then
-#    pe_extra_cmd="$pe_extra_cmd --dta-cufflinks"
-#fi
-## 
-##cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
-##stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs"
-##stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs -l $bioclass$lane"
-##stringtieflgs="-o ../ballgown/$bioclass$lane/"$bioclass$lane"_transcripts.gtf -B -p $procs -l $bioclass$lane"
-##stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -B -p $procs -l $bioclass$lane"
-## not sure why I use the -B flag, but it is causing an error witout guide the GFF/GTF
-## answer: the -B flag makes stringtie generate a file for ballgown, the DE program
-## So, don't use the -B flag at the merge stage, but use it at the DE stage
-##stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -p $procs -l $bioclass$lane"
-## change the above to be more consistent with past directory structures.
-## this will likely require changing the ballgown Rscript
-#stringtieflgs="-o ballgown/transcripts.gtf -p $procs -l $bioclass$lane"
 
 #
 # END OF USER-DEFINED VARIABLES
@@ -247,29 +180,7 @@ then
     preprocess=1
 fi
 
-# default quality scores are Phred+33
-if [[ $qualscores != 'NULL' ]]
-then
-    if [[ $qualscores -eq 1 ]]
-    then
-        # quality scores are Phred+64
-        #hisatcmd="$hisatcmd --solexa-quals"
-        hisatcmd="$hisatcmd --solexa1.3-quals"
-    elif [[ $qualscores -eq 2 ]]
-    then
-        hisatcmd="$hisatcmd --solexa-quals"
-    fi
-else
-    #hisatcmd="$hisatcmd --solexa1.3-quals"
-    hisatcmd=$hisatcmd
-fi
-
-if [[ $librarytype -ne 'NULL' ]]
-then
-    hisatcmd="$hisatcmd --rna-strandness $librarytype"
-fi
-
-preprocess_flags="-i $HISAT_INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
+preprocess_flags="-i $INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
 if [[ $qualscores -eq 1 ]]
 then
     preprocess_flags="$preprocess_flags -s"
@@ -384,31 +295,14 @@ then
     exit
 fi
 
-# run hisat
-hisat=$(which hisat2) # because it's in my $PATH
-stringtie=$(which stringtie)
-
 # hisatmcmd, pe_extra_cmd and singles_extra_cmd contain the actual invocation of
 # hisat, so they contain arguments and options passed to the program
 #
-# retain cufflinks compatibility with the --dta-cufflinks option
-#hisatcmd="$hisat --dta --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
-hisatcmd="$hisat --no-unal -p $procs --min-intronlen $min_intron_length_i --max-intronlen $max_intron_length_I"
+STARcmd="$STARcmd --runThreadN $procs --alignIntronMin $min_intron_length_i --alignIntronMax $max_intron_length_I"
 
-if [[ cufflinks_compatible -ne 0 ]]
-then
-    hisatcmd="$hisatcmd --dta-cufflinks"
-else
-    hisatcmd="$hisatcmd --dta"
-fi
+pe_extra_cmd="--alignMatesGapMax $mate_inner_distance_r --genomeDir $INDEXES -1 read_1 -2 read_2 "
+singles_extra_cmd="--genomeDir $INDEXES -U read_1.1,read_2.1 "
 
-pe_extra_cmd="--met-file hisat_metrics_pe.txt -S pe_hisat_out/$samfile --un-conc-gz pe_hisat_out/pe_unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -1 read_1 -2 read_2 "
-singles_extra_cmd="--met-file hisat_metrics_se.txt -S singles_hisat_out/$samfile --un-gz singles_hisat_out/unaligned.fa.gz -x $HISAT_INDEXES/$fasta_file -U read_1.1,read_2.1 "
-
-if [[ cufflinks_compatible -ne 0 ]]
-then
-    pe_extra_cmd="$pe_extra_cmd --dta-cufflinks"
-fi
 # 
 #cufflinksflgs="-u --max_intron_length $max_intron_length_I -b $HISAT_INDEXES/$fasta_file.fa -p $procs -o cufflinks -L $bioclass$lane --min_intron_length $min_intron_length_i"
 #stringtieflgs="-o stringtie/string_transcripts.gtf -B -p $procs"
@@ -421,19 +315,15 @@ fi
 #stringtieflgs="-o ../ballgown/$bioclass$lane/transcripts.gtf -p $procs -l $bioclass$lane"
 # change the above to be more consistent with past directory structures.
 # this will likely require changing the ballgown Rscript
-stringtieflgs="-o ballgown/transcripts.gtf -p $procs -l $bioclass$lane"
-
-if [[ $run_hisat -eq 1 ]]
+echo "getting ready to run STAR"
+if [[ $run_STAR -eq 1 ]]
 then
 
-    $(mkdir -p singles_hisat_out)
-    if [[ $seonly -eq 0 ]]
-    then
-        $(mkdir -p pe_hisat_out)
-    fi
+#    $(mkdir -p align)
+#    $(cd align)
 
 
-    export HISAT_INDEXES=$HISAT_INDEXES # this is the directory containing the index files created with hisat-build
+    export INDEXES=$INDEXES # this is the directory containing the index files created with hisat-build
     if [ $run_type = transcripts ]
     then
         echo "run type is " $run_type
@@ -461,107 +351,35 @@ then
 
         if [[ $run_type != 'NULL' ]]
         then 
-            echo "run type is " $run_type
-            echo "running tophat without precomputed annotations"
+
+#           STAR options to include:
+#           STARcmd="$STARcmd --runThreadN $procs --alignIntronMin $min_intron_length_i --alignIntronMax $max_intron_length_I"
+#           pe_extra_cmd="--alignMatesGapMax $mate_inner_distance_r --genomeDir $INDEXES -1 read_1 -2 read_2 "
+#           singles_extra_cmd="--genomeDir $INDEXES -U read_1.1,read_2.1 "
+
+            echo "run type will never be transcripts. run type is " $run_type
             pwd=`pwd`
             echo "working directory: "$pwd
             if [[ $seonly -eq 0 ]]
             then
-                echo "running HISAT2 with these options: "$hisatcmd $pe_extra_cmd $@
-                $hisatcmd $pe_extra_cmd $@ > pe_hisat.stdout 2>&1
-                echo "running HISAT2 with these options: "$hisatcmd $singles_extra_cmd $@
-                $hisatcmd $singles_extra_cmd $@ > singles_hisat.stdout 2>&1
+#                echo "creating STAR sbatch file with these options: create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t \
+#                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I"
+#                $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t --minIntronLength $min_intron_length_i \
+#                    --maxIntronLength $max_intron_length_I > cmd)
+                echo "creating STAR sbatch file with these options: create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmd.t \
+                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r"
+                $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmd.t --minIntronLength $min_intron_length_i \
+                    --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r > cmd)
             else
-                singles_extra_cmd=`echo $singles_extra_cmd | sed 's/,read_2.1//'`
-                echo "running HISAT2 with these options: "$hisatcmd $singles_extra_cmd $@
-                $hisatcmd $singles_extra_cmd $@ > singles_hisat.stdout 2>&1
+                echo "creating STAR sbatch file with these options: create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t \
+                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I"
+                $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t --minIntronLength $min_intron_length_i \
+                    --maxIntronLength $max_intron_length_I > cmd)
             fi
         fi
     fi
                 
-    if [[ run_type != 'NULL' ]]
-    then
-
-        if [[ -e "merged" ]] || mkdir -p merged
-        then
-            cd merged
-
-            if [[ $seonly -eq 0 ]]
-            then
-
-                echo "merging PE and SE sam files"
-                # I don't think this will work bc samfiles aren't sorted
-                $(samtools merge merged.bam ../*/$samfile)
-
-            else
-                ln -s ../singles_hisat_out/$samfile ./merged.sam
-            fi
-
-            cd ..
-        else
-            echo "can't create merged directory"
-        fi
-
-    fi
 fi
-
-# run stringtie
-
-#if [[ $run_type = full ]] # not sure why this is just for full runs
-if [[ $run_type = full ]] || [[ $run_type = partial ]] 
-then
-
-    cd merged
-    # test to see if merged_sorted.bam exists first to save time
-    if [ ! -e merged_sorted.bam ]
-    then
-        $(samtools view -Su merged.sam | samtools sort -o merged_sorted.bam -)
-        ln -s merged_sorted.bam merged.bam
-    fi
-    cd ..
-
-    if [[ $seonly -eq 0 ]]
-    then
-#        echo "now merging PE and SE alignment data"
-        echo "using stringtie to build gene models with PE and SE alignment data"
-        
-        echo $stringtie $stringtieflgs merged/merged.bam
-        $($stringtie $stringtieflgs merged/merged.bam > stringtie.log 2>&1)
-    else
-        echo "using stringtie to build gene models with SE alignment data"
-        echo $stringtie $stringtieflgs merged/merged.bam
-        $($stringtie $stringtieflgs merged/merged.bam > stringtie.log 2>&1)
-    fi
-#    cd ..
-fi
-
-if [ $run_type = transcripts ]
-then
-    cd merged
-    echo 'creating sorted bam file for input to stringtie'
-    if [ ! -e merged_sorted.bam ]
-    then
-        $(samtools view -Su merged.sam | samtools sort -o merged_sorted.bam -)
-        ln -s merged_sorted.bam merged.bam
-    fi
-    cd ..
-
-    echo "running stringtie using transcript file"
-    
-    echo "running stringtie"
-    if [[ $no_new_txpts != "NULL" ]]
-    then
-        stringtie_extra_cmd=" -B -G transcripts.gtf -e"
-    else
-        stringtie_extra_cmd=" -B -G transcripts.gtf"
-    fi
-    echo $stringtie $stringtieflgs $stringtie_extra_cmd merged/merged.bam 
-    $($stringtie $stringtieflgs $stringtie_extra_cmd merged/merged.bam > stringtie.log 2>&1)
-    
-fi
-
-echo "finished"
-echo ""
 
 function help_messg () {
 
@@ -569,17 +387,13 @@ echo "
 
         -f|--full) run_type='full' ; shift ;;
         -p|--partial) run_type='partial' ; shift ;;
-        -a|--transcripts) run_type='transcripts' ; shift ;;
-        -k|--nonewtranscripts) no_new_txpts=1 ; shift ;;
         -r|--mate_inner_distance) mate_inner_distance_r=$2 ; shift 2 ;;
         -i|--min_intron_length) min_intron_length_i=$2 ; shift 2 ;;
         -I|--max_intron_length) max_intron_length_I=$2 ; shift 2 ;;
         -t|--procs) procs=$2 ; shift 2 ;;
-        -l|--librarytype) librarytype=$2 ; shift 2 ;;
         -e|--seonly) seonly=1 ; shift ;;
         -A|--adapter_seq) adapter_seq=$2 ; shift 2 ;;
-        -P|--indexpath) HISAT_INDEXES=$2 ; shift 2 ;;
-        -s|--refseq) fasta_file=$2 ; shift 2 ;;
+        -P|--indexpath) INDEXES=$2 ; shift 2 ;;
         -R|--preprocess) preprocess=1 ; shift ;;
         -O|--preprocess_only) preprocess_only=1; shift ;;
         -q|--min_qual) min_qual=$2 ; shift 2 ;;
@@ -591,7 +405,6 @@ echo "
         -d|--dev) dev=1 ; shift ;;
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
-        --no_hisat) run_hisat=0 ; shift ;;
 
         "
 }
