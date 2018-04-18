@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Don't use this script
+# Use qc.sh for a QC summary.
+# use map_efficiency.sh for a mapping summary
 
 TEMP=`getopt -o qHhcu -- "$@"`
 
@@ -38,9 +41,9 @@ if [[ $header == 1 ]]
 then 
     if [[ $comma == 1 ]]
     then
-        echo "Sample,Raw,Trimmed,Filtered,Matched,Retained,% Retained,Mapped,% Mapped"
+        echo "Sample,Raw,Trimmed,Filtered,Matched,Retained,% Retained,PE Input,PE Mapped,%PE Mapped,SE Input,SE Mapped,%SE Mapped,All Mapped, % All Mapped"
     else
-        echo "^Sample^Raw<sup>1</sup>^Trimmed<sup>2</sup>^Filtered<sup>3</sup>^Matched<sup>4</sup>^Retained<sup>5</sup>^% Retained^Mapped<sup>6</sup>^% Mapped^"
+        echo "||= Sample =||= Raw^1^ =||= Trimmed^2^ =||= Filtered^3^ =||= Matched^4^ =||= Retained^5^ =||= % Retained =||= PE Input^6^ =||= PE Mapped^7^ =||= % PE Mapped  =||= SE Input^8^ =||= SE Mapped^9^ =||= % SE Mapped =||= All Mapped =||= % All Mapped^10^ =||"
     fi
 fi
 
@@ -56,10 +59,37 @@ do
     qm=$(expr $qcfi - $qct)
     rtn=$(echo "scale=4; ($qct/$raw)*100" | bc | sed 's/00\b//')
 
-    cd ../merged
-    mapped=$(cat merged.bam.cnt)
-    mrtn=$(echo "scale=4; ($mapped/$qct)*100" | bc | sed 's/00\b//')
-    cd ../../
+#    cd ../merged
+#    mapped=$(cat merged.bam.cnt)
+#    mrtn=$(echo "scale=4; ($mapped/$qct)*100" | bc | sed 's/00\b//')
+#    cd ../../
+#
+    # strings to grep
+    # Number of input reads
+    # Uniquely mapped reads number
+    # Number of reads mapped to multiple loci
+    #
+    # file1: PE_Log.final.out
+    # file2: SE_Log.final.out
+
+    # Paired-End (PE)
+    # PE_input_reads is actually *pairs* of reaads
+    PE_input_reads=$(grep 'Number of input reads' PE_Log.final.out | cut -f 2)
+    #echo "PE_input_reads: '"$PE_input_reads"'"
+    PE_unique_mapped=$(grep 'Uniquely mapped reads number' PE_Log.final.out | cut -f 2)
+    #echo "PE_unique_reads: '"$PE_unique_mapped"'"
+    PE_multi_mapped=$(grep 'Number of reads mapped to multiple loci' PE_Log.final.out | cut -f 2)
+    #echo "PE_multi_mapped: '"$PE_multi_mapped"'"
+    PE_mapped=$(expr $PE_unique_mapped + $PE_multi_mapped)
+
+    # Single-End (SE)
+    SE_input_reads=$(grep 'Number of input reads' SE_Log.final.out | cut -f 2)
+    #echo "SE_input_reads: '"$SE_input_reads"'"
+    SE_unique_mapped=$(grep 'Uniquely mapped reads number' SE_Log.final.out | cut -f 2)
+    #echo "SE_unique_reads: '"$SE_unique_mapped"'"
+    SE_multi_mapped=$(grep 'Number of reads mapped to multiple loci' SE_Log.final.out | cut -f 2)
+    #echo "SE_multi_mapped: '"$SE_multi_mapped"'"
+    SE_mapped=$(expr $SE_unique_mapped + $SE_multi_mapped)
 
     if [[ $cumulative -eq 1 ]]
     then
