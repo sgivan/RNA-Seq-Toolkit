@@ -107,7 +107,7 @@ pdf(paste0("$prefix", "_Volcano.pdf"))
 plot_Volcano(paste0("$prefix", "_DESeq2_DE_results.txt"))
 dev.off()
 
-png(paste0("$prefix", "_Volcano.svg"))
+svg(paste0("$prefix", "_Volcano.svg"))
 plot_Volcano(paste0("$prefix", "_DESeq2_DE_results.txt"))
 dev.off()
 
