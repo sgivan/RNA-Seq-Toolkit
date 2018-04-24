@@ -1,0 +1,3 @@
+# All transcripts.gtf files should gave the same collection of transcript_ids.
+# So, each line of output from this script should have the same integer
+for file in s_?/ballgown/transcripts.gtf; do echo -n "$file "; grep FPKM $file | sed -E 's/.+; transcript_id "(.+?)"; cov.+/\1/' | sort -g | uniq | wc -l; done

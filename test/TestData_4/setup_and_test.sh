@@ -17,61 +17,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
-module load bowtie2-2.3.2
-module load stringtie-1.3.0
-module load HISAT2-2.1.0
-module load Python-shared
-module load R-3.3.0-sharedlib
-
-for file in *.gz; do echo "gunzip $file"; gunzip $file; done
-
-echo "creating symbolic link to RNAseq tools directory"
-ln -sf ../../bin ./
-echo "setting PATH"
-wd=`pwd`
-export PATH=".:$wd:$wd/bin:$PATH"
-#echo "making index directory"
-mkdir index
-ln -sf index hisat_index
-#echo "moving reference sequence and undesireables into index directory"
-cp Chr19.fa index
-cp Contaminants.fa index
-cp Chr19.gtf transcripts.gtf
-echo "creating sybolic links"
-cd index
-ln -s Chr19.fa refseq.fa
-ln -s Contaminants.fa filter.fa
-hisat2_extract_exons.py ../transcripts.gtf > exons.txt
-hisat2_extract_splice_sites.py ../transcripts.gtf > splice_sites.txt
-hisat2-build --exon exons.txt --ss splice_sites.txt refseq.fa refseq.fa
-cd ..
-#echo "creating sample directories"
-mkdir -p s_1 s_2 s_3 s_4
-echo "moving sample fastq files into their respective directories"
-cp s_1_hits.fastq s_1
-cp s_2_hits.fastq s_2
-cp s_3_hits.fastq s_3
-cp s_4_hits.fastq s_4
-echo "creating symbolic links inside of sample directories"
-cd s_1
-ln -sf s_1_hits.fastq set1.fq
-cd ../s_2
-ln -sf s_2_hits.fastq set1.fq
-cd ../s_3
-ln -sf s_3_hits.fastq set1.fq
-cd ../s_4
-ln -sf s_4_hits.fastq set1.fq
-cd ..
-#
-#echo "making bowtie indices"
-#
-cd index
-#echo "building refseq index"
-##bowtie-build chrom3.fa refseq
-#hisat2-build refseq.fa refseq.fa
-echo "building filter index"
-bowtie-build filter.fa filter.fa
-cd ..
-echo "running RNAseq_process_data.sh"
-bash cmd
-echo "finished"
+./reset_test
+export HISAT_VERSION_BEING_TESTED=2.1.0
+TESTDATA_TEST_LOG="test_${HISAT_VERSION_BEING_TESTED}.log";
+t/versionless_setup.sh |& tee $TESTDATA_TEST_LOG
+t/run_test.sh          |& tee --append $TESTDATA_TEST_LOG
+t/test.t $HISAT_VERSION_BEING_TESTED $@ |& tee --append $TESTDATA_TEST_LOG

@@ -1,0 +1,10 @@
+DEBUG=1
+
+if [ $DEBUG -eq 1 ];
+then echo "Howdy. Here's a lot of info........";
+else echo "Hello";
+fi
+
+
+if [ $DEBUG -eq 1 ]; then echo 'Yes, I am verbose when debug is on!'; fi
+if [ $DEBUG -eq 0 ]; then echo 'Debug off'; fi

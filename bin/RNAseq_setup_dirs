@@ -1,0 +1,73 @@
+#!/usr/bin/env perl
+use v5.10;
+use strict;
+use warnings;
+use autodie;
+
+use JSON;
+use Data::Show;
+
+my $directions    = shift // 2;
+
+my $config_string = slurp('config.json');
+
+my $config_href   = decode_json $config_string;
+
+my %cfg = %{ $config_href };
+
+my @control_samples = @{ $cfg{SAMPLES}{CONTROL}{ALL} };
+
+my %exp_samples_for = %{ $cfg{SAMPLES}{EXPERIMENTS} };
+
+my @samples = @control_samples;
+
+push @samples, @{ $exp_samples_for{$_} } for keys %exp_samples_for;
+
+if (! -e 'transcripts.gtf') {
+    my $gtf = $cfg{REFERENCE}{GTF};
+    system("ln -s $gtf transcripts.gtf");
+}
+
+# Set up index files
+my $index_dir = 'index';
+
+my $original_index_dir = $cfg{INDEX};
+
+# In the production copy of this code, might want to change this to copying, unless there are multiple known backups
+if (! -d $index_dir) {
+    system "ln -s $original_index_dir $index_dir";
+    system "ln -s $index_dir hisat_index";
+}
+
+# Check that required files are present
+die "hisat2 indices required for $index_dir/refseq.fa" unless -e "$index_dir/refseq.fa.1.ht2";
+die "bowtie indices required for $index_dir/filter.fa" unless -e "$index_dir/filter.fa.1.ebwt";
+
+my $fastq_dir = $cfg{FASTQ_DIR};
+
+for my $sample ( @samples) {
+    state $dir_num = 1;
+    my $name_of_dir = "s_$dir_num";
+    system( "mkdir $name_of_dir");
+    chdir $name_of_dir;
+
+    for my $direction ( 1 .. $directions ) {
+        my $expected_filename = "${sample}_R${direction}_001.fastq";
+
+        system("ln -s ../$fastq_dir/$expected_filename");
+        system("ln -s $expected_filename set$direction.fq");
+    }
+    chdir '..';
+    $dir_num++;
+}
+
+exit;
+
+sub slurp {
+    my $file = shift;
+    open my $fh, '<', $file;
+    local $/ = undef;
+    my $content = <$fh>;
+    close $fh;
+    return $content;
+}

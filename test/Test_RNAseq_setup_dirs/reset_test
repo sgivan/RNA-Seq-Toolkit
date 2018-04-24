@@ -1,0 +1,9 @@
+rm -rf fastq.dir
+rm -rf reference.dir
+rm -rf config.json
+rm -rf experiment_*
+rm -rf transcripts.gtf
+rm -rf setting_up_dirs.[eo]_*
+rm -rf index
+rm -rf hisat_index
+rm -rf s_*

@@ -1,0 +1,5 @@
+# Run with "1" as a commandline argument for DEUBG mode (e.g. to see the directory structure this sets up)
+./test.sh 1
+
+TODO: Put all s_? directories into a folder called "analysis"
+TODO: Put all original FASTQ files into data/current
