@@ -4,8 +4,8 @@ import os, sys
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--pe_file", help="name of gene counts file generated with Paired-End data", type=str, default="PE_ReadsPerGene.out.tab")
-parser.add_argument("--se_file", help="name of gene counts file generated with Single-End data", type=str, default="SE_ReadsPerGene.out.tab")
+parser.add_argument("--pe_file", help="name of gene counts file generated with Paired-End data [default=PE_ReadsPerGene.out.tab]", type=str, default="PE_ReadsPerGene.out.tab")
+parser.add_argument("--se_file", help="name of gene counts file generated with Single-End data [default=SE_ReadsPerGene.out.tab]", type=str, default="SE_ReadsPerGene.out.tab")
 
 args = parser.parse_args()
 

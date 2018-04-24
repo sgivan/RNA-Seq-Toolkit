@@ -16,4 +16,4 @@ do
     cd ..
 done
 
-ln -s index hisat_index
+#ln -s index hisat_index
