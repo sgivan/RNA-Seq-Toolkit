@@ -98,7 +98,7 @@ else
         then
             echo "Sample,QC Reads,Mapped Reads,% Mapped"
         else
-            echo "||Sample||QC Reads||Mapped Reads||% Mapped||"
+            echo "||Sample||QC Reads^1^||Mapped Reads^2^||% Mapped||"
         fi
     fi
 
@@ -126,13 +126,14 @@ else
             echo "qc reads: $qct"
             echo "mapped reads: $mapped"
         fi
-        cd ../../
+#        cd ../../
         if [[ $comma == 1 ]]
         then
             echo "$dir,$qct,$mapped,$rtn"
         else
             echo "||$dir||$qct||$mapped||$rtn||"
         fi
+        cd ../
     done
 fi
 

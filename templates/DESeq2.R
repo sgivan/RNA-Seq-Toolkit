@@ -24,7 +24,7 @@ plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
     log2fc <- res$$log2FoldChange
     circle_sizes <- rep(1,length(log2fc))
 
-    res <- res%>%mutate(color = ifelse(abs(log2FoldChange) >= 2,ifelse(padj<=0.05 , "green", "orange"),ifelse(padj<=0.05,"red","black")))
+    res <- res%>%mutate(color = ifelse(abs(log2FoldChange) >= 1,ifelse(padj<=0.05 , "green", "orange"),ifelse(padj<=0.05,"red","black")))
     max_y <- max(-log10(res$$pvalue)) + 0.5
 
     ggplot(res, aes(x=log2FoldChange, y=-log10(pvalue), ymax=max_y, ymin=0)) +

@@ -6,6 +6,7 @@ quiet=0
 header=0
 comma=0
 cumulative=0
+paired=0
 
 eval set -- "$TEMP"
 while true ; do
@@ -14,6 +15,7 @@ while true ; do
         -h) header=1 ; shift ;;
         -c) comma=1 ; shift ;;
         -u) cumulative=1 ; shift ;;
+        -p) paired=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -75,7 +77,8 @@ do
     fi
 #    echo
 
-    if (($paired > 0));
+#    if (($paired > 0));
+    if [[ $paired -gt 0 ]];
     then
 
         raw2=$(grep Input set2_qt.log | cut -f 2 -d " ")
@@ -109,9 +112,10 @@ do
         else
             echo "||$dir Read2||$raw2||$qt2||$qf2||$qm2||$qct2||$rtn2||"
         fi
-        cd ../../
+#        cd ../../
 
     fi
+    cd ../../
 done
 
 
