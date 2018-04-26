@@ -171,11 +171,20 @@ then
     eval $CMD2 &
 fi
 
-while [[ ! -e "set1.finished" && ! -e "set2.finished" ]]
-do
-#    echo "q/t not finished yet"
-    sleep 10;
-done
+if [[ $seonly -ne 1 ]]
+then
+    while [[ ! -e "set1.finished" || ! -e "set2.finished" ]]
+    do
+    #    echo "q/t not finished yet"
+        sleep 10;
+    done
+else
+    while [[ ! -e "set1.finished" ]]
+    do
+    #    echo "q/t not finished yet"
+        sleep 10;
+    done
+fi
 
 if [[ $nofilter -eq 1 ]]
 then

@@ -82,21 +82,22 @@ oldid=0
 no_new_txpts='NULL'
 run_STAR=1
 STARcmd="STAR"
+nofilter=0
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:CK --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp -- "$@"`
+            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBG:CKF --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pfhr:i:I:P:aA:ROm:c:S:F:g:vbL:M:q:n:E:QdNoBG:CK $*`
+            TEMP=`getopt et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBG:CKF $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:F:g:q:n:E:QdNoBG:CK --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp -- "$@"`
+            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:q:n:E:QdNoBG:CKF --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter -- "$@"`
             ;;
 esac
 
@@ -126,6 +127,7 @@ function help_messg () {
         -d|--dev) dev=1 ; shift ;;
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
+        -F|--nofilter) nofilter=1 ; shift ;;
 
         "
 }
@@ -155,6 +157,7 @@ while true ; do
         -d|--dev) dev=1 ; shift ;;
         -C|--leave_temp) leave_temp=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
+        -F|--nofilter) nofilter=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -195,6 +198,11 @@ fi
 if [[ $leave_temp -ne 0 ]]
 then
     preprocess_flags="$preprocess_flags -C"
+fi
+
+if [[ $nofilter -ne 0 ]]
+then
+    preprocess_flags="$preprocess_flags -n"
 fi
 
 #echo ""

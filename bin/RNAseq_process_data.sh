@@ -56,6 +56,8 @@ function help_messg () {
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-C | --leave_temp leave temporary files on file system"
+            echo "-F | --nofilter do not do sequence similarity filtering"
+            echo "-x | --memory amount of memory to allocate [50G]"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -95,6 +97,8 @@ function help_messg () {
             echo "-X Phred quality values encoded as Phred + 33"
             echo "-Y Phred quality values encoded as Phred + 64"
             echo "-C | --leave_temp leave temporary files on file system"
+            echo "-F | --nofilter do not do sequence similarity filtering"
+            echo "-x | --memory amount of memory to allocate [50G]"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h [print this help message]"
             echo "" ;;
@@ -126,6 +130,8 @@ function help_messg () {
             echo "-X | --phred33 Phred quality values encoded as Phred + 33"
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-C | --leave_temp leave temporary files on file system"
+            echo "-F | --nofilter do not do sequence similarity filtering"
+            echo "-x | --memory amount of memory to allocate [50G]"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -162,6 +168,8 @@ ignore_single_exons=0
 wait4first=0
 run_STAR=1
 cufflinks_compatible=0
+nofilter=0
+memory='50G'
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -171,11 +179,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXYoG:B:wJ --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,partition:,wait,ignore_single_exons -- "$@"`
+        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXx:YoG:B:wJF --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,partition:,wait,ignore_single_exons,nofilter,memory: -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pfhr:i:I:jH:l:ueA:P:T:Rm:c:S:g:vbM:q:n:E:QdCNXYoG:B:wJ $*`
+        TEMP=`getopt pfhr:i:I:jH:l:ueA:P:T:Rm:c:S:g:vbM:q:n:E:QdCNXx:YoG:B:wJF $*`
         ;;
 
     *)
@@ -218,6 +226,8 @@ while true ; do
         -B|--submit) bsub=1 ; shift ;;
         -D|--partition) queue=$2 ; shift 2 ;;
         -w|--wait) wait4first=1 ; shift ;;
+        -F|--nofilter) nofilter=1 ; shift ;;
+        -x|--memory) memory=$2 ; shift 2 ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -274,6 +284,11 @@ fi
 if [[ $leave_temp -ne 0 ]]
 then
     flags="$flags -C"
+fi
+
+if [[ $nofilter -ne 0 ]]
+then
+    flags="$flags -F"
 fi
 
 #echo "flags: '$flags'"
@@ -374,7 +389,7 @@ do
             then
                 OUTPUT="$(sbatch -J $dir cmd)"
             else
-                OUTPUT="$(sbatch --mem=50G --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+                OUTPUT="$(sbatch --mem=${memory} --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
             fi
 
         else
@@ -385,7 +400,7 @@ do
                 #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
             else
 
-                OUTPUT="$(sbatch --mem=50G -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads --wrap='sh cmd')"
+                OUTPUT="$(sbatch --mem=${memory} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads --wrap='sh cmd')"
                 slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
                 #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
             fi
