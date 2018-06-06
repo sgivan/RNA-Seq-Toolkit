@@ -1,11 +1,12 @@
 #!/bin/bash
 
-TEMP=`getopt -o qhcp -- "$@"`
+TEMP=`getopt -o qhcpH -- "$@"`
 
 quiet=0
 header=0
 comma=0
 paired=0
+printhelp=0
 
 eval set -- "$TEMP"
 while true ; do
@@ -14,10 +15,24 @@ while true ; do
         -h) header=1 ; shift ;;
         -c) comma=1 ; shift ;;
         -p) paired=1 ; shift ;;
+        -H) printhelp=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
 done
+
+if [[ $printhelp == 1 ]]
+then
+    echo "
+        -q quiet mode
+        -h print table header
+        -c print comma-separated output
+        -p generate output for paired-end data
+        -H print this help menu
+    "
+    exit
+fi
+
 
 if [[ $paired == 1 ]]
 then

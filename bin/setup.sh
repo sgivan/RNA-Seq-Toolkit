@@ -7,10 +7,10 @@ do
     echo "newdir: "$newdir
     mkdir -p ${newdir}
     cd ${newdir}
-    file=$( ls -1 ../$dir/*.fastq | head -n 1 )
+    file=$( ls -1 ../$dir/*.fq | head -n 1 )
     ln -sf $file ./set1_00.fq
     ln -sf set1_00.fq set1.fq
-    file=$( ls -1 ../$dir/*.fastq | tail -n 1 )
+    file=$( ls -1 ../$dir/*.fq | tail -n 1 )
     ln -sf $file ./set2_00.fq
     ln -sf set2_00.fq set2.fq
     cd ..
