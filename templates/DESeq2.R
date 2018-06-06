@@ -12,6 +12,7 @@ library(DESeq2)
 library(org.Mm.eg.db)
 library(ggplot2)
 library(dplyr)
+library(vegan)
 
 # Thanks Stephen Turner (see https://gist.github.com/stephenturner/4a599dbf120f380d38e7#file-volcanoplot-r)
 plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
@@ -110,6 +111,10 @@ dev.off()
 svg(paste0("$prefix", "_Volcano.svg"))
 plot_Volcano(paste0("$prefix", "_DESeq2_DE_results.txt"))
 dev.off()
+
+vsd <- vst(dds, blind=F)
+vsd.df.t <- t(as.data.frame(assay(vsd)))
+vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$condition, method="eu", permutations=10000)
 
 save.image(file=paste0("$prefix", "_RData"))
 
