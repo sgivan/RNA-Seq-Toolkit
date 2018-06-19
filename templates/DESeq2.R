@@ -83,6 +83,7 @@ dev.off()
 #contrast=c("condition","D","C")
 contrast=c("condition","Exp","Cont")
 res = results(dds, contrast)
+dds.res <- res
 
 res = cbind(experimental="Exp", control="Cont", as.data.frame(res))
 
@@ -114,7 +115,7 @@ dev.off()
 
 vsd <- vst(dds, blind=F)
 vsd.df.t <- t(as.data.frame(assay(vsd)))
-vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$condition, method="eu", permutations=10000)
+vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutations=10000)
 
 save.image(file=paste0("$prefix", "_RData"))
 
