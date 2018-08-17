@@ -57,6 +57,7 @@ function help_messg () {
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-F | --nofilter do not do sequence similarity filtering"
+            echo "-G | --notrim do not do sequence trimming/filtering based on base quality values"
             echo "-x | --memory amount of memory to allocate [50G]"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
@@ -77,7 +78,6 @@ function help_messg () {
             echo "-c [8] (minimum number of reads on each side of splice junction)"
             echo "-S [20] (std dev for inner distances between mate pairs)"
             echo "-g [20] (max multihits)"
-            echo "-G [2] (max mismatches)"
             echo "-v (enables coverage search)"
             echo "-M [2] (segment mismatches [0-3])"
             echo "-t (generate gtf file of empirical transcripts)"
@@ -98,6 +98,7 @@ function help_messg () {
             echo "-Y Phred quality values encoded as Phred + 64"
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-F | --nofilter do not do sequence similarity filtering"
+            echo "-G | --notrim do not do sequence trimming/filtering based on base quality values"
             echo "-x | --memory amount of memory to allocate [50G]"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h [print this help message]"
@@ -131,6 +132,7 @@ function help_messg () {
             echo "-Y | --phred64 Phred quality values encoded as Phred + 64"
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-F | --nofilter do not do sequence similarity filtering"
+            echo "-G | --notrim do not do sequence trimming/filtering based on base quality values"
             echo "-x | --memory amount of memory to allocate [50G]"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
@@ -169,6 +171,7 @@ wait4first=0
 run_STAR=1
 cufflinks_compatible=0
 nofilter=0
+notrim=0
 memory='50G'
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
@@ -179,11 +182,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXx:YoG:B:wJF --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,partition:,wait,ignore_single_exons,nofilter,memory: -- "$@"`
+        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFG --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,partition:,wait,ignore_single_exons,nofilter,notrim,memory: -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pfhr:i:I:jH:l:ueA:P:T:Rm:c:S:g:vbM:q:n:E:QdCNXx:YoG:B:wJF $*`
+        TEMP=`getopt pfhr:i:I:jH:l:ueA:P:T:Rm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFG $*`
         ;;
 
     *)
@@ -227,6 +230,7 @@ while true ; do
         -D|--partition) queue=$2 ; shift 2 ;;
         -w|--wait) wait4first=1 ; shift ;;
         -F|--nofilter) nofilter=1 ; shift ;;
+        -G|--notrim) notrim=1 ; shift ;;
         -x|--memory) memory=$2 ; shift 2 ;;
         --) shift ; break ;;
         *) break ;;
@@ -291,6 +295,10 @@ then
     flags="$flags -F"
 fi
 
+if [[ $notrim -ne 0 ]]
+then
+    flags="$flags -N"
+fi
 #echo "flags: '$flags'"
 #exit
 

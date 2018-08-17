@@ -36,6 +36,7 @@ BOWTIE2_INDEXES='index'
 bowtie_cmd='bowtie'
 filter='filter.fa'
 nofilter=0
+notrim=0
 leave_temp=0
 qualscores='NULL'
 seonly=0
@@ -56,6 +57,7 @@ function help_messg {
         -i|--indexpath path to bowtie index
         -f|--filter Name of filter bowtie index [default = 'filter.fa']
         -n|--nofilter Don't do sequence similarity filtering
+        -N|--notrim Don't do sequence trimming/filtering based on quality values
         -Q|--min_qual # this must be a duplicate -> see -q option, above
         -L|--min_length # this must be a duplicate -> see -l option, above
         -H|--percent_high_quality # this must be a duplicate -> see -p option, above
@@ -97,6 +99,7 @@ while true ; do
         -i|--indexpath) BOWTIE_INDEXES=$2 ; shift 2 ;;
         -f|--filter) filter=$2 ; shift 2 ;;
         -n|--nofilter) nofilter=1 ; shift ;;
+        -N|--notrim) notrim=1; shift ;;
         -Q|--min_qual) min_qual=$2 ; shift 2 ;;
         -L|--min_length) min_length=$2 ; shift 2 ;;
         -H|--percent_high_quality) percent_high_quality=$2 ; shift 2 ;;
@@ -132,58 +135,72 @@ then
     ln -sf ../set2.fq ./set2.fq
 fi
 
-echo "quality trimming and filtering"
-trimmer_flags="-t $min_qual -l $min_length -v"
-filter_flags="-p $percent_high_quality -q $min_qual"
-bowtie_flags="-q --threads $bowtie_threads"
-#echo trimmer_flags="-t $min_qual -l $min_length -v"
-#echo filter_flags="-p $percent_high_quality -q $min_qual"
-#echo bowtie_flags="-q --threads $bowtie_threads" 
-#exit
-if [[ $qualscores != 'NULL' ]]
+if [[ $notrim -eq 1 ]]
 then
-#    trimmer_flags="$trimmer_flags -Q 33"
-#    filter_flags="$filter_flags -Q 33"
-    #bowtie_flags="$bowtie_flags --solexa-quals"
-    bowtie_flags="$bowtie_flags --phred64-quals"
-else
-#    bowtie_flags="$bowtie_flags --solexa1.3-quals"
-    trimmer_flags="$trimmer_flags -Q 33"
-    filter_flags="$filter_flags -Q 33"
-fi
-echo trimmer_flags="-t $min_qual -l $min_length -v"
-echo filter_flags="-p $percent_high_quality -q $min_qual"
-echo bowtie_flags="-q --threads $bowtie_threads" 
-#exit
-#echo "fastq_quality_trimmer -i set1.fq -t $min_qual -l $min_length -v 2> set1_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
-echo "fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
-CMD1="fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log && touch set1.finished" 
-#fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
-#eval fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
-eval $CMD1 &
-if [[ $seonly -ne 1 ]]
-then
-    #echo "fastq_quality_trimmer -i set2.fq -t $min_qual -l $min_length -v 2> set2_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
-    echo "fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
-    #fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
-    #eval fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
-    CMD2="fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log && touch set2.finished"
-    eval $CMD2 &
-fi
 
-if [[ $seonly -ne 1 ]]
-then
-    while [[ ! -e "set1.finished" || ! -e "set2.finished" ]]
-    do
-    #    echo "q/t not finished yet"
-        sleep 10;
-    done
+    echo "not doing quality trimming/filtering"
+    ln -sf set1.fq set1_qt_qf.fq
+
+    if [[ $seonly -ne 1 ]]
+    then
+        ln -sf set2.fq set2_qt_qf.fq
+    fi
+
 else
-    while [[ ! -e "set1.finished" ]]
-    do
-    #    echo "q/t not finished yet"
-        sleep 10;
-    done
+
+    echo "quality trimming and filtering"
+    trimmer_flags="-t $min_qual -l $min_length -v"
+    filter_flags="-p $percent_high_quality -q $min_qual"
+    bowtie_flags="-q --threads $bowtie_threads"
+    #echo trimmer_flags="-t $min_qual -l $min_length -v"
+    #echo filter_flags="-p $percent_high_quality -q $min_qual"
+    #echo bowtie_flags="-q --threads $bowtie_threads" 
+    #exit
+    if [[ $qualscores != 'NULL' ]]
+    then
+    #    trimmer_flags="$trimmer_flags -Q 33"
+    #    filter_flags="$filter_flags -Q 33"
+        #bowtie_flags="$bowtie_flags --solexa-quals"
+        bowtie_flags="$bowtie_flags --phred64-quals"
+    else
+    #    bowtie_flags="$bowtie_flags --solexa1.3-quals"
+        trimmer_flags="$trimmer_flags -Q 33"
+        filter_flags="$filter_flags -Q 33"
+    fi
+    echo trimmer_flags="-t $min_qual -l $min_length -v"
+    echo filter_flags="-p $percent_high_quality -q $min_qual"
+    echo bowtie_flags="-q --threads $bowtie_threads" 
+    #exit
+    #echo "fastq_quality_trimmer -i set1.fq -t $min_qual -l $min_length -v 2> set1_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
+    echo "fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log" 
+    CMD1="fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log && touch set1.finished" 
+    #fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
+    #eval fastq_quality_trimmer -i set1.fq $trimmer_flags 2> set1_qt.log | fastq_quality_filter $filter_flags -o set1_qt_qf.fq -v | tee set1_qt_qf.log 
+    eval $CMD1 &
+    if [[ $seonly -ne 1 ]]
+    then
+        #echo "fastq_quality_trimmer -i set2.fq -t $min_qual -l $min_length -v 2> set2_qt.log | fastq_quality_filter -p $percent_high_quality -q $min_qual -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
+        echo "fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log"
+        #fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
+        #eval fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log
+        CMD2="fastq_quality_trimmer -i set2.fq $trimmer_flags 2> set2_qt.log | fastq_quality_filter $filter_flags -o set2_qt_qf.fq -v | tee set2_qt_qf.log && touch set2.finished"
+        eval $CMD2 &
+    fi
+
+    if [[ $seonly -ne 1 ]]
+    then
+        while [[ ! -e "set1.finished" || ! -e "set2.finished" ]]
+        do
+        #    echo "q/t not finished yet"
+            sleep 10;
+        done
+    else
+        while [[ ! -e "set1.finished" ]]
+        do
+        #    echo "q/t not finished yet"
+            sleep 10;
+        done
+    fi
 fi
 
 if [[ $nofilter -eq 1 ]]

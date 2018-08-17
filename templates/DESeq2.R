@@ -117,5 +117,9 @@ vsd <- vst(dds, blind=F)
 vsd.df.t <- t(as.data.frame(assay(vsd)))
 vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutations=10000)
 
+sink(paste0("$prefix","_adonis.txt"))
+vsd.adonis
+sink()
+
 save.image(file=paste0("$prefix", "_RData"))
 
