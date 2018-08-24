@@ -83,7 +83,7 @@ no_new_txpts='NULL'
 run_STAR=1
 STARcmd="STAR"
 nofilter=0
-notrim = 0
+notrim=0
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
