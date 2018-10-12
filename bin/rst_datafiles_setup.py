@@ -42,18 +42,31 @@ else:
 #
 # end of working directory section
 #
+sample_number=0
+
+clength=len(config['input']['control'])
+if args.verbose: print "control replicates: %(clen)i" % { "clen": clength }
+
+for i in config['input']['control']:
+    number_of_seq_files=len(config['input']['control'][i])
+    if args.verbose: print "number of sequences in %(seqfiles)s: %(numseqfiles)i" % { "seqfiles": config['input']['control'][i], "numseqfiles": number_of_seq_files }
+
 
 elength=len(config['input']['experimental'])
-sample_number=0
+
 if args.verbose: print "experimental data sets: %(length)i" % { "length": elength }
-for i in range(0,elength):
+
+#for i in range(0,elength):
+for i in config['input']['experimental']:
 #   This cut corresponds to the sample replicate. There can be any number of sample replicates. which will have either a single file (non-PE) or a pair of files (Paired End)
-    print "sample replicates in set %(eset)i: %(filenames)s" % { "eset": i, "filenames": config['input']['experimental'][i] }
+    if args.verbose: print "sample replicates in set %(eset)s: %(filenames)s" % { "eset": i, "filenames": config['input']['experimental'][i] }
     number_of_reps=len(config['input']['experimental'][i])
-    print "number of replicates: %(numseqs)i." % { "numseqs": number_of_reps }
-    for j in range(0,number_of_reps):
+    if args.verbose: print "number of replicates: %(numseqs)i." % { "numseqs": number_of_reps }
+
+#    for j in range(0,number_of_reps):
+    for j in config['input']['experimental'][i]:
         number_of_seq_files=len(config['input']['experimental'][i][j])
-        print "number of sequences in %(seqfiles)s: %(numseqfiles)i" % { "seqfiles": config['input']['experimental'][i][j], "numseqfiles": number_of_seq_files }
+        if args.verbose: print "number of sequences in %(seqfiles)s: %(numseqfiles)i" % { "seqfiles": config['input']['experimental'][i][j], "numseqfiles": number_of_seq_files }
 
         sample_number += 1
         if args.verbose: print "\tThis replicate will be given symbolic name 'Sample_%(sint)s'" % { "sint": sample_number }
@@ -62,7 +75,7 @@ for i in range(0,elength):
             if args.verbose: print "\tworking with paired-end data"
 
             if config['paired']:
-                print "\tthis confirms configuration file"
+                if args.verbose: print "\tthis confirms configuration file"
             else:
                 print "\tthis conflicts with configuration file\n\tplease revise\n\texiting now"
                 sys.exit(4)
