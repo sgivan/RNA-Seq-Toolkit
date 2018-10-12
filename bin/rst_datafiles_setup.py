@@ -16,6 +16,8 @@ if args.verbose: print 'input file: %(filename)s' % { "filename": args.infile }
 f_yaml = open(args.infile, 'r') # open infile
 
 config = yaml.load(f_yaml)
+curdir=os.getcwd()
+if args.verbose: print "current working directory: '%(workdir)s'" % { "workdir": curdir }
 
 if args.verbose: print "dumping config"
 print yaml.dump(config)
@@ -28,6 +30,7 @@ if not os.access(config['working_datadir'], os.F_OK):
     if args.verbose: print "creating new directory to place renamed files: %(newdir)s." % { "newdir": config['working_datadir'] }
     if os.access(os.path.split(config['working_datadir'])[0], os.W_OK):
         os.mkdir(config['working_datadir'])
+
     else:
         print "can't create the directory"
         sys.exit(2)
@@ -51,13 +54,60 @@ for i in range(0,elength):
     for j in range(0,number_of_reps):
         number_of_seq_files=len(config['input']['experimental'][i][j])
         print "number of sequences in %(seqfiles)s: %(numseqfiles)i" % { "seqfiles": config['input']['experimental'][i][j], "numseqfiles": number_of_seq_files }
-        if number_of_seq_files == 2:
-            if args.verbose: print "\tworking with paired-end data"
-        else:
-            if args.verbose: print "\tworking with non-paired-end data"
 
         sample_number += 1
         if args.verbose: print "\tThis replicate will be given symbolic name 'Sample_%(sint)s'" % { "sint": sample_number }
+
+        if number_of_seq_files == 2:
+            if args.verbose: print "\tworking with paired-end data"
+
+            if config['paired']:
+                print "\tthis confirms configuration file"
+            else:
+                print "\tthis conflicts with configuration file\n\tplease revise\n\texiting now"
+                sys.exit(4)
+
+            try:
+                os.chdir(config['working_datadir'])
+            except:
+                print "can't chdir to '%(dirname)s'" % { 'dirname': config['working_datadir'] }
+                print "exiting now"
+                sys.exit(5)
+
+            wdir=os.getcwd()
+            print "\tnow in directory" + wdir
+            try:
+                os.mkdir("Sample_" + str(sample_number))
+            except:
+                print "can't create directory 'Sample_%(dirdigit)s' in '%(workdirname)s'" % { "dirdigit": sample_number, "workdirname": config['working_datadir'] }
+                print "exiting now"
+                sys.exit(6)
+
+            if args.verbose: print "\tdirectory 'Sample_%(dirdigit)s' created in '%(workdirname)s'" % { "dirdigit": sample_number, "workdirname": config['working_datadir'] }
+
+            try:
+                os.chdir("Sample_" + str(sample_number))
+            except:
+                print OSError
+
+
+            for sfile in config['input']['experimental'][i][j]:
+                target=os.path.join(curdir,config['original_datadir'],sfile)
+                print "target: '%(target)s'" % { "target": str(target) }
+                if args.verbose: print "creating symlink called '%(linkname)s' pointing to '%(linktarget)s'" % { "linkname": sfile, "linktarget": target }
+                try:
+                    os.symlink(target,sfile)
+                except OSError as e:
+                    print e.errno
+                    print e.filename
+                    print e.strerror
+
+            os.chdir(curdir)
+            wdir=os.getcwd()
+            print "\tnow in directory" + wdir
+
+        else:
+            if args.verbose: print "\tworking with non-paired-end data"
 
 
 print str(sample_number) + ' samples'
