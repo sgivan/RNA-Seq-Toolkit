@@ -91,16 +91,25 @@ for i in range(0,elength):
                 print OSError
 
 
+            lcnt=0
             for sfile in config['input']['experimental'][i][j]:
                 target=os.path.join(curdir,config['original_datadir'],sfile)
-                print "target: '%(target)s'" % { "target": str(target) }
-                if args.verbose: print "creating symlink called '%(linkname)s' pointing to '%(linktarget)s'" % { "linkname": sfile, "linktarget": target }
+                if args.verbose: print "\tcreating symlink called '%(linkname)s' pointing to '%(linktarget)s'" % { "linkname": sfile, "linktarget": target }
                 try:
                     os.symlink(target,sfile)
                 except OSError as e:
                     print e.errno
                     print e.filename
                     print e.strerror
+
+                lcnt += 1
+                if args.verbose: print "\tcreating symlink called 'set%(linkname)s.fq' pointing to '%(linktarget)s'" % { "linkname": lcnt, "linktarget": sfile }
+                try:
+                    os.symlink(sfile, "set" + str(lcnt) + ".fq")
+                except OSError as e:
+                    print e.errno
+                    print e.filename
+                    print e.strerr
 
             os.chdir(curdir)
             wdir=os.getcwd()
