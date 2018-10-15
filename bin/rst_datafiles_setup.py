@@ -151,14 +151,31 @@ if config['setup_files']:
     if args.verbose: print str(sample_number) + ' samples'
     print "Input file setup finished."
 
-if config['link_index']:
-    print "creating symlnks to preprocess and alignment index files in " + curdir
+if config['preprocess']:
+    print 'Will now pre-process the input data.'
+
     try:
-        os.chdir(curdir)
+        os.mkdir(config['working_alignment_dir'])
     except OSError as e:
+        print "can't create directory '%(dirname)s'." % { "dirname": config['working_alignment_dir'] }
         print e.errno
-        print e.filename
-        print e.strerr
+        print e
+
+    try:
+        os.chdir(config['working_alignment_dir'])
+    except OSError as e:
+        print "can't chdir into '%(dirname)s'." % { "dirname": config['working_alignment_dir'] }
+        print e.errno
+        print e
+
+
+    print "creating symlnks to preprocess and alignment index files in " + config['working_alignment_dir']
+#    try:
+#        os.chdir(curdir)
+#    except OSError as e:
+#        print e.errno
+#        print e.filename
+#        print e.strerr
 
     if os.access('index.preprocess', os.F_OK):
         print "Will now overwrite current 'index.preprocess' symlink.\nPlease remove it."
@@ -197,4 +214,6 @@ if config['link_index']:
 #        print e.strerr
 
     print "preprocess and align symlinks created in " + curdir
+
+    os.chdir(curdir)
 
