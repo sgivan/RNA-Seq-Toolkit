@@ -25,6 +25,9 @@ print yaml.dump(config)
 #
 # define some functions
 #
+# instead of composing this twice
+# create a function to build the file structure
+#
 def create_file_struct(sample_number, fileset, config, curdir):
 
     number_of_seq_files=len(fileset)
@@ -64,7 +67,6 @@ def create_file_struct(sample_number, fileset, config, curdir):
 
 
         lcnt=0
-#        for sfile in config['input']['experimental'][i][j]:
         for sfile in fileset:
             target=os.path.join(curdir,config['original_datadir'],sfile)
             if args.verbose: print "\tcreating symlink called '%(linkname)s' pointing to '%(linktarget)s'" % { "linkname": sfile, "linktarget": target }
@@ -99,117 +101,55 @@ def create_file_struct(sample_number, fileset, config, curdir):
 # create new working directory
 # fail if the directory already exists
 #
-if not os.access(config['working_datadir'], os.F_OK):
-    if args.verbose: print "creating new directory to place renamed files: %(newdir)s." % { "newdir": config['working_datadir'] }
-    if os.access(os.path.split(config['working_datadir'])[0], os.W_OK):
-        os.mkdir(config['working_datadir'])
+if config['setup_files']:
+    print "\nsetting up file structure for input files\n"
+    if not os.access(config['working_datadir'], os.F_OK):
+        if args.verbose: print "creating new directory to place renamed files: %(newdir)s." % { "newdir": config['working_datadir'] }
+        if os.access(os.path.split(config['working_datadir'])[0], os.W_OK):
+            os.mkdir(config['working_datadir'])
 
+        else:
+            print "can't create the directory"
+            sys.exit(2)
     else:
-        print "can't create the directory"
-        sys.exit(2)
-else:
-    print "%(newdir)s already exists. Will not overwrite -- please rename or move the diretory." % { "newdir": config['working_datadir'] }
-    print "Exiting now."
-    sys.exit(3)
+        print "%(newdir)s already exists. Will not overwrite -- please rename or move the diretory." % { "newdir": config['working_datadir'] }
+        print "Exiting now."
+        sys.exit(3)
 
 #
 # end of working directory section
 #
-sample_number=0
+    sample_number=0
 
-clength=len(config['input']['control'])
-if args.verbose: print "control replicates: %(clen)i" % { "clen": clength }
+    clength=len(config['input']['control'])
+    if args.verbose: print "control replicates: %(clen)i" % { "clen": clength }
 
-for i in config['input']['control']:
-#    number_of_seq_files=len(config['input']['control'][i])
-#    if args.verbose: print "number of sequences in %(seqfiles)s: %(numseqfiles)i" % { "seqfiles": config['input']['control'][i], "numseqfiles": number_of_seq_files }
-    sample_number += 1
-    if args.verbose: print "\n\tcontrol - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "repname": i, "sint": sample_number }
-    create_file_struct(sample_number, config['input']['control'][i], config, curdir)
-
-
-elength=len(config['input']['experimental'])
-
-if args.verbose: print "experimental data sets: %(length)i" % { "length": elength }
-
-#for i in range(0,elength):
-for i in config['input']['experimental']:
-#   This cut corresponds to the sample replicate. There can be any number of sample replicates. which will have either a single file (non-PE) or a pair of files (Paired End)
-    if args.verbose: print "sample replicates in set %(eset)s: %(filenames)s" % { "eset": i, "filenames": config['input']['experimental'][i] }
-    number_of_reps=len(config['input']['experimental'][i])
-    if args.verbose: print "number of replicates: %(numseqs)i." % { "numseqs": number_of_reps }
-
-#    for j in range(0,number_of_reps):
-    for j in config['input']['experimental'][i]:
-#        number_of_seq_files=len(config['input']['experimental'][i][j])
-#        if args.verbose: print "number of sequences in %(seqfiles)s: %(numseqfiles)i" % { "seqfiles": config['input']['experimental'][i][j], "numseqfiles": number_of_seq_files }
-
+    for i in config['input']['control']:
         sample_number += 1
-        if args.verbose: print "\n\t%(setname)s - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "setname": i, "repname": j, "sint": sample_number }
-
-        create_file_struct(sample_number, config['input']['experimental'][i][j], config, curdir)
-
-#        if number_of_seq_files == 2:
-#            if args.verbose: print "\tworking with paired-end data"
-#
-#            if config['paired']:
-#                if args.verbose: print "\tthis confirms configuration file"
-#            else:
-#                print "\tthis conflicts with configuration file\n\tplease revise\n\texiting now"
-#                sys.exit(4)
-#
-#            try:
-#                os.chdir(config['working_datadir'])
-#            except:
-#                print "can't chdir to '%(dirname)s'" % { 'dirname': config['working_datadir'] }
-#                print "exiting now"
-#                sys.exit(5)
-#
-#            wdir=os.getcwd()
-#            print "\tnow in directory" + wdir
-#            try:
-#                os.mkdir("Sample_" + str(sample_number))
-#            except:
-#                print "can't create directory 'Sample_%(dirdigit)s' in '%(workdirname)s'" % { "dirdigit": sample_number, "workdirname": config['working_datadir'] }
-#                print "exiting now"
-#                sys.exit(6)
-#
-#            if args.verbose: print "\tdirectory 'Sample_%(dirdigit)s' created in '%(workdirname)s'" % { "dirdigit": sample_number, "workdirname": config['working_datadir'] }
-#
-#            try:
-#                os.chdir("Sample_" + str(sample_number))
-#            except:
-#                print OSError
-#
-#
-#            lcnt=0
-#            for sfile in config['input']['experimental'][i][j]:
-#                target=os.path.join(curdir,config['original_datadir'],sfile)
-#                if args.verbose: print "\tcreating symlink called '%(linkname)s' pointing to '%(linktarget)s'" % { "linkname": sfile, "linktarget": target }
-#                try:
-#                    os.symlink(target,sfile)
-#                except OSError as e:
-#                    print e.errno
-#                    print e.filename
-#                    print e.strerror
-#
-#                lcnt += 1
-#                if args.verbose: print "\tcreating symlink called 'set%(linkname)s.fq' pointing to '%(linktarget)s'" % { "linkname": lcnt, "linktarget": sfile }
-#                try:
-#                    os.symlink(sfile, "set" + str(lcnt) + ".fq")
-#                except OSError as e:
-#                    print e.errno
-#                    print e.filename
-#                    print e.strerr
-#
-#            os.chdir(curdir)
-#            wdir=os.getcwd()
-#            print "\tnow in directory" + wdir
-#
-#        else:
-#            if args.verbose: print "\tworking with non-paired-end data"
+        if args.verbose: print "\n\tcontrol - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "repname": i, "sint": sample_number }
+        create_file_struct(sample_number, config['input']['control'][i], config, curdir)
 
 
-print str(sample_number) + ' samples'
-print "OK"
+    elength=len(config['input']['experimental'])
+
+    if args.verbose: print "experimental data sets: %(length)i" % { "length": elength }
+
+    for i in config['input']['experimental']:
+#
+#   This cut corresponds to the sample replicate. There can be any number of sample replicates. which will have either a single file (non-PE) or a pair of files (Paired End)
+#
+        if args.verbose: print "sample replicates in set %(eset)s: %(filenames)s" % { "eset": i, "filenames": config['input']['experimental'][i] }
+        number_of_reps=len(config['input']['experimental'][i])
+        if args.verbose: print "number of replicates: %(numseqs)i." % { "numseqs": number_of_reps }
+
+        for j in config['input']['experimental'][i]:
+
+            sample_number += 1
+            if args.verbose: print "\n\t%(setname)s - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "setname": i, "repname": j, "sint": sample_number }
+
+            create_file_struct(sample_number, config['input']['experimental'][i][j], config, curdir)
+
+    if args.verbose: print str(sample_number) + ' samples'
+    print "OK"
+
 
