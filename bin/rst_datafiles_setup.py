@@ -21,7 +21,6 @@ if args.verbose: print "current working directory: '%(workdir)s'" % { "workdir":
 
 if args.verbose: print "dumping config"
 print yaml.dump(config)
-
 #
 # define some functions
 #
@@ -38,14 +37,14 @@ def create_file_struct(sample_number, fileset, config, curdir):
             if args.verbose: print "\tthis confirms configuration file"
         else:
             print "\tthis conflicts with configuration file\n\tplease revise\n\texiting now"
-            sys.exit(4)
+            sys.exit(1)
 
         try:
             os.chdir(config['working_datadir'])
         except:
             print "can't chdir to '%(dirname)s'" % { 'dirname': config['working_datadir'] }
             print "exiting now"
-            sys.exit(5)
+            sys.exit(2)
 
         wdir=os.getcwd()
 #        print "\tnow in directory" + wdir
@@ -54,7 +53,7 @@ def create_file_struct(sample_number, fileset, config, curdir):
         except:
             print "can't create directory 'Sample_%(dirdigit)s' in '%(workdirname)s'" % { "dirdigit": sample_number, "workdirname": config['working_datadir'] }
             print "exiting now"
-            sys.exit(6)
+            sys.exit(3)
 
         if args.verbose: print "\tdirectory 'Sample_%(dirdigit)s' created in '%(workdirname)s'" % { "dirdigit": sample_number, "workdirname": config['working_datadir'] }
 
@@ -110,11 +109,11 @@ if config['setup_files']:
 
         else:
             print "can't create the directory"
-            sys.exit(2)
+            sys.exit(4)
     else:
         print "%(newdir)s already exists. Will not overwrite -- please rename or move the diretory." % { "newdir": config['working_datadir'] }
         print "Exiting now."
-        sys.exit(3)
+        sys.exit(5)
 
 #
 # end of working directory section
@@ -150,6 +149,52 @@ if config['setup_files']:
             create_file_struct(sample_number, config['input']['experimental'][i][j], config, curdir)
 
     if args.verbose: print str(sample_number) + ' samples'
-    print "OK"
+    print "Input file setup finished."
 
+if config['link_index']:
+    print "creating symlnks to preprocess and alignment index files in " + curdir
+    try:
+        os.chdir(curdir)
+    except OSError as e:
+        print e.errno
+        print e.filename
+        print e.strerr
+
+    if os.access('index.preprocess', os.F_OK):
+        print "Will now overwrite current 'index.preprocess' symlink.\nPlease remove it."
+        sys.exit(6)
+
+    try:
+        os.symlink(config['filter_datadir'], 'index.preprocess')
+    except OSError as e:
+        print "can't create index.preprocess symlink pointing to '%(dirname)s.'" % { 'dirname': config['filter_datadir'] }
+        print e.errno
+        print e.filename
+#        print e.strerr
+
+    if os.access('index.align', os.F_OK):
+        print "Will now overwrite current 'index.align' symlink.\nPlease remove it."
+        sys.exit(7)
+
+    try:
+        os.symlink(config['index_datadir'], 'index.align')
+    except OSError as e:
+        print "can't create index.align symlink pointing to '%(dirname)s.'" % { 'dirname': config['index_datadir'] }
+        print e.errno
+        print e.filename
+#        print e.strerr
+
+    if os.access('index', os.F_OK):
+        print "Will now overwrite current 'index' symlink.\nPlease remove it."
+        sys.exit(8)
+
+    try:
+        os.symlink('index.preprocess', 'index')
+    except OSError as e:
+        print "can't create index symlink pointing to index.preproces"
+        print e.errno
+        print e.filename
+#        print e.strerr
+
+    print "preprocess and align symlinks created in " + curdir
 
