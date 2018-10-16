@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys, argparse
-import re, yaml, subprocess
+import re, yaml, subprocess, time
 
 # start with command line options
 argparser = argparse.ArgumentParser(description="Parse tab-delimited file")
@@ -18,6 +18,8 @@ f_yaml = open(args.infile, 'r') # open infile
 config = yaml.load(f_yaml)
 curdir=os.getcwd()
 if args.verbose: print "current working directory: '%(workdir)s'" % { "workdir": curdir }
+
+os.environ['PATH']=config['rst_path'] + "/bin" + ":" + os.environ['PATH']
 
 if args.verbose: print "dumping config"
 print yaml.dump(config)
@@ -92,6 +94,30 @@ def create_file_struct(sample_number, fileset, config, curdir):
     else:
         if args.verbose: print "\tworking with non-paired-end data"
 
+def monitor_slurm_jobs(slurmjobs):
+#   not perfect, but it works
+    if args.verbose:
+        print "slurm jobs to monitor:"
+        print slurmjobs
+
+    wait=1
+    while wait:
+        wait=0
+
+        for jobid in slurmjobs:
+
+            rtn=0
+            try:
+                rtn=subprocess.check_output("squeue -o %T --noheader -j " + jobid, shell=True)
+            except subprocess.CalledProcessError as e:
+                print "can't call squeue with jobid %(jobid)i: %(ecode)i" % { "jobid": jobid, "ecode": e.returncode }
+                sys.exit(15)
+
+            if rtn:
+                wait=1
+                if args.verbose: print "waiting for job " + jobid
+                time.sleep(5)
+            
 #
 # end of functions
 #
@@ -100,6 +126,7 @@ def create_file_struct(sample_number, fileset, config, curdir):
 # create new working directory
 # fail if the directory already exists
 #
+slurmjobs=[]
 if config['setup_files']:
     print "\nsetting up file structure for input files\n"
     if not os.access(config['working_datadir'], os.F_OK):
@@ -152,7 +179,7 @@ if config['setup_files']:
     print "Input file setup finished."
 
 if config['preprocess']:
-    print 'Will now pre-process the input data.'
+    print '\n\n pre-process the input data.'
 
     try:
         os.mkdir(config['working_alignment_dir'])
@@ -212,11 +239,56 @@ if config['preprocess']:
     setup_script=os.path.join(config['rst_path'], 'bin', 'setup.sh')
     if args.verbose: print "calling setup script '%(scriptname)s'." % { "scriptname": setup_script }
     try:
-        subprocess.check_call(setup_script, shell=True)
+        out=subprocess.check_call(setup_script, shell=True)
     except subprocess.CalledProcessError as e:
         print "call to symlink failed"
         print "error code: %(ecode)i" % { "ecode": e.returncode }
         sys.exit(9)
+
+    if args.verbose: print "running RST preprocessing routines"
+
+    rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
+
+    out=""
+    try:
+        out=subprocess.check_output(rst_script + " --preprocess_only --submit --threads " + str(config['threads']) + " Sample_*", shell=True)
+    except subprocess.CalledProcessError as e:
+        print "call to %(rst)s failed with error code %(ecode)i" % { "rst": rst_script, "ecode": e.returncode }
+        sys.exit(10)
         
     os.chdir(curdir)
+
+    for line in str.splitlines(out):
+        match = re.match("OUTPUT", line)
+        if match:
+            words = str.split(line)
+            id = words[-1]
+            slurmjobs.append(id)
+
+    monitor_slurm_jobs(slurmjobs)
+
+if config['align']:
+    if args.verbose: print "\n\naligning data to reference genome sequence"
+
+    os.chdir(config['working_alignment_dir'])
+
+    try:
+        os.remove('index')
+    except OSError as e:
+        print "can't remove index symlink: %(ecode)i" % { "ecode": e.errno }
+        sys.exit(11)
+
+    try:
+        os.symlink('index.align', 'index')
+    except OSError as e:
+        print "can't create index symlink to index.align: %(ecode)i" % { "ecode": e.errno }
+        sys.exit(12)
+
+    rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
+    try:
+        subprocess.check_call(rst_script + " --partial --submit --threads " + str(config['threads']) + " Sample_*", shell=True)
+    except subprocess.CalledProcessError as e:
+        print "can't call %(scriptname)s: %(ecode)i" % { "scriptname": rst_script, "ecode": e.returncode }
+        sys.exit(13)
+
 
