@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys, argparse
-import re, yaml
+import re, yaml, subprocess
 
 # start with command line options
 argparser = argparse.ArgumentParser(description="Parse tab-delimited file")
@@ -170,12 +170,6 @@ if config['preprocess']:
 
 
     print "creating symlnks to preprocess and alignment index files in " + config['working_alignment_dir']
-#    try:
-#        os.chdir(curdir)
-#    except OSError as e:
-#        print e.errno
-#        print e.filename
-#        print e.strerr
 
     if os.access('index.preprocess', os.F_OK):
         print "Will now overwrite current 'index.preprocess' symlink.\nPlease remove it."
@@ -213,7 +207,16 @@ if config['preprocess']:
         print e.filename
 #        print e.strerr
 
-    print "preprocess and align symlinks created in " + curdir
+    if args.verbose: print "preprocess and align symlinks created in " + curdir
 
+    setup_script=os.path.join(config['rst_path'], 'bin', 'setup.sh')
+    if args.verbose: print "calling setup script '%(scriptname)s'." % { "scriptname": setup_script }
+    try:
+        subprocess.check_call(setup_script, shell=True)
+    except subprocess.CalledProcessError as e:
+        print "call to symlink failed"
+        print "error code: %(ecode)i" % { "ecode": e.returncode }
+        sys.exit(9)
+        
     os.chdir(curdir)
 
