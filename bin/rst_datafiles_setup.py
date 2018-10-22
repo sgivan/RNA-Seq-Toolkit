@@ -265,7 +265,7 @@ if config['preprocess']:
             id = words[-1]
             slurmjobs.append(id)
 
-    monitor_slurm_jobs(slurmjobs)
+    if config['align']: monitor_slurm_jobs(slurmjobs)
 
 if config['align']:
     if args.verbose: print "\n\naligning data to reference genome sequence"
