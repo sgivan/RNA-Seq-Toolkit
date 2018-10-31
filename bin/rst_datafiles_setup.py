@@ -155,25 +155,25 @@ if config['setup_files']:
         if args.verbose: print "\n\tcontrol - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "repname": i, "sint": sample_number }
         create_file_struct(sample_number, config['input']['control'][i], config, curdir)
 
+    if 'experimental' in config['input']:
+        elength=len(config['input']['experimental'])
 
-    elength=len(config['input']['experimental'])
+        if args.verbose: print "experimental data sets: %(length)i" % { "length": elength }
 
-    if args.verbose: print "experimental data sets: %(length)i" % { "length": elength }
-
-    for i in config['input']['experimental']:
+        for i in config['input']['experimental']:
 #
 #   This cut corresponds to the sample replicate. There can be any number of sample replicates. which will have either a single file (non-PE) or a pair of files (Paired End)
 #
-        if args.verbose: print "sample replicates in set %(eset)s: %(filenames)s" % { "eset": i, "filenames": config['input']['experimental'][i] }
-        number_of_reps=len(config['input']['experimental'][i])
-        if args.verbose: print "number of replicates: %(numseqs)i." % { "numseqs": number_of_reps }
+            if args.verbose: print "sample replicates in set %(eset)s: %(filenames)s" % { "eset": i, "filenames": config['input']['experimental'][i] }
+            number_of_reps=len(config['input']['experimental'][i])
+            if args.verbose: print "number of replicates: %(numseqs)i." % { "numseqs": number_of_reps }
 
-        for j in config['input']['experimental'][i]:
+            for j in config['input']['experimental'][i]:
 
-            sample_number += 1
-            if args.verbose: print "\n\t%(setname)s - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "setname": i, "repname": j, "sint": sample_number }
+                sample_number += 1
+                if args.verbose: print "\n\t%(setname)s - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "setname": i, "repname": j, "sint": sample_number }
 
-            create_file_struct(sample_number, config['input']['experimental'][i][j], config, curdir)
+                create_file_struct(sample_number, config['input']['experimental'][i][j], config, curdir)
 
     if args.verbose: print str(sample_number) + ' samples'
     print "Input file setup finished."
@@ -199,7 +199,7 @@ if config['preprocess']:
     print "creating symlnks to preprocess and alignment index files in " + config['working_alignment_dir']
 
     if os.access('index.preprocess', os.F_OK):
-        print "Will now overwrite current 'index.preprocess' symlink.\nPlease remove it."
+        print "Will not overwrite current 'index.preprocess' symlink.\nPlease remove it."
         sys.exit(6)
 
     try:
