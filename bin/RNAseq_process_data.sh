@@ -395,20 +395,20 @@ do
             echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
             if [[ $batch -eq 1 ]]
             then
-                OUTPUT="$(sbatch -J $dir cmd)"
+                OUTPUT="$(sbatch --time=0 -J $dir cmd)"
             else
-                OUTPUT="$(sbatch --mem=${memory} --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+                OUTPUT="$(sbatch --time=0  --mem=${memory} --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
             fi
 
         else
             if [[ $batch -eq 1 ]]
             then
-                OUTPUT="$(sbatch -J ${dir} cmd)"
+                OUTPUT="$(sbatch --time=0 -J ${dir} cmd)"
                 slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
                 #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
             else
 
-                OUTPUT="$(sbatch --mem=${memory} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads --wrap='sh cmd')"
+                OUTPUT="$(sbatch --time=0 --mem=${memory} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads --wrap='sh cmd')"
                 slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
                 #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
             fi
