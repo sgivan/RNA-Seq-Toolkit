@@ -21,8 +21,9 @@ if args.verbose: print "current working directory: '%(workdir)s'" % { "workdir":
 
 os.environ['PATH']=config['rst_path'] + "/bin" + ":" + os.environ['PATH']
 
-if args.verbose: print "dumping config"
-print yaml.dump(config)
+if args.verbose:
+    print "dumping config"
+    print yaml.dump(config)
 #
 # define some functions
 #
@@ -291,4 +292,24 @@ if config['align']:
         print "can't call %(scriptname)s: %(ecode)i" % { "scriptname": rst_script, "ecode": e.returncode }
         sys.exit(13)
 
+if config['diff_expression']:
 
+    try:
+        os.mkdir('DEA')
+    except OSError as e:
+        print "can't create DEA directory: %(ecode)s" % { "ecode": e.strerror }
+        sys.exit(13)
+
+    os.chdir('DEA')
+
+    files=os.listdir('../align')
+
+    for file in files:
+        fmatch=re.match("Sample_", file)
+        if (fmatch):
+            print "Creating symlink to '%(filename)s'" % { 'filename': file }
+
+            os.symlink("../align/" + str(file), str(file))
+
+
+    os.chdir(curdir)
