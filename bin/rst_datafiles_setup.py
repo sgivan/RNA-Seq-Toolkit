@@ -304,12 +304,22 @@ if config['diff_expression']:
 
     files=os.listdir('../align')
 
-    for file in files:
-        fmatch=re.match("Sample_", file)
+    for filename in files:
+        fmatch=re.match("Sample_", filename)
         if (fmatch):
-            print "Creating symlink to '%(filename)s'" % { 'filename': file }
+            print "Creating symlink to '%(filename)s'" % { 'filename': filename }
 
-            os.symlink("../align/" + str(file), str(file))
+            os.symlink("../align/" + str(filename), str(filename))
+
+            os.chdir(filename)
+            rst_script=os.path.join(config['rst_path'], 'bin', 'STAR_merge_gene_counts.py')
+            try:
+                subprocess.check_call(rst_script)
+            except OSError as e:
+                print "can't run %(scriptname)s" % { 'scriptname': rst_script }
+                sys.exit(14)
+
+            os.chdir(os.path.join(curdir, 'DEA'))
 
 
-    os.chdir(curdir)
+
