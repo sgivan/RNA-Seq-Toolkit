@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, argparse
+import os, sys, argparse, shutil
 import re, yaml, subprocess, time
 
 # start with command line options
@@ -313,13 +313,36 @@ if config['diff_expression']:
 
             os.chdir(filename)
             rst_script=os.path.join(config['rst_path'], 'bin', 'STAR_merge_gene_counts.py')
-            try:
-                subprocess.check_call(rst_script)
-            except OSError as e:
-                print "can't run %(scriptname)s" % { 'scriptname': rst_script }
-                sys.exit(14)
+
+            if config['paired']:
+                try:
+                    subprocess.check_call([rst_script])
+                except OSError as e:
+                    print "can't run %(scriptname)s" % { 'scriptname': rst_script }
+                    sys.exit(14)
+            else:
+                try:
+                    subprocess.check_call([rst_script, '--seonly'])
+                except OSError as e:
+                    print "can't run %(scriptname)s --seonly" % { 'scriptname': rst_script }
 
             os.chdir(os.path.join(curdir, 'DEA'))
 
+#   copy & run make_gene_cnts_per_sample.sh script from rst directory to curdir
+    shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'make_gene_cnts_per_sample.sh'), 'make_gene_cnts_per_sample.sh')
+
+    try:
+        subprocess.check_call(['sh', 'make_gene_cnts_per_sample.sh'])
+    except OSError as e:
+        print "can't run make_gene_cnts_per_sample.sh: %(estring)s" % { 'estring': e.strerror }
+        sys.exit(15)
+
+#   copy & run join_gene_cnts.sh script from rst directory to curdir
+    shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'join_gene_cnts.sh'), 'join_gene_cnts.sh')
+
+    try:
+        subprocess.check_call(['sh', 'join_gene_cnts.sh'])
+    except OSError as e:
+        print "can't run join_gene_cnts.sh: %(estring)s" % { 'estring': e.strerror }
 
 
