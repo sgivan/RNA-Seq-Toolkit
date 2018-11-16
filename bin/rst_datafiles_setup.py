@@ -184,9 +184,14 @@ if config['setup_files']:
 
         filemap['experimental']=efiles
 
+#
+#   print out yaml file containing map of original files to standardized files
+#
     mapfile = file('filemap.yaml', 'w')
     yaml.dump(filemap, mapfile)
     mapfile.close()
+
+# End of yaml file map
 
     if args.verbose: print str(sample_number) + ' samples'
     print "Input file setup finished."
@@ -306,6 +311,9 @@ if config['align']:
 
 if config['diff_expression']:
 
+    filemapfile = file('filemap.yaml', 'r')
+    filemap=yaml.load(filemap_file)
+
     try:
         os.mkdir('DEA')
     except OSError as e:
@@ -357,5 +365,5 @@ if config['diff_expression']:
     except OSError as e:
         print "can't run join_gene_cnts.sh: %(estring)s" % { 'estring': e.strerror }
 
-print yaml.dump(filemap)
+
 
