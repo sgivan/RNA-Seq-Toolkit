@@ -50,7 +50,7 @@ def create_file_struct(sample_number, fileset, config, curdir):
             sys.exit(2)
 
         wdir=os.getcwd()
-#        print "\tnow in directory" + wdir
+
         try:
             os.mkdir("Sample_" + str(sample_number))
         except:
@@ -113,7 +113,7 @@ def monitor_slurm_jobs(slurmjobs):
             except subprocess.CalledProcessError as e:
                 print "can't call squeue with jobid %(jobid)i: %(ecode)i" % { "jobid": jobid, "ecode": e.returncode }
                 sys.exit(15)
-
+  
             if rtn:
                 wait=1
                 if args.verbose: print "waiting for job " + jobid
@@ -128,6 +128,9 @@ def monitor_slurm_jobs(slurmjobs):
 # fail if the directory already exists
 #
 slurmjobs=[]
+filemap={}
+filemap['control']=[]
+filemap['experimental']=[]
 if config['setup_files']:
     print "\nsetting up file structure for input files\n"
     if not os.access(config['working_datadir'], os.F_OK):
@@ -155,13 +158,15 @@ if config['setup_files']:
         sample_number += 1
         if args.verbose: print "\n\tcontrol - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "repname": i, "sint": sample_number }
         create_file_struct(sample_number, config['input']['control'][i], config, curdir)
+        filemap['control'].append([i, 'Sample_' + str(sample_number)])
 
     if 'experimental' in config['input']:
         elength=len(config['input']['experimental'])
 
         if args.verbose: print "experimental data sets: %(length)i" % { "length": elength }
-
+        efiles={}
         for i in config['input']['experimental']:
+            efiles[i]=[]
 #
 #   This cut corresponds to the sample replicate. There can be any number of sample replicates. which will have either a single file (non-PE) or a pair of files (Paired End)
 #
@@ -175,6 +180,13 @@ if config['setup_files']:
                 if args.verbose: print "\n\t%(setname)s - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "setname": i, "repname": j, "sint": sample_number }
 
                 create_file_struct(sample_number, config['input']['experimental'][i][j], config, curdir)
+                efiles[i].append([j, 'Sample_' + str(sample_number)])
+
+        filemap['experimental']=efiles
+
+    mapfile = file('filemap.yaml', 'w')
+    yaml.dump(filemap, mapfile)
+    mapfile.close()
 
     if args.verbose: print str(sample_number) + ' samples'
     print "Input file setup finished."
@@ -345,4 +357,5 @@ if config['diff_expression']:
     except OSError as e:
         print "can't run join_gene_cnts.sh: %(estring)s" % { 'estring': e.strerror }
 
+print yaml.dump(filemap)
 
