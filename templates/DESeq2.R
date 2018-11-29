@@ -13,6 +13,7 @@ library(org.Mm.eg.db)
 library(ggplot2)
 library(dplyr)
 library(vegan)
+library(pheatmap)
 
 # Thanks Stephen Turner (see https://gist.github.com/stephenturner/4a599dbf120f380d38e7#file-volcanoplot-r)
 plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
@@ -120,6 +121,15 @@ vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutatio
 sink(paste0("$prefix","_adonis.txt"))
 vsd.adonis
 sink()
+
+select <- order(rowMeans(counts(dds, normalized=T)), decreasing=T)[1:1000]
+pdf(paste0("$prefix", "_heatmap.pdf"))
+pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition)
+dev.off()
+
+svg(paste0("$prefix", "_heatmap.svg"))
+pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition)
+dev.off()
 
 save.image(file=paste0("$prefix", "_RData"))
 
