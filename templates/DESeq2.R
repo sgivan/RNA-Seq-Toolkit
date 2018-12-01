@@ -7,11 +7,12 @@
 #SBATCH --nodes=1
 #SBATCH --mem=$memory
 
+library(tidyverse)
 library(edgeR)
 library(DESeq2)
 library(org.Mm.eg.db)
-library(ggplot2)
-library(dplyr)
+#library(ggplot2)
+#library(dplyr)
 library(vegan)
 library(pheatmap)
 
@@ -114,6 +115,7 @@ svg(paste0("$prefix", "_Volcano.svg"))
 plot_Volcano(paste0("$prefix", "_DESeq2_DE_results.txt"))
 dev.off()
 
+# calcluate statistical significance of clustering in PCA analysis
 vsd <- vst(dds, blind=F)
 vsd.df.t <- t(as.data.frame(assay(vsd)))
 vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutations=10000)
@@ -122,14 +124,21 @@ sink(paste0("$prefix","_adonis.txt"))
 vsd.adonis
 sink()
 
+# make heatmap plots
 select <- order(rowMeans(counts(dds, normalized=T)), decreasing=T)[1:1000]
-pdf(paste0("$prefix", "_heatmap.pdf"))
+pdf(paste0("$prefix", "_Heatmap.pdf"))
 pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition)
 dev.off()
 
-svg(paste0("$prefix", "_heatmap.svg"))
+svg(paste0("$prefix", "_Heatmap.svg"))
 pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition)
 dev.off()
+
+# do pathway analysis
+library(gProfileR)
+BGD.05 <- as.character(dplyr::select(dplyr::filter(dplyr::arrange(res, padj), padj < 0.05), BestGeneDescriptor)$$BestGeneDescriptor)
+gprofile_Ordered <- gprofiler(BGD.05, organism='mmusculus', ordered_query=T, correction_method='analytical', sort_by_structure=T, significant=T)
+write.table(gprofile_Ordered, file=paste0("$prefix","_gProfileR.txt"), sep="\t", quote=F, row.name=F, col.name=T)
 
 save.image(file=paste0("$prefix", "_RData"))
 
