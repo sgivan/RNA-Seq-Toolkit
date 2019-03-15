@@ -21,6 +21,8 @@ if args.verbose: print "current working directory: '%(workdir)s'" % { "workdir":
 
 os.environ['PATH']=config['rst_path'] + "/bin" + ":" + os.environ['PATH']
 
+clength=len(config['input']['control'])
+
 if args.verbose:
     print "dumping config"
     print yaml.dump(config)
@@ -151,7 +153,7 @@ if config['setup_files']:
 #
     sample_number=0
 
-    clength=len(config['input']['control'])
+#    clength=len(config['input']['control'])
     if args.verbose: print "control replicates: %(clen)i" % { "clen": clength }
 
     for i in config['input']['control']:
@@ -328,9 +330,7 @@ if config['diff_expression']:
         fmatch=re.match("Sample_", filename)
         if (fmatch):
             print "Creating symlink to '%(filename)s'" % { 'filename': filename }
-
             os.symlink("../align/" + str(filename), str(filename))
-
             os.chdir(filename)
             rst_script=os.path.join(config['rst_path'], 'bin', 'STAR_merge_gene_counts.py')
 
@@ -347,8 +347,9 @@ if config['diff_expression']:
                     print "can't run %(scriptname)s --seonly" % { 'scriptname': rst_script }
 
             os.chdir(os.path.join(curdir, 'DEA'))
-
+#
 #   copy & run make_gene_cnts_per_sample.sh script from rst directory to curdir
+#
     shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'make_gene_cnts_per_sample.sh'), 'make_gene_cnts_per_sample.sh')
 
     try:
@@ -356,14 +357,22 @@ if config['diff_expression']:
     except OSError as e:
         print "can't run make_gene_cnts_per_sample.sh: %(estring)s" % { 'estring': e.strerror }
         sys.exit(15)
-
+#
 #   copy & run join_gene_cnts.sh script from rst directory to curdir
+#
     shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'join_gene_cnts.sh'), 'join_gene_cnts.sh')
 
     try:
         subprocess.check_call(['sh', 'join_gene_cnts.sh'])
     except OSError as e:
         print "can't run join_gene_cnts.sh: %(estring)s" % { 'estring': e.strerror }
+        sys.exit(16)
 
+    for j in config['input']['experimental'][i]:
+        jlength=length(j)
+
+        datafilename=
+        deseq2_script=os.path.join(config['rst_path'], 'bin', 'create_DESeq2_cmd_sbatch_file.py')
+        subprocess.check_call([deseq2_script, '--numberOfControls=' + elength, '--numberOfExperimentals=' + jlength, '--datafile', '--prefix')
 
 
