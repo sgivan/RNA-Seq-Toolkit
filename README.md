@@ -5,7 +5,7 @@ These scripts are under constant development and improvement. If you have any qu
 
 Note that the most recent branch for the TopHat, Cufflinks, Cummerbund pipeline is "doku". The current branch that uses HISAT2, Stringtie and Ballgown is "HISAT2". The FirstSTAR branch is being adpated to use STAR and DESeq2.
 
-For more information, see [the RNA-Seq-Toolkit wiki](https://github.com/sgivan/RNA-Seq-Toolkit/wiki).
+For more information, see [the RNA-Seq-Toolkit wiki](https://github.com/sgivan/RNA-Seq-Toolkit/wiki/0.-How-to-Use-the-RNA-Seq-Toolkit).
 
 Also, if you use the RNA-Seq-Toolkit, please cite our [publication](http://www.springerlink.com/content/mu65310036466275/)
 
