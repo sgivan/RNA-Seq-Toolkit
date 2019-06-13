@@ -1,9 +1,9 @@
 # The RNA-Seq Toolkit #
 
-These scripts were developed by Scott Givan and colleagues at the Informatics Research Core Facility at the University of Missouri in the USA.
-These scripts are under constant development and improvement. If you have any questions or concerns, please contact Scott at sgivan@yahoo.com.
+Development of the RNA-Seq Toolkit is led by Scott Givan. Contributions have also been made by colleagues at the Informatics Research Core Facility at the University of Missouri and the Bioinformatics and Biostatistics Core at the Van Andel Research Institute.
+The RNA-Seq Tookit is under constant development and improvement. If you have any questions or concerns, please contact Scott at sgivan@yahoo.com.
 
-Note that the most recent branch for the TopHat, Cufflinks, Cummerbund pipeline is "doku". The current branch that uses HISAT2, Stringtie and Ballgown is "HISAT2". The FirstSTAR branch is being adpated to use STAR and DESeq2.
+The current default branch, FirstSTAR, is adpated to use [STAR](https://github.com/alexdobin/STAR) to align RNA-Seq reads to a reference genome and [DESeq2](https://www.bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) to run a differential expression analysis. It is also adpated to use the [Slurm](https://slurm.schedmd.com/) job scheduler on a compute cluster.
 
 For more information, see [the RNA-Seq-Toolkit wiki](https://github.com/sgivan/RNA-Seq-Toolkit/wiki/0.-How-to-Use-the-RNA-Seq-Toolkit).
 
