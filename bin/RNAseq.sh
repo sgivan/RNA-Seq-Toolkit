@@ -395,14 +395,14 @@ then
 #                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I"
 #                $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t --minIntronLength $min_intron_length_i \
 #                    --maxIntronLength $max_intron_length_I > cmd)
-                echo "creating STAR batch file with these options: create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmd.t \
+                echo "creating STAR batch file with these options: create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmd.t \
                 --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r --queue $queue"
-                $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmd.t --minIntronLength $min_intron_length_i \
+                $(create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmd.t --minIntronLength $min_intron_length_i \
                     --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r --queue $queue > cmd)
             else
-                echo "creating STAR batch file with these options: create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t \
+                echo "creating STAR batch file with these options: create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t \
                 --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I --queue $queue"
-                $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t --minIntronLength $min_intron_length_i \
+                $(create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t --minIntronLength $min_intron_length_i \
                     --maxIntronLength $max_intron_length_I --queue $queue > cmd)
             fi
         fi
