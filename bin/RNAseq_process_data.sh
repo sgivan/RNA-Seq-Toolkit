@@ -18,11 +18,19 @@
 #    along with RST.  If not, see <http://www.gnu.org/licenses/>.
 #
 wd=`pwd`
-osname=`uname -s`
+#osname=`uname -s`
+osname='Linux'
 #export PATH=# <-- make sure RNAseq scripts are in your path
 export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 script=`which RNAseq.sh`
 echo "script \"$script\""
+if [[ -z "$script" ]]; then
+#    echo $0
+    echo "setting path of RNAseq.sh to the same as RNAseq_process_data.sh"
+    pth=$(echo $0 | sed -r 's/(.+)\/.+/\1/')
+    echo "path is now: ${pth}/RNAseq.sh"
+    script="${pth}/RNAseq.sh"
+fi
 #
 
 function help_messg () {
@@ -36,7 +44,7 @@ function help_messg () {
             echo "-p | --partial (will skip preprocessing steps)"
             echo "-O | --preprocess_only (only run preprocessing routines)"
             echo "-B | --submit submit to Slurm job manager" 
-            echo "-D | --partition Slurm partition [CLUSTER]"
+            echo "-D | --queue PBS queue [DEFAULT]"
             echo "-w | --wait wait for first job submitted to Slurm job manager to finish before running other jobs"
             echo "-i | --min_intron_length [20] (minimum intron length)"
             echo "-I | --max_intron_length [500000] (maximum intron length)"
@@ -58,7 +66,7 @@ function help_messg () {
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-F | --nofilter do not do sequence similarity filtering"
             echo "-G | --notrim do not do sequence trimming/filtering based on base quality values"
-            echo "-x | --memory amount of memory to allocate [50G]"
+            echo "-x | --memory amount of memory to allocate [50gb]"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -69,7 +77,7 @@ function help_messg () {
             echo "-f (will run full analysis, including short read preprocessing)"
             echo "-p (will skip preprocessing steps)"
             echo "-B submit to Slurm job manager" 
-            echo "-D Slurm Partition [CLUSTER]"
+            echo "-D PBS queue [DEFAULT]"
             echo "-w wait for first job submitted to Slurm job manager to finish before running other jobs"
             echo "-r [165] (expected mean inner distance between mate pairs (PE only))"
             echo "-i [50] (minimum intron length)"
@@ -99,7 +107,7 @@ function help_messg () {
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-F | --nofilter do not do sequence similarity filtering"
             echo "-G | --notrim do not do sequence trimming/filtering based on base quality values"
-            echo "-x | --memory amount of memory to allocate [50G]"
+            echo "-x | --memory amount of memory to allocate [50gb]"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h [print this help message]"
             echo "" ;;
@@ -111,7 +119,7 @@ function help_messg () {
             echo "-f | --full (will run full analysis, including short read preprocessing)"
             echo "-p | --partial (will skip preprocessing steps)"
             echo "-B | --submit submit to Slurm job manager" 
-            echo "-D | --partition Slurm partition [CLUSTER]"
+            echo "-D | --queue PBS queue [DEFAULT]"
             echo "-w | --wait wait for first job submitted to Slurm job manager to finish before running other jobs"
             echo "-i | --min_intron_length [20] (minimum intron length)"
             echo "-I | --max_intron_length [500000] (maximum intron length)"
@@ -133,7 +141,7 @@ function help_messg () {
             echo "-C | --leave_temp leave temporary files on file system"
             echo "-F | --nofilter do not do sequence similarity filtering"
             echo "-G | --notrim do not do sequence trimming/filtering based on base quality values"
-            echo "-x | --memory amount of memory to allocate [50G]"
+            echo "-x | --memory amount of memory to allocate [50gb]"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -163,7 +171,7 @@ dev=0
 oldid=0
 RNAseq_script='NULL'
 bsub=0
-queue='CLUSTER'
+queue='shortQ'
 no_new_txpts='NULL'
 leave_temp=0
 ignore_single_exons=0
@@ -172,7 +180,7 @@ run_STAR=1
 cufflinks_compatible=0
 nofilter=0
 notrim=0
-memory='50G'
+memory='50gb'
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -182,7 +190,7 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFG --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,partition:,wait,ignore_single_exons,nofilter,notrim,memory: -- "$@"`
+        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFG --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,queue:,wait,ignore_single_exons,nofilter,notrim,memory: -- "$@"`
         ;;
 
     Darwin)
@@ -227,7 +235,7 @@ while true ; do
         -J|--ignore_single_exons) ignore_single_exons=1 ; shift ;;
         -N|--oldid) oldid=1 ; shift ;;
         -B|--submit) bsub=1 ; shift ;;
-        -D|--partition) queue=$2 ; shift 2 ;;
+        -D|--queue) queue=$2 ; shift 2 ;;
         -w|--wait) wait4first=1 ; shift ;;
         -F|--nofilter) nofilter=1 ; shift ;;
         -G|--notrim) notrim=1 ; shift ;;
@@ -332,7 +340,7 @@ echo "flags = " $flags
 #exit
 
 let "cnt = 0"
-let "slurm_id = 0"
+let "job_id = 0"
 
 echo "entering loop"
 for dir 
@@ -358,10 +366,11 @@ do
 
         partial)
             echo "run type still 'partial'"	
-            # for partial runs (when you don't need to run preprocessing steps
+#            for partial runs (when you don't need to run preprocessing steps
 #            echo "RNAseq.sh $flags --partial" ;
-            echo "$RNAseq_script $flags -p $more_flags" ;
-            $($RNAseq_script $flags -p $more_flags) ;
+            echo "$RNAseq_script -w $queue $flags -p $more_flags" ;
+#            $($RNAseq_script -w $queue $flags -p $more_flags) ;
+            $RNAseq_script -w $queue $flags -p $more_flags ;
 #            echo "$RNAseq_script $flags -p $more_flags " > cmd ;
             batch=1;;
             #eval $RNAseq_script $flags -p $more_flags > RNAseq.log 2>&1 ;;
@@ -370,9 +379,9 @@ do
 
             # for full runs
 #            echo "RNAseq.sh $flags --full" ;
-            echo "$RNAseq_script $flags -f" ;
+            echo "$RNAseq_script -w $queue $flags -f" ;
 #            RNAseq.sh $flags --full ;;
-            echo "$RNAseq_script $flags -f " > cmd ;
+            echo "$RNAseq_script $flags -w $queue -f " > cmd ;
             batch=1;;
             #eval $RNAseq_script $flags -f > RNAseq.log 2>&1 ;;
 
@@ -392,31 +401,37 @@ do
     then
         if [[ $wait4first -eq 1 && $cnt -ne 1 ]]
         then
-            echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
+            echo "subsequent jobs will wait for job JOB ID: '"$job_id"'"
             if [[ $batch -eq 1 ]]
             then
-                OUTPUT="$(sbatch --time=0 -J $dir cmd)"
+#                OUTPUT="$(sbatch --time=0 -J $dir cmd)"
+                OUTPUT="$(qsub -q $queue -N $dir ./cmd)"
             else
-                OUTPUT="$(sbatch --time=0  --mem=${memory} --depend=afterok:${slurm_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+#                OUTPUT="$(sbatch --time=0  --mem=${memory} --depend=afterok:${job_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
+                OUTPUT="$(qsub -l depend=afterok:${job_id},mem-${memory},nodes=1,ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir \
+                    -q $queue ./cmd)"
             fi
 
         else
             if [[ $batch -eq 1 ]]
             then
-                OUTPUT="$(sbatch --time=0 -J ${dir} cmd)"
-                slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
-                #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
+#                OUTPUT="$(sbatch --time=0 -J ${dir} cmd)"
+                OUTPUT="$(qsub -q $queue -N ${dir} cmd)"
+                job_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
+                #echo "subsequent jobs will wait for job JOB ID: '"$job_id"'"
             else
 
-                OUTPUT="$(sbatch --time=0 --mem=${memory} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads --wrap='sh cmd')"
-                slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
-                #echo "subsequent jobs will wait for job JOB ID: '"$slurm_id"'"
+#                OUTPUT="$(sbatch --time=0 --mem=${memory} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads --wrap='sh cmd')"
+                OUTPUT="$(qsub -l mem=${memory},nodes=1,ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir \
+                    -q $queue ./cmd)"
+                job_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
+                #echo "subsequent jobs will wait for job JOB ID: '"$job_id"'"
             fi
         fi
     fi
     echo "OUTPUT: "$OUTPUT 
-#    slurm_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
-#    echo "JOB ID: '"$slurm_id"'"
+#    job_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
+#    echo "JOB ID: '"$job_id"'"
 
     RETVAL=$?
     if [[ $RETVAL -eq 0 ]]

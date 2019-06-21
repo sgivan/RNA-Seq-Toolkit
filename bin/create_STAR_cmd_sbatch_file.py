@@ -12,6 +12,7 @@ parser.add_argument("--index", help="name of index directory; ie, 'index'", type
 parser.add_argument("--minIntronLength", help="minimum allowable intron length", type=int, default=21)
 parser.add_argument("--maxIntronLength", help="maximum allowable intron length", type=int, default=500000)
 parser.add_argument("--alignGapMax", help="maximum allowable gap between pairs of reads", type=int, default=0)
+parser.add_argument("--queue", help="cluster queue to submit job", type=str, default='shortQ')
 #parser.add_argument("--inputFiles", help="input file string; ie, read_1 read_2", type=str, default="read_1 read_2")
 
 
@@ -25,7 +26,6 @@ s = Template(template_file)
 
 memory='78G'
 
-new_t = s.substitute(mem=args.memory, threads=args.threads, index=args.index, minIntronLength=args.minIntronLength,
-        maxIntronLength=args.maxIntronLength, alignGapMax=args.alignGapMax)
+new_t = s.substitute(mem=args.memory, threads=args.threads, index=args.index, minIntronLength=args.minIntronLength, maxIntronLength=args.maxIntronLength, alignGapMax=args.alignGapMax, clusterQ=args.queue)
 
 print new_t

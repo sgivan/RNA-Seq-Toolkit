@@ -22,9 +22,19 @@
 #
 #
 # set path to find RNAseq scripts
+echo "#######################"
+echo "##                   ##"
+echo "## Running RNAseq.sh ##"
+echo "##                   ##"
+echo "#######################"
+
+# set path to find RNAseq scripts
 wd=`pwd`
 #export PATH=# <-- make sure the RST scripts are in your path
-export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
+
+pth=$(echo $0 | sed -r 's/(.+)\/.+/\1/')
+
+export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH:${pth}"
 #
 # some variables to set ...
 #
@@ -32,7 +42,8 @@ export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 use_cutadapt=1
 samfile="accepted_hits.sam"
 
-osname=`uname -s`
+#osname=`uname -s`
+osname='Linux'
 echo "osname '$osname'"
 
 case "$osname" in
@@ -84,21 +95,22 @@ run_STAR=1
 STARcmd="STAR"
 nofilter=0
 notrim=0
+queue='shortQ'
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBCKFG --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter,notrim -- "$@"`
+            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBCKFGw: --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter,notrim,queue: -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBCKFG $*`
+            TEMP=`getopt et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBCKFGw: $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:q:n:E:QdNoBCKFG --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter,notrim -- "$@"`
+            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:q:n:E:QdNoBCKFGw: --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter,notrim,queue: -- "$@"`
             ;;
 esac
 
@@ -130,6 +142,7 @@ function help_messg () {
         -N|--oldid) oldid=1 ; shift ;;
         -F|--nofilter) nofilter=1 ; shift ;;
         -G|--notrim) notrim=1 ; shift ;;
+        -w|--queue) queue=1 ; shift 2 ;;
 
         "
 }
@@ -161,6 +174,7 @@ while true ; do
         -N|--oldid) oldid=1 ; shift ;;
         -F|--nofilter) nofilter=1 ; shift ;;
         -G|--notrim) notrim=1 ; shift ;;
+        -w|--queue) queue=1 ; shift 2 ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -381,15 +395,15 @@ then
 #                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I"
 #                $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t --minIntronLength $min_intron_length_i \
 #                    --maxIntronLength $max_intron_length_I > cmd)
-                echo "creating STAR sbatch file with these options: create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmd.t \
-                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r"
+                echo "creating STAR batch file with these options: create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmd.t \
+                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r --queue $queue"
                 $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmd.t --minIntronLength $min_intron_length_i \
-                    --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r > cmd)
+                    --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r --queue $queue > cmd)
             else
-                echo "creating STAR sbatch file with these options: create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t \
-                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I"
+                echo "creating STAR batch file with these options: create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t \
+                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I --queue $queue"
                 $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t --minIntronLength $min_intron_length_i \
-                    --maxIntronLength $max_intron_length_I > cmd)
+                    --maxIntronLength $max_intron_length_I --queue $queue > cmd)
             fi
         fi
     fi
