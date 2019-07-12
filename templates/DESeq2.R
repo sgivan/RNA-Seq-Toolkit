@@ -135,10 +135,12 @@ pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F,
 dev.off()
 
 # do pathway analysis
-library(gProfileR)
+#library(gProfileR)
+library(gprofiler2)
 BGD.05 <- as.character(dplyr::select(dplyr::filter(dplyr::arrange(res, padj), padj < 0.05), BestGeneDescriptor)$$BestGeneDescriptor)
-gprofile_Ordered <- gprofiler(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='analytical', sort_by_structure=T, significant=T)
-write.table(gprofile_Ordered, file=paste0("$prefix","_gProfileR.txt"), sep="\t", quote=F, row.name=F, col.name=T)
+#gprofile_Ordered <- gprofiler(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='analytical', sort_by_structure=T, significant=T)
+gprofile_Ordered <- gost(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='gSCS', significant=T)
+write.table(gprofile_Ordered['result'], file=paste0("$prefix","_gProfileR.txt"), sep="\t", quote=F, row.name=F, col.name=T)
 
 save.image(file=paste0("$prefix", "_RData"))
 
