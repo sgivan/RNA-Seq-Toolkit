@@ -1,16 +1,16 @@
-#!/bin/env Rscript
-#SBATCH -J $prefix
-#SBATCH -o ${prefix}_%J.o
-#SBATCH -e ${prefix}_%J.e 
-#SBATCH --cpus-per-task=1
-#SBATCH --ntasks=1
-#SBATCH --nodes=1
-#SBATCH --mem=$memory
+#!/usr/bin/env Rscript
+#PBS -N $prefix
+#PBS -d ./
+#PBS -l nodes=1:ppn=1,mem=$memory
+#PBS -q $jobqueue
+#PBS -V
+
+# cd PBS_O_WORKDIR
 
 library(tidyverse)
 library(edgeR)
 library(DESeq2)
-library(org.Mm.eg.db)
+library($orgdb)
 #library(ggplot2)
 #library(dplyr)
 library(vegan)
@@ -95,8 +95,8 @@ baseMeanControl <- rowMeans(counts(dds, normalized=TRUE)[,colData(dds)$$conditio
 res = cbind(baseMeanExp, baseMeanControl, as.data.frame(res))
 
 res$$padj[is.na(res$$padj)]  <- 1
-geneSymbol <- mapIds(org.Mm.eg.db, keys=row.names(res), column="SYMBOL",keytype="ENSEMBL", multiVals="first")
-bestGeneDescriptor <- geneSymbol
+geneSymbol <- mapIds($orgdb, keys=row.names(res), column="SYMBOL", keytype="$dbkey", multiVals="first")
+bestGeneDescriptor <- gsub("'","_",geneSymbol)
 bestGeneDescriptor[ is.na(bestGeneDescriptor) ] <- row.names(res)[ is.na(bestGeneDescriptor) ]
 
 res <- cbind(GeneSymbol=geneSymbol, as.data.frame(res))
@@ -137,7 +137,7 @@ dev.off()
 # do pathway analysis
 library(gProfileR)
 BGD.05 <- as.character(dplyr::select(dplyr::filter(dplyr::arrange(res, padj), padj < 0.05), BestGeneDescriptor)$$BestGeneDescriptor)
-gprofile_Ordered <- gprofiler(BGD.05, organism='mmusculus', ordered_query=T, correction_method='analytical', sort_by_structure=T, significant=T)
+gprofile_Ordered <- gprofiler(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='analytical', sort_by_structure=T, significant=T)
 write.table(gprofile_Ordered, file=paste0("$prefix","_gProfileR.txt"), sep="\t", quote=F, row.name=F, col.name=T)
 
 save.image(file=paste0("$prefix", "_RData"))

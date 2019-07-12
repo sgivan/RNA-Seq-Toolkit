@@ -17,7 +17,8 @@ for dir in Sample_*;
 do
     echo $dir;
     cd $dir;
-    $(echo -e "EMBLID\t${dir}" > gene_cnts.txt)
+#    $(echo -e "EMBLID\t${dir}" > gene_cnts.txt)
+    $(echo -e "GENEID\t${dir}" > gene_cnts.txt)
 
     $(grep -v "N_" merged_ReadsPerGene.out.tab | cut -f 1,4 >> gene_cnts.txt)
 
