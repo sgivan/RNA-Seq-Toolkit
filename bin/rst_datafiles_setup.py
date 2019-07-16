@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
+# This is a script to take a yaml file and run the RNA-Seq Toolkit.
+# It will probably stop at the creation of a DESeq2 Rscript that can
+# be submitted to the cluster.
+#
 import os, sys, argparse, shutil
 import re, yaml, subprocess, time
 
 # start with command line options
 argparser = argparse.ArgumentParser(description="Parse tab-delimited file")
 
-argparser.add_argument("--infile", type=str,  help="file to parse", default="file")
+# infile is the yaml file
+argparser.add_argument("--infile", type=str,  help="yaml file to parse", default="file")
 argparser.add_argument("--verbose", action="store_true", help="verbose messages to terminal")
 
 args = argparser.parse_args()
@@ -15,7 +20,9 @@ if args.verbose: print 'input file: %(filename)s' % { "filename": args.infile }
 
 f_yaml = open(args.infile, 'r') # open infile
 
-config = yaml.load(f_yaml)
+# create yaml object
+#config = yaml.load(f_yaml)
+config = yaml.load(f_yaml, Loader=yaml.FullLoader)
 curdir=os.getcwd()
 if args.verbose: print "current working directory: '%(workdir)s'" % { "workdir": curdir }
 
@@ -41,7 +48,7 @@ def create_file_struct(sample_number, fileset, config, curdir):
         if config['paired']:
             if args.verbose: print "\tthis confirms configuration file"
         else:
-            print "\tthis conflicts with configuration file\n\tplease revise\n\texiting now"
+            if args.verbose: print "\tthis conflicts with configuration file\n\tplease revise\n\texiting now"
             sys.exit(1)
 
         try:
@@ -134,6 +141,9 @@ filemap={}
 filemap['control']=[]
 filemap['experimental']=[]
 if config['setup_files']:
+    # create directory to contain
+    # copies of input files
+    # so we keep original files and only work with copies
     print "\nsetting up file structure for input files\n"
     if not os.access(config['working_datadir'], os.F_OK):
         if args.verbose: print "creating new directory to place renamed files: %(newdir)s." % { "newdir": config['working_datadir'] }
@@ -141,7 +151,7 @@ if config['setup_files']:
             os.mkdir(config['working_datadir'])
 
         else:
-            print "can't create the directory"
+            print "can't create %(newdir)s" % { "newdir": config['working_datadir'] }
             sys.exit(4)
     else:
         print "%(newdir)s already exists. Will not overwrite -- please rename or move the diretory." % { "newdir": config['working_datadir'] }
@@ -371,8 +381,8 @@ if config['diff_expression']:
     for j in config['input']['experimental'][i]:
         jlength=length(j)
 
-        datafilename=
-        deseq2_script=os.path.join(config['rst_path'], 'bin', 'create_DESeq2_cmd_sbatch_file.py')
-        subprocess.check_call([deseq2_script, '--numberOfControls=' + elength, '--numberOfExperimentals=' + jlength, '--datafile', '--prefix')
+#        datafilename=''
+#        deseq2_script=os.path.join(config["rst_path"], "bin", "create_DESeq2_cmd_sbatch_file.py")
+#        subprocess.check_call([deseq2_script, '--numberOfControls=' + elength, '--numberOfExperimentals=' + jlength, '--datafile', '--prefix')
 
 

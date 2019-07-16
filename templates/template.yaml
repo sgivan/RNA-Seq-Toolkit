@@ -1,0 +1,34 @@
+# template of yaml file for RNA-Seq Toolkit
+---
+paired: True
+rst_path: /home/scott.givan/git-projects/RNA-Seq-Toolkit/bin
+setup_files: 1
+#working_datadir: /secondary/projects/bbc/RST/yaml/data/working
+working_datadir: data/working
+#original_datadir: /secondary/projects/bbc/RST/yaml/data/original_files
+original_datadir: data/original_files
+input:
+    control:
+        1:
+            - SRR8592604_1.fastq
+            - SRR8592604_2.fastq
+        2:
+            - SRR8592605_1.fastq
+            - SRR8592605_2.fastq
+        3:
+            - SRR8592606_1.fastq
+            - SRR8592606_2.fastq
+
+    experimental:
+        exp_1:
+                1:
+                    - SRR8592610_1.fastq
+                    - SRR8592610_2.fastq
+                2:
+                    - SRR8592611_1.fastq
+                    - SRR8592611_2.fastq
+                3:
+                    - SRR8592612_1.fastq
+                    - SRR8592612_2.fastq
+
+
