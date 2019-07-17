@@ -104,17 +104,17 @@ def create_file_struct(sample_number, fileset, config, curdir):
     else:
         if args.verbose: print "\tworking with non-paired-end data"
 
-def monitor_slurm_jobs(slurmjobs):
+def monitor_cluster_jobs(jobs):
 #   not perfect, but it works
     if args.verbose:
-        print "slurm jobs to monitor:"
-        print slurmjobs
+        print "cluster jobs to monitor:"
+        print jobs
 
     wait=1
     while wait:
         wait=0
 
-        for jobid in slurmjobs:
+        for jobid in jobs:
 
             rtn=0
             try:
@@ -136,11 +136,12 @@ def monitor_slurm_jobs(slurmjobs):
 # create new working directory
 # fail if the directory already exists
 #
-slurmjobs=[]
+jobs=[]
 filemap={}
 filemap['control']=[]
 filemap['experimental']=[]
-if config['setup_files']:
+#if config['setup_files']:
+if 'setup_files' in config.keys():
     # create directory to contain
     # copies of input files
     # so we keep original files and only work with copies
@@ -208,7 +209,8 @@ if config['setup_files']:
     if args.verbose: print str(sample_number) + ' samples'
     print "Input file setup finished."
 
-if config['preprocess']:
+#if config['preprocess']:
+if 'preprocess' in config.keys():
     print '\n\n pre-process the input data.'
 
     try:
@@ -293,11 +295,12 @@ if config['preprocess']:
         if match:
             words = str.split(line)
             id = words[-1]
-            slurmjobs.append(id)
+            jobs.append(id)
 
-    if config['align']: monitor_slurm_jobs(slurmjobs)
+    if config['align']: monitor_cluster_jobs(jobs)
 
-if config['align']:
+#if config['align']:
+if 'align' in config.keys():
     if args.verbose: print "\n\naligning data to reference genome sequence"
 
     os.chdir(config['working_alignment_dir'])
@@ -321,7 +324,8 @@ if config['align']:
         print "can't call %(scriptname)s: %(ecode)i" % { "scriptname": rst_script, "ecode": e.returncode }
         sys.exit(13)
 
-if config['diff_expression']:
+#if config['diff_expression']:
+if 'diff_expression' in config.keys():
 
     filemapfile = file('filemap.yaml', 'r')
     filemap=yaml.load(filemap_file)
