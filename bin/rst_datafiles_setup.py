@@ -140,7 +140,7 @@ jobs=[]
 filemap={}
 filemap['control']=[]
 filemap['experimental']=[]
-#if config['setup_files']:
+
 if 'setup_files' in config.keys():
     # create directory to contain
     # copies of input files
@@ -209,9 +209,10 @@ if 'setup_files' in config.keys():
     if args.verbose: print str(sample_number) + ' samples'
     print "Input file setup finished."
 
-#if config['preprocess']:
-if 'preprocess' in config.keys():
-    print '\n\n pre-process the input data.'
+
+#if 'preprocess' in config.keys():
+if 'align' in config.keys():
+    print "\n\n setting up alignment directory"
 
     try:
         os.mkdir(config['working_alignment_dir'])
@@ -228,22 +229,21 @@ if 'preprocess' in config.keys():
         print e
 
 
-    print "creating symlnks to preprocess and alignment index files in " + config['working_alignment_dir']
+    print "creating symlnks to alignment index files in " + config['working_alignment_dir']
 
-    if os.access('index.preprocess', os.F_OK):
-        print "Will not overwrite current 'index.preprocess' symlink.\nPlease remove it."
-        sys.exit(6)
-
-    try:
-        os.symlink(config['filter_datadir'], 'index.preprocess')
-    except OSError as e:
-        print "can't create index.preprocess symlink pointing to '%(dirname)s.'" % { 'dirname': config['filter_datadir'] }
-        print e.errno
-        print e.filename
-#        print e.strerr
+#    if os.access('index.preprocess', os.F_OK):
+#        print "Will not overwrite current 'index.preprocess' symlink.\nPlease remove it."
+#        sys.exit(6)
+#
+#    try:
+#        os.symlink(config['filter_datadir'], 'index.preprocess')
+#    except OSError as e:
+#        print "can't create index.preprocess symlink pointing to '%(dirname)s.'" % { 'dirname': config['filter_datadir'] }
+#        print e.errno
+#        print e.filename
 
     if os.access('index.align', os.F_OK):
-        print "Will now overwrite current 'index.align' symlink.\nPlease remove it."
+        print "Will not overwrite current 'index.align' symlink.\nPlease remove it."
         sys.exit(7)
 
     try:
@@ -252,55 +252,58 @@ if 'preprocess' in config.keys():
         print "can't create index.align symlink pointing to '%(dirname)s.'" % { 'dirname': config['index_datadir'] }
         print e.errno
         print e.filename
-#        print e.strerr
 
     if os.access('index', os.F_OK):
-        print "Will now overwrite current 'index' symlink.\nPlease remove it."
+        print "Will not overwrite current 'index' symlink.\nPlease remove it."
         sys.exit(8)
 
     try:
-        os.symlink('index.preprocess', 'index')
+        os.symlink('index.align', 'index')
     except OSError as e:
-        print "can't create index symlink pointing to index.preproces"
+        print "can't create index symlink pointing to index.align"
         print e.errno
         print e.filename
-#        print e.strerr
 
-    if args.verbose: print "preprocess and align symlinks created in " + curdir
+    if args.verbose: print "align symlink created in " + curdir
 
     setup_script=os.path.join(config['rst_path'], 'bin', 'setup.sh')
     if args.verbose: print "calling setup script '%(scriptname)s'." % { "scriptname": setup_script }
     try:
-        out=subprocess.check_call(setup_script, shell=True)
+#        out=subprocess.check_call(setup_script, shell=True)
+        dpth = os.path.join("..", config['working_datadir'])
+        print "will symlink Sample_* directories in %(dirpath)s." % { "dirpath": dpth }
+#        out=subprocess.check_call([setup_script, dpth], shell=True)
+        out=subprocess.check_call(setup_script + " " + dpth, shell=True)
     except subprocess.CalledProcessError as e:
         print "call to symlink failed"
         print "error code: %(ecode)i" % { "ecode": e.returncode }
         sys.exit(9)
+#
+#   Don't run all of these pre-proecessing steps any more
+#
+#    if args.verbose: print "running RST preprocessing routines"
+#
+#    rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
+#
+#    out=""
+#    try:
+#        out=subprocess.check_output(rst_script + " --preprocess_only --submit --threads " + str(config['threads']) + " Sample_*", shell=True)
+#    except subprocess.CalledProcessError as e:
+#        print "call to %(rst)s failed with error code %(ecode)i" % { "rst": rst_script, "ecode": e.returncode }
+#        sys.exit(10)
+#        
+#    os.chdir(curdir)
+#
+#    for line in str.splitlines(out):
+#        match = re.match("OUTPUT", line)
+#        if match:
+#            words = str.split(line)
+#            id = words[-1]
+#            jobs.append(id)
+#
+#    if config['align']: monitor_cluster_jobs(jobs)
 
-    if args.verbose: print "running RST preprocessing routines"
-
-    rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
-
-    out=""
-    try:
-        out=subprocess.check_output(rst_script + " --preprocess_only --submit --threads " + str(config['threads']) + " Sample_*", shell=True)
-    except subprocess.CalledProcessError as e:
-        print "call to %(rst)s failed with error code %(ecode)i" % { "rst": rst_script, "ecode": e.returncode }
-        sys.exit(10)
-        
-    os.chdir(curdir)
-
-    for line in str.splitlines(out):
-        match = re.match("OUTPUT", line)
-        if match:
-            words = str.split(line)
-            id = words[-1]
-            jobs.append(id)
-
-    if config['align']: monitor_cluster_jobs(jobs)
-
-#if config['align']:
-if 'align' in config.keys():
+if 'align2' in config.keys():
     if args.verbose: print "\n\naligning data to reference genome sequence"
 
     os.chdir(config['working_alignment_dir'])

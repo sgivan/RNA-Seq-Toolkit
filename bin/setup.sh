@@ -1,6 +1,7 @@
 #!/bin/bash
 
-for dir in $(ls -1d ../data/current/Sample_*)
+#for dir in $(ls -1d ../data/current/Sample_*)
+for dir in $(ls -1d ${1}/Sample_*)
 do
     echo $dir
     newdir=$( echo $dir | sed -E 's/.+\///' )
