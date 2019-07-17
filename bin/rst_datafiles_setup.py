@@ -141,7 +141,7 @@ filemap={}
 filemap['control']=[]
 filemap['experimental']=[]
 
-if 'setup_files' in config.keys():
+if 'setup_files' in config.keys() and config['setup_files'] != False:
     # create directory to contain
     # copies of input files
     # so we keep original files and only work with copies
@@ -209,9 +209,7 @@ if 'setup_files' in config.keys():
     if args.verbose: print str(sample_number) + ' samples'
     print "Input file setup finished."
 
-
-#if 'preprocess' in config.keys():
-if 'align' in config.keys():
+if 'align' in config.keys() and config['align'] != False:
     print "\n\n setting up alignment directory"
 
     try:
@@ -220,6 +218,7 @@ if 'align' in config.keys():
         print "can't create directory '%(dirname)s'." % { "dirname": config['working_alignment_dir'] }
         print e.errno
         print e
+        sys.exit()
 
     try:
         os.chdir(config['working_alignment_dir'])
@@ -230,17 +229,6 @@ if 'align' in config.keys():
 
 
     print "creating symlnks to alignment index files in " + config['working_alignment_dir']
-
-#    if os.access('index.preprocess', os.F_OK):
-#        print "Will not overwrite current 'index.preprocess' symlink.\nPlease remove it."
-#        sys.exit(6)
-#
-#    try:
-#        os.symlink(config['filter_datadir'], 'index.preprocess')
-#    except OSError as e:
-#        print "can't create index.preprocess symlink pointing to '%(dirname)s.'" % { 'dirname': config['filter_datadir'] }
-#        print e.errno
-#        print e.filename
 
     if os.access('index.align', os.F_OK):
         print "Will not overwrite current 'index.align' symlink.\nPlease remove it."
@@ -269,56 +257,19 @@ if 'align' in config.keys():
     setup_script=os.path.join(config['rst_path'], 'bin', 'setup.sh')
     if args.verbose: print "calling setup script '%(scriptname)s'." % { "scriptname": setup_script }
     try:
-#        out=subprocess.check_call(setup_script, shell=True)
         dpth = os.path.join("..", config['working_datadir'])
         print "will symlink Sample_* directories in %(dirpath)s." % { "dirpath": dpth }
-#        out=subprocess.check_call([setup_script, dpth], shell=True)
         out=subprocess.check_call(setup_script + " " + dpth, shell=True)
     except subprocess.CalledProcessError as e:
         print "call to symlink failed"
         print "error code: %(ecode)i" % { "ecode": e.returncode }
         sys.exit(9)
-#
-#   Don't run all of these pre-proecessing steps any more
-#
-#    if args.verbose: print "running RST preprocessing routines"
-#
-#    rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
-#
-#    out=""
-#    try:
-#        out=subprocess.check_output(rst_script + " --preprocess_only --submit --threads " + str(config['threads']) + " Sample_*", shell=True)
-#    except subprocess.CalledProcessError as e:
-#        print "call to %(rst)s failed with error code %(ecode)i" % { "rst": rst_script, "ecode": e.returncode }
-#        sys.exit(10)
-#        
-    os.chdir(curdir)
-#
-#    for line in str.splitlines(out):
-#        match = re.match("OUTPUT", line)
-#        if match:
-#            words = str.split(line)
-#            id = words[-1]
-#            jobs.append(id)
-#
-#    if config['align']: monitor_cluster_jobs(jobs)
 
-#if 'align2' in config.keys():
+    os.chdir(curdir)
+
     if args.verbose: print "\n\naligning data to reference genome sequence"
 
     os.chdir(config['working_alignment_dir'])
-
-#    try:
-#        os.remove('index')
-#    except OSError as e:
-#        print "can't remove index symlink: %(ecode)i" % { "ecode": e.errno }
-#        sys.exit(11)
-#
-#    try:
-#        os.symlink('index.align', 'index')
-#    except OSError as e:
-#        print "can't create index symlink to index.align: %(ecode)i" % { "ecode": e.errno }
-#        sys.exit(12)
 
     rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
     try:
@@ -329,8 +280,9 @@ if 'align' in config.keys():
 
 if 'diff_expression' in config.keys():
 
-    filemapfile = file('filemap.yaml', 'r')
-    filemap=yaml.load(filemap_file)
+#    filemapfile = file('filemap.yaml', 'r')
+#    DE_config = file(config['DE_config_file'], 'r')
+#    filemap=yaml.load(DE_config, Loader=yaml.FullLoader)
 
     try:
         os.mkdir('DEA')
@@ -348,19 +300,19 @@ if 'diff_expression' in config.keys():
             print "Creating symlink to '%(filename)s'" % { 'filename': filename }
             os.symlink("../align/" + str(filename), str(filename))
             os.chdir(filename)
-            rst_script=os.path.join(config['rst_path'], 'bin', 'STAR_merge_gene_counts.py')
-
-            if config['paired']:
-                try:
-                    subprocess.check_call([rst_script])
-                except OSError as e:
-                    print "can't run %(scriptname)s" % { 'scriptname': rst_script }
-                    sys.exit(14)
-            else:
-                try:
-                    subprocess.check_call([rst_script, '--seonly'])
-                except OSError as e:
-                    print "can't run %(scriptname)s --seonly" % { 'scriptname': rst_script }
+#            rst_script=os.path.join(config['rst_path'], 'bin', 'STAR_merge_gene_counts.py')
+#
+#            if config['paired']:
+#                try:
+#                    subprocess.check_call([rst_script])
+#                except OSError as e:
+#                    print "can't run %(scriptname)s" % { 'scriptname': rst_script }
+#                    sys.exit(14)
+#            else:
+#                try:
+#                    subprocess.check_call([rst_script, '--seonly'])
+#                except OSError as e:
+#                    print "can't run %(scriptname)s --seonly" % { 'scriptname': rst_script }
 
             os.chdir(os.path.join(curdir, 'DEA'))
 #
