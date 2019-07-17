@@ -292,7 +292,7 @@ if 'align' in config.keys():
 #        print "call to %(rst)s failed with error code %(ecode)i" % { "rst": rst_script, "ecode": e.returncode }
 #        sys.exit(10)
 #        
-#    os.chdir(curdir)
+    os.chdir(curdir)
 #
 #    for line in str.splitlines(out):
 #        match = re.match("OUTPUT", line)
@@ -303,31 +303,30 @@ if 'align' in config.keys():
 #
 #    if config['align']: monitor_cluster_jobs(jobs)
 
-if 'align2' in config.keys():
+#if 'align2' in config.keys():
     if args.verbose: print "\n\naligning data to reference genome sequence"
 
     os.chdir(config['working_alignment_dir'])
 
-    try:
-        os.remove('index')
-    except OSError as e:
-        print "can't remove index symlink: %(ecode)i" % { "ecode": e.errno }
-        sys.exit(11)
-
-    try:
-        os.symlink('index.align', 'index')
-    except OSError as e:
-        print "can't create index symlink to index.align: %(ecode)i" % { "ecode": e.errno }
-        sys.exit(12)
+#    try:
+#        os.remove('index')
+#    except OSError as e:
+#        print "can't remove index symlink: %(ecode)i" % { "ecode": e.errno }
+#        sys.exit(11)
+#
+#    try:
+#        os.symlink('index.align', 'index')
+#    except OSError as e:
+#        print "can't create index symlink to index.align: %(ecode)i" % { "ecode": e.errno }
+#        sys.exit(12)
 
     rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
     try:
-        subprocess.check_call(rst_script + " --partial --submit --threads " + str(config['threads']) + " Sample_*", shell=True)
+        subprocess.check_call(rst_script + " --partial --submit --threads " + str(config['threads']) + " --queue " + str(config['jobQ']) + " Sample_*", shell=True)
     except subprocess.CalledProcessError as e:
         print "can't call %(scriptname)s: %(ecode)i" % { "scriptname": rst_script, "ecode": e.returncode }
         sys.exit(13)
 
-#if config['diff_expression']:
 if 'diff_expression' in config.keys():
 
     filemapfile = file('filemap.yaml', 'r')
