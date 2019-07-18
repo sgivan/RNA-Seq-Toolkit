@@ -335,34 +335,60 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
         print "can't run make_gene_cnts_per_sample.sh: %(estring)s" % { 'estring': e.strerror }
         sys.exit(15)
 #
-#   copy & run join_gene_cnts.sh script from rst directory to curdir
+#   run join_gene_cnts_opt.sh script from rst directory 
+#   this will create the gene exp matrix file
 #
-#    shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'join_gene_cnts.sh'), 'join_gene_cnts.sh')
+    rst_script = os.path.join(config['rst_path'], 'bin', 'join_gene_cnts_opt.sh')
 
     print "clength: %(clength)i, elength: %(elength)i." % { "clength": clength, "elength": elength }
 
-    shutil.copyfile(os.path.join("Sample_1", "gene_cnts.txt"), "joined.txt")
-
-#    for file in `ls -v Sample_{2..5}/gene_cnts.txt`; do echo $file; join --header joined.txt $file > joined2.txt; mv joined2.txt joined.txt; done
-#    for file in `ls -v Sample_{6..10}/gene_cnts.txt`; do echo $file; join --header joined.txt $file > joined2.txt; mv joined2.txt joined.txt; done
-#    mv joined.txt C_v_E.txt
-
     try:
-        subprocess.check_call("", shell=True)
+        subprocess.check_call(rst_script + " " + "-c " + str(clength) + " -e " + str(clength + 1) + " -E " + str(clength + elength), shell=True)
     except OSError as e:
         print "can't run join statement: %s" % e.strerror
 
-#    try:
-#        subprocess.check_call(['sh', 'join_gene_cnts.sh'])
-#    except OSError as e:
-#        print "can't run join_gene_cnts.sh: %(estring)s" % { 'estring': e.strerror }
-#        sys.exit(16)
 #
 #    for j in config['input']['experimental'][i]:
 #        jlength=length(j)
 
-#        datafilename=''
-#        deseq2_script=os.path.join(config["rst_path"], "bin", "create_DESeq2_cmd_sbatch_file.py")
-#        subprocess.check_call([deseq2_script, '--numberOfControls=' + elength, '--numberOfExperimentals=' + jlength, '--datafile', '--prefix')
+    datafilename='C_v_E.txt'
+    deseq2_script=os.path.join(config["rst_path"], "bin", "create_DESeq2_cmd_batch_file.py")
+    try:
+        subprocess.check_call(deseq2_script + " " + "--numberOfControls " + str(clength) + \
+                " --numberOfExperimentals " + str(elength) + " --datafile " + datafilename + \
+                " --org " + config['org'] + " --gProfilerkey " + config['gProfilerkey'] + \
+                " --dbkey " + config['dbkey'] + \
+                " > DESeq2.Rscript", \
+                shell=True)
+    except OSError as e:
+        print "can't run %(scriptname)s : %(errorstr)s" % { "scriptname": deseq2_script, "errorstr": e.strerror }
 
+    print("""
+    Your data is now ready for a Differential Expression (DE) analysis.
+    A file named DESeq2.Rscript has been created in the DEA directory (path = DEA/DESeq2.Rscript).
+    This file can be directly submitted to a cluster if it uses PBS as its resource manager with this command:
+    qsub DESeq2.Rscript
+    To run that command, you must be in the DEA directory:
+    cd DEA
+    For the analysis to run to completion, you must have R in your path and several R
+    libraries need to be installed:
+    tidyverse
+    edgeR
+    DESeq2
+    ggplot2
+    dplyr
+    vegan
+    pheatmap
+    gprofiler2
+
+    Finally, the organism-specific R annotation database for your organism of interest must be installed.
+    You can find a list of databases here: https://www.bioconductor.org/packages/release/BiocViews.html#___Organism.
+    Search that table for databases that start with "org." There are also some settings in the YAML configuration
+    file pertinent to this functionality.
+
+    In the VARI BBC, you can accomplish all of this, except for possibly the organism annotation database, by loading
+    the bbc R module:
+    module load bbc/R/R-3.6.0
+
+    """)
 

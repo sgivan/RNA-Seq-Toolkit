@@ -10,9 +10,9 @@ parser.add_argument("--template", help="name of template file [default=DESeq2.R]
 parser.add_argument("--numberOfControls", help="the number of control samples", type=str, default=3)
 parser.add_argument("--numberOfExperimentals", help="the number of experimental samples", type=str, default=3)
 parser.add_argument("--org", help="organism annotation database name [default='org.Mm.eg.db']", type=str, default="org.Mm.eg.db")
-parser.add_argument("--dbkey", help="database key to retrieve gene symbol [default='SYMBOL']", type=str, default="SYMBOL")
+parser.add_argument("--dbkey", help="type of database key to retrieve gene symbol [default='ENTREZID']", type=str, default="ENTREZID")
 parser.add_argument("--gProfilerkey", help="organism code to use with g:Profiler [default='mmusculus']", type=str, default="mmusculus")
-parser.add_argument("--queue", help="job queue to submit the job", type=str, default="bbc")
+parser.add_argument("--queue", help="job queue to submit the job [default=bbc]", type=str, default="bbc")
 parser.add_argument("--prefix", help="prefix for output files [default=DESeq2]", type=str, default="DESeq2")
 parser.add_argument("--datafile", help="name of data file containing gene count data [default=gene_cnt_matrix.tab]", type=str, default="gene_cnt_matrix.tab")
 
