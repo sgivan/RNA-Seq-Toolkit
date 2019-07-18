@@ -1,12 +1,35 @@
 # template of yaml file for RNA-Seq Toolkit
 ---
+# are you working with paired end data? [True or False]
 paired: True
-rst_path: /home/scott.givan/git-projects/RNA-Seq-Toolkit/bin
-setup_files: 1
-#working_datadir: /secondary/projects/bbc/RST/yaml/data/working
+#
+# rst_path is the root directory of the RNA-Seq Toolkit
+rst_path: /home/scott.givan/git-projects/RNA-Seq-Toolkit
+#
+# the following three paths are relative paths
 working_datadir: data/working
-#original_datadir: /secondary/projects/bbc/RST/yaml/data/original_files
 original_datadir: data/original_files
+working_alignment_dir: align
+#
+# path to index directory must be a full path
+# since sometimes this will be in a different file system
+index_datadir: /secondary/projects/bbc/RST/yaml/genome/STAR
+#
+# Do the setup routines to create all the directories
+# and symlinks? This should usually be True if this
+# is a new project
+setup_files: False
+# Align the reads to the reference? True or False
+align: False
+# create the Rscript file for differential expression analysis
+diff_expression: True
+# name of yaml file with configuration details of DE analysis 
+DE_config_file: template.yaml
+# the name of the cluster job queue to submit the jobs
+jobQ: bbc
+# max number of threads to use per job
+threads: 4
+#
 input:
     control:
         1:
@@ -20,15 +43,34 @@ input:
             - SRR8592606_2.fastq
 
     experimental:
-        exp_1:
-                1:
-                    - SRR8592610_1.fastq
-                    - SRR8592610_2.fastq
-                2:
-                    - SRR8592611_1.fastq
-                    - SRR8592611_2.fastq
-                3:
-                    - SRR8592612_1.fastq
-                    - SRR8592612_2.fastq
+        #        exp_1:
+        1:
+            - SRR8592610_1.fastq
+            - SRR8592610_2.fastq
+        2:
+            - SRR8592611_1.fastq
+            - SRR8592611_2.fastq
+        3:
+            - SRR8592612_1.fastq
+            - SRR8592612_2.fastq
 
+#
+# Various settings needed for the DESeq2 differential expression analysis
+#
+# org is the annotation database used to map GENE IDs to common gene names
+# for this organism. The default database is for mouse: org.Mm.eg.db
+# see https://www.bioconductor.org/packages/release/BiocViews.html#___Organism
+# and search the table for "org." to see a list a list of compatible databases
+org: org.At.tair.db
+
+#
+# dbkey is the value in the organism database that will be matched to the
+# gene ID's in the expression data. This match will dictate what gene
+# name will be returned. The default dbkey is ENTREZID.
+dbkey: TAIR
+
+#
+# gProfilerkey is the organism database that the gProfiler software will use.
+# See https://biit.cs.ut.ee/gprofiler/page/organism-list for a list.
+gProfilerkey: athaliana 
 
