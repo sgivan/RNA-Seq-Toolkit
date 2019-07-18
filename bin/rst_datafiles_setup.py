@@ -29,6 +29,7 @@ if args.verbose: print "current working directory: '%(workdir)s'" % { "workdir":
 os.environ['PATH']=config['rst_path'] + "/bin" + ":" + os.environ['PATH']
 
 clength=len(config['input']['control'])
+elength=len(config['input']['experimental'])
 
 if args.verbose:
     print "dumping config"
@@ -174,28 +175,32 @@ if 'setup_files' in config.keys() and config['setup_files'] != False:
         filemap['control'].append([i, 'Sample_' + str(sample_number)])
 
     if 'experimental' in config['input']:
-        elength=len(config['input']['experimental'])
+#        elength=len(config['input']['experimental'])
 
         if args.verbose: print "experimental data sets: %(length)i" % { "length": elength }
-        efiles={}
+#        efiles={}
         for i in config['input']['experimental']:
-            efiles[i]=[]
+#            efiles[i]=[]
 #
 #   This cut corresponds to the sample replicate. There can be any number of sample replicates. which will have either a single file (non-PE) or a pair of files (Paired End)
 #
-            if args.verbose: print "sample replicates in set %(eset)s: %(filenames)s" % { "eset": i, "filenames": config['input']['experimental'][i] }
-            number_of_reps=len(config['input']['experimental'][i])
-            if args.verbose: print "number of replicates: %(numseqs)i." % { "numseqs": number_of_reps }
+#            if args.verbose: print "sample replicates in set %(eset)s: %(filenames)s" % { "eset": i, "filenames": config['input']['experimental'][i] }
+#            number_of_reps=len(config['input']['experimental'][i])
+#            if args.verbose: print "number of replicates: %(numseqs)i." % { "numseqs": number_of_reps }
 
-            for j in config['input']['experimental'][i]:
+#            for j in config['input']['experimental'][i]:
 
-                sample_number += 1
-                if args.verbose: print "\n\t%(setname)s - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "setname": i, "repname": j, "sint": sample_number }
+             sample_number += 1
+#                if args.verbose: print "\n\t%(setname)s - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "setname": i, "repname": j, "sint": sample_number }
+             if args.verbose: print "\n\t%(setname)s - %(repname)s will be given symbolic name 'Sample_%(sint)s'" % { "setname": "experimental", "repname": i, "sint": sample_number }
 
-                create_file_struct(sample_number, config['input']['experimental'][i][j], config, curdir)
-                efiles[i].append([j, 'Sample_' + str(sample_number)])
+#                create_file_struct(sample_number, config['input']['experimental'][i][j], config, curdir)
+             create_file_struct(sample_number, config['input']['experimental'][i], config, curdir)
+#                efiles[i].append([j, 'Sample_' + str(sample_number)])
 
-        filemap['experimental']=efiles
+#             filemap['experimental']=efiles
+             filemap['experimental'].append([i, "Sample_" + str(sample_number)])
+#             if args.verbose: print "experimental data sets: %(length)i" % { "length": elength }
 
 #
 #   print out yaml file containing map of original files to standardized files
@@ -278,7 +283,11 @@ if 'align' in config.keys() and config['align'] != False:
         print "can't call %(scriptname)s: %(ecode)i" % { "scriptname": rst_script, "ecode": e.returncode }
         sys.exit(13)
 
-if 'diff_expression' in config.keys():
+#
+#   I need to monitor jobs here and not continue until last job is finished
+#
+
+if 'diff_expression' in config.keys() and config['diff_expression'] != False:
 
 #    filemapfile = file('filemap.yaml', 'r')
 #    DE_config = file(config['DE_config_file'], 'r')
@@ -328,16 +337,29 @@ if 'diff_expression' in config.keys():
 #
 #   copy & run join_gene_cnts.sh script from rst directory to curdir
 #
-    shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'join_gene_cnts.sh'), 'join_gene_cnts.sh')
+#    shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'join_gene_cnts.sh'), 'join_gene_cnts.sh')
+
+    print "clength: %(clength)i, elength: %(elength)i." % { "clength": clength, "elength": elength }
+
+    shutil.copyfile(os.path.join("Sample_1", "gene_cnts.txt"), "joined.txt")
+
+#    for file in `ls -v Sample_{2..5}/gene_cnts.txt`; do echo $file; join --header joined.txt $file > joined2.txt; mv joined2.txt joined.txt; done
+#    for file in `ls -v Sample_{6..10}/gene_cnts.txt`; do echo $file; join --header joined.txt $file > joined2.txt; mv joined2.txt joined.txt; done
+#    mv joined.txt C_v_E.txt
 
     try:
-        subprocess.check_call(['sh', 'join_gene_cnts.sh'])
+        subprocess.check_call("", shell=True)
     except OSError as e:
-        print "can't run join_gene_cnts.sh: %(estring)s" % { 'estring': e.strerror }
-        sys.exit(16)
+        print "can't run join statement: %s" % e.strerror
 
-    for j in config['input']['experimental'][i]:
-        jlength=length(j)
+#    try:
+#        subprocess.check_call(['sh', 'join_gene_cnts.sh'])
+#    except OSError as e:
+#        print "can't run join_gene_cnts.sh: %(estring)s" % { 'estring': e.strerror }
+#        sys.exit(16)
+#
+#    for j in config['input']['experimental'][i]:
+#        jlength=length(j)
 
 #        datafilename=''
 #        deseq2_script=os.path.join(config["rst_path"], "bin", "create_DESeq2_cmd_sbatch_file.py")
