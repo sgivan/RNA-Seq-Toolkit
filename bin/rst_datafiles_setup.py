@@ -289,9 +289,21 @@ if 'align' in config.keys() and config['align'] != False:
 
 if 'diff_expression' in config.keys() and config['diff_expression'] != False:
 
-#    filemapfile = file('filemap.yaml', 'r')
-#    DE_config = file(config['DE_config_file'], 'r')
-#    filemap=yaml.load(DE_config, Loader=yaml.FullLoader)
+    os.chdir(curdir)
+
+    filemapfile = file('filemap.yaml', 'r')
+    filemap=yaml.load(filemapfile, Loader=yaml.FullLoader)
+
+    files = []
+
+    keys = ['control','experimental']
+    for stype in keys:
+#        print "stype %s: %s" % (stype, filemap.get(stype))
+        for sname in filemap[stype]:
+#            print "sname: '%s'" % sname[1]
+            files.append(sname[1])
+
+    print "files: '%s'" % files
 
     try:
         os.mkdir('DEA')
@@ -300,8 +312,6 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
         sys.exit(13)
 
     os.chdir('DEA')
-
-    files=os.listdir('../align')
 
     for filename in files:
         fmatch=re.match("Sample_", filename)
@@ -364,11 +374,15 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
         print "can't run %(scriptname)s : %(errorstr)s" % { "scriptname": deseq2_script, "errorstr": e.strerror }
 
     print("""
-    Your data is now ready for a Differential Expression (DE) analysis.
+    The sequence alignment jobs have been submitted to the cluster. You can monitor their progress using
+    the qstat command:
+    qstat -u $USER
+
+    Once the alignment jobs finish, your data is ready for a Differential Expression (DE) analysis.
     A file named DESeq2.Rscript has been created in the DEA directory (path = DEA/DESeq2.Rscript).
-    This file can be directly submitted to a cluster if it uses PBS as its resource manager with this command:
+    This file can be directly submitted to a PBS cluster using this command:
     qsub DESeq2.Rscript
-    To run that command, you must be in the DEA directory:
+    To run that specific command, you must cd into the DEA directory:
     cd DEA
     For the analysis to run to completion, you must have R in your path and several R
     libraries need to be installed:

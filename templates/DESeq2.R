@@ -38,6 +38,16 @@ plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
     guides(color=FALSE)
 
 }
+
+# create the merged data object
+merged.data <- read_tsv("../align/Sample_1/gene_cnts.txt")
+eod <- $cntCont + $cntExp
+for (i in 2:eod) {
+    sname <- paste0("Sample_",i)
+    fpth <- paste0("../align/", sname, "/gene_cnts.txt")
+    sampdata <- read.delim(fpth, header=T, row.names=NULL, sep="\t", stringsAsFactors=F)
+    merged.data <- merge(merged.data, sampdata)
+}
 #
 # The gene_cnt_matrix.tab file, loaded in the next command, should have gene IDs in the first column.
 # Then, each sample should occupy its own column.
@@ -46,7 +56,8 @@ plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
 # the header should reflect the columns. For example:
 # GeneID    Sample_1    Sample_2    Sample_3    Sample_4
 # In this example, Sample_1 and Sample_2 are controls; Sample_3 and Sample_4 are the experimentals.
-data = read.delim("$datafile", header=T, row.names=1, sep=" ", stringsAsFactors=F)
+#data = read.delim("$datafile", header=T, row.names=1, sep=" ", stringsAsFactors=F)
+data <- tibble::column_to_rownames(merged.data, var="GENEID")
 # may need round() for RSEM data. Not needed for STAR.
 #rnaseqMatrix = round(data)
 rnaseqMatrix = data
