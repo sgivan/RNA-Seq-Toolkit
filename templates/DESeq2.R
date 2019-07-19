@@ -45,7 +45,8 @@ eod <- $cntCont + $cntExp
 for (i in 2:eod) {
     sname <- paste0("Sample_",i)
     fpth <- paste0("../align/", sname, "/gene_cnts.txt")
-    sampdata <- read.delim(fpth, header=T, row.names=NULL, sep="\t", stringsAsFactors=F)
+#    sampdata <- read.delim(fpth, header=T, row.names=NULL, sep="\t", stringsAsFactors=F)
+    sampdata <- read_tsv(fpth, col_names=T)
     merged.data <- merge(merged.data, sampdata)
 }
 #
