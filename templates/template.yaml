@@ -1,34 +1,60 @@
 # template of yaml file for RNA-Seq Toolkit
 ---
-# are you working with paired end data? [True or False]
-paired: True
 #
-# rst_path is the root directory of the RNA-Seq Toolkit
+# Set up file and directory paths
+#
+# rst_path is the full path to the
+# root directory of the RNA-Seq Toolkit
 rst_path: /home/scott.givan/git-projects/RNA-Seq-Toolkit
 #
-# the following three paths are relative paths
-working_datadir: data/working
+# The following three paths are relative to the root
+# directory of the analysis. Typically the root directory
+# will contain the main three directories associated with
+# the analysis: data, align, DEA.
+# Note that align and DEA will be created for you.
+# 
+# original_datadir is the path to the original
+# fastq input files
 original_datadir: data/original_files
+# working_datadir will be created for you
+# and will contain working copies of the original
+# input files.
+working_datadir: data/working
+# working_alignment_dir will be created for you and
+# will contain the results of alignging the input
+# reads to the reference genome.
 working_alignment_dir: align
 #
-# path to index directory must be a full path
-# since sometimes this will be in a different file system
+# full path to index directory is the path to the STAR
+# index for the reference genome you are using.
+# See documentation here: https://github.com/sgivan/RNA-Seq-Toolkit/wiki/2.-Create-a-Genome-Reference-Index
 index_datadir: /secondary/projects/bbc/RST/yaml/genome/STAR
+#    
+#
+# Settings related to pipeline functionality
 #
 # Do the setup routines to create all the directories
 # and symlinks? This should usually be True if this
 # is a new project
-setup_files: False
+setup_files: True
 # Align the reads to the reference? True or False
-align: False
+align: True
 # create the Rscript file for differential expression analysis
 diff_expression: True
+#
 # name of yaml file with configuration details of DE analysis 
-DE_config_file: template.yaml
+# deprecated
+#DE_config_file: template.yaml
+#
 # the name of the cluster job queue to submit the jobs
 jobQ: bbc
 # max number of threads to use per job
 threads: 4
+#
+# Options related to the data files and analysis
+#
+# are you working with paired end data? [True or False]
+paired: True
 #
 input:
     control:
@@ -55,7 +81,8 @@ input:
             - SRR8592612_2.fastq
 
 #
-# Various settings needed for the DESeq2 differential expression analysis
+# Various settings needed to create the
+# DESeq2 differential expression analysis Rscript file.
 #
 # org is the annotation database used to map GENE IDs to common gene names
 # for this organism. The default database is for mouse: org.Mm.eg.db
@@ -64,13 +91,17 @@ input:
 org: org.At.tair.db
 
 #
-# dbkey is the value in the organism database that will be matched to the
-# gene ID's in the expression data. This match will dictate what gene
-# name will be returned. The default dbkey is ENTREZID.
+# dbkey is the data type, or column, in the organism annotation database that will
+# be matched to the gene ID's in the expression data. This match will dictate what gene
+# name will be returned. So, in the input data if your genes are identifyed by
+# Entrez ID's, use the default dbkey, which is ENTREZID. The dbkey may be specific 
+# to different databases. For example, TAIR is used for annotation derived from
+# The Arabidopsis and Information Resource (TAIR).
 dbkey: TAIR
 
 #
+# By default, a gProfiler pathway analysis is done on all the DE genes where p < 0.05.
 # gProfilerkey is the organism database that the gProfiler software will use.
 # See https://biit.cs.ut.ee/gprofiler/page/organism-list for a list.
 gProfilerkey: athaliana 
-
+#

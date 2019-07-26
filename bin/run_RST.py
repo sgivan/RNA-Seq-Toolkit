@@ -340,7 +340,8 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
     shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'make_gene_cnts_per_sample.sh'), 'make_gene_cnts_per_sample.sh')
 
     try:
-        subprocess.check_call(['sh', 'make_gene_cnts_per_sample.sh'])
+        #subprocess.check_call(['sh', 'make_gene_cnts_per_sample.sh'])
+        subprocess.check_call("sh make_gene_cnts_per_sample.sh", shell=True)
     except OSError as e:
         print "can't run make_gene_cnts_per_sample.sh: %(estring)s" % { 'estring': e.strerror }
         sys.exit(15)

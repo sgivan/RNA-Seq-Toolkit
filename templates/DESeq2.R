@@ -40,7 +40,7 @@ plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
 }
 
 # create the merged data object
-merged.data <- read_tsv("../align/Sample_1/gene_cnts.txt")
+merged.data <- read_tsv("../align/Sample_1/gene_cnts.txt", col_names=T)
 eod <- $cntCont + $cntExp
 for (i in 2:eod) {
     sname <- paste0("Sample_",i)
@@ -152,6 +152,10 @@ library(gprofiler2)
 BGD.05 <- as.character(dplyr::select(dplyr::filter(dplyr::arrange(res, padj), padj < 0.05), BestGeneDescriptor)$$BestGeneDescriptor)
 #gprofile_Ordered <- gprofiler(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='analytical', sort_by_structure=T, significant=T)
 gprofile_Ordered <- gost(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='gSCS', significant=T)
+#
+# what we want to output contains a list, so collapse it
+gprofile_Ordered$$result$$parents <- paste(gprofile_Ordered$$result$$parents, collapse=',')
+# write the gprofiler output to a file
 write.table(gprofile_Ordered['result'], file=paste0("$prefix","_gProfileR.txt"), sep="\t", quote=F, row.name=F, col.name=T)
 
 save.image(file=paste0("$prefix", "_RData"))
