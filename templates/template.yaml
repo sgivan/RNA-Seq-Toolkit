@@ -39,6 +39,17 @@ index_datadir: /secondary/projects/bbc/RST/yaml/genome/STAR
 setup_files: True
 # Align the reads to the reference? True or False
 align: True
+# Number of processors or threads to devote to pipeline
+procs: 8
+#
+# Sequence alignment options
+#
+# minimum and maximum intron lengths
+# default min_intron_length = 20
+min_intron_length: 20
+# default max_intron_length = 500000
+max_intron_length: 500000
+#
 # create the Rscript file for differential expression analysis
 diff_expression: True
 #

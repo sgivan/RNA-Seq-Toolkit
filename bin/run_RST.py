@@ -278,7 +278,14 @@ if 'align' in config.keys() and config['align'] != False:
 
     rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
     try:
-        subprocess.check_call(rst_script + " --partial --submit --threads " + str(config['threads']) + " --queue " + str(config['jobQ']) + " Sample_*", shell=True)
+#        subprocess.check_call(rst_script + " --partial --submit --threads " + str(config['threads']) + " --queue " + str(config['jobQ']) + " Sample_*", shell=True)
+        subprocess.check_call(
+                rst_script + " --partial --submit --threads " + str(config['threads']) + \
+                " --queue " + str(config['jobQ']) + " --threads " + str(config['procs']) + \
+                " --min_intron_length " + str(config['min_intron_length']) + " --max_intron_length " + str(config['max_intron_length']) + \
+                " Sample_*",
+                shell=True
+                )
     except subprocess.CalledProcessError as e:
         print "can't call %(scriptname)s: %(ecode)i" % { "scriptname": rst_script, "ecode": e.returncode }
         sys.exit(13)
