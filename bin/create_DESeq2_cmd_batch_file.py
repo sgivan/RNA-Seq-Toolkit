@@ -15,6 +15,7 @@ parser.add_argument("--gProfilerkey", help="organism code to use with g:Profiler
 parser.add_argument("--queue", help="job queue to submit the job [default=bbc]", type=str, default="bbc")
 parser.add_argument("--prefix", help="prefix for output files [default=DESeq2]", type=str, default="DESeq2")
 parser.add_argument("--datafile", help="name of data file containing gene count data [default=gene_cnt_matrix.tab]", type=str, default="gene_cnt_matrix.tab")
+parser.add_argument("--strand", help="is data stranded? If not, do nothing. If so, enter either 1 or 2. See STAR Manual, Section 7", type=int, default=0)
 
 args = parser.parse_args()
 
@@ -25,6 +26,6 @@ template_file = open(wd + "/../templates/" + args.template, 'r').read()
 s = Template(template_file)
 
 new_t = s.substitute(memory=args.memory, cntCont=args.numberOfControls, cntExp=args.numberOfExperimentals, prefix=args.prefix, datafile=args.datafile,\
-        orgdb=args.org, jobqueue=args.queue, dbkey=args.dbkey, gProfilerkey=args.gProfilerkey)
+        orgdb=args.org, jobqueue=args.queue, dbkey=args.dbkey, gProfilerkey=args.gProfilerkey, strand=args.strand)
 
 print new_t

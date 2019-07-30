@@ -67,6 +67,12 @@ threads: 4
 # are you working with paired end data? [True or False]
 paired: True
 #
+# Is your RNA-Seq data stranded, if not set strand: 0
+# otherwise, set strand to 1 or 2
+# see Section 7 of STAR Manual
+# https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf
+strand: 0
+#
 input:
     control:
         1:

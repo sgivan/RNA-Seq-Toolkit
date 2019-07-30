@@ -344,38 +344,39 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
 #
 #   copy & run make_gene_cnts_per_sample.sh script from rst directory to curdir
 #
-    shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'make_gene_cnts_per_sample.sh'), 'make_gene_cnts_per_sample.sh')
-
-    try:
-        #subprocess.check_call(['sh', 'make_gene_cnts_per_sample.sh'])
-        subprocess.check_call("sh make_gene_cnts_per_sample.sh", shell=True)
-    except OSError as e:
-        print "can't run make_gene_cnts_per_sample.sh: %(estring)s" % { 'estring': e.strerror }
-        sys.exit(15)
+#    shutil.copyfile(os.path.join(config['rst_path'], 'bin', 'make_gene_cnts_per_sample.sh'), 'make_gene_cnts_per_sample.sh')
+#
+#    try:
+#        #subprocess.check_call(['sh', 'make_gene_cnts_per_sample.sh'])
+#        subprocess.check_call("sh make_gene_cnts_per_sample.sh", shell=True)
+#    except OSError as e:
+#        print "can't run make_gene_cnts_per_sample.sh: %(estring)s" % { 'estring': e.strerror }
+#        sys.exit(15)
 #
 #   run join_gene_cnts_opt.sh script from rst directory 
 #   this will create the gene exp matrix file
 #
-    rst_script = os.path.join(config['rst_path'], 'bin', 'join_gene_cnts_opt.sh')
-
-    print "clength: %(clength)i, elength: %(elength)i." % { "clength": clength, "elength": elength }
-
-    try:
-        subprocess.check_call(rst_script + " " + "-c " + str(clength) + " -e " + str(clength + 1) + " -E " + str(clength + elength), shell=True)
-    except OSError as e:
-        print "can't run join statement: %s" % e.strerror
-
+#    rst_script = os.path.join(config['rst_path'], 'bin', 'join_gene_cnts_opt.sh')
+#
+#    print "clength: %(clength)i, elength: %(elength)i." % { "clength": clength, "elength": elength }
+#
+#    try:
+#        subprocess.check_call(rst_script + " " + "-c " + str(clength) + " -e " + str(clength + 1) + " -E " + str(clength + elength), shell=True)
+#    except OSError as e:
+#        print "can't run join statement: %s" % e.strerror
+#
 #
 #    for j in config['input']['experimental'][i]:
 #        jlength=length(j)
 
     datafilename='C_v_E.txt'
     deseq2_script=os.path.join(config["rst_path"], "bin", "create_DESeq2_cmd_batch_file.py")
+    strand = config['strand'] + 2
     try:
         subprocess.check_call(deseq2_script + " " + "--numberOfControls " + str(clength) + \
                 " --numberOfExperimentals " + str(elength) + " --datafile " + datafilename + \
                 " --org " + config['org'] + " --gProfilerkey " + config['gProfilerkey'] + \
-                " --dbkey " + config['dbkey'] + \
+                " --dbkey " + config['dbkey'] + " --strand " + str(strand) + \
                 " > DESeq2.Rscript", \
                 shell=True)
     except OSError as e:

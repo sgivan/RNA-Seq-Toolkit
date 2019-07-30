@@ -19,8 +19,9 @@ library(pheatmap)
 # Thanks Stephen Turner (see https://gist.github.com/stephenturner/4a599dbf120f380d38e7#file-volcanoplot-r)
 plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
 
-    res <- read.table(DE_results_filename, na.strings="", sep="\t",header=TRUE)
-    row.names(res) <- res$$Gene
+#    res <- read.table(DE_results_filename, na.strings="", sep="\t",header=TRUE)
+    res <- read_tsv(DE_results_filename, col_names=T)
+#    row.names(res) <- res$$Gene
 
     # No NA's in log2FoldChange, right?
     # True is also 1, right?
@@ -40,15 +41,18 @@ plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
 }
 
 # create the merged data object
-merged.data <- read_tsv("../align/Sample_1/gene_cnts.txt", col_names=T)
+merged.data <- read_tsv("../align/Sample_1/PE_ReadsPerGene.out.tab", col_names=F, skip=4)[,c(1,$strand)]
+sampnames <- c("GENEID", "Sample_1")
 eod <- $cntCont + $cntExp
 for (i in 2:eod) {
     sname <- paste0("Sample_",i)
-    fpth <- paste0("../align/", sname, "/gene_cnts.txt")
+    fpth <- paste0("../align/", sname, "/PE_ReadsPerGene.out.tab")
 #    sampdata <- read.delim(fpth, header=T, row.names=NULL, sep="\t", stringsAsFactors=F)
-    sampdata <- read_tsv(fpth, col_names=T)
-    merged.data <- merge(merged.data, sampdata)
+    sampnames <- append(sampnames, sname)
+    sampdata <- read_tsv(fpth, col_names=F, skip=4)[,c(1,$strand)]
+    merged.data <- merge(merged.data, sampdata, by="X1")
 }
+colnames(merged.data) <- sampnames
 #
 # The gene_cnt_matrix.tab file, loaded in the next command, should have gene IDs in the first column.
 # Then, each sample should occupy its own column.
