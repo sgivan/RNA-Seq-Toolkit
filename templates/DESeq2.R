@@ -207,3 +207,7 @@ write.table(gprofile_Ordered['result'], file=paste0("$prefix","_gProfileR.txt"),
 # save image file
 save.image(file=paste0("$prefix", "_RData"))
 
+sink(paste0("$prefix","_sessionInfo.txt"))
+sessionInfo()
+sink()
+
