@@ -277,6 +277,10 @@ if 'align' in config.keys() and config['align'] != False:
     os.chdir(config['working_alignment_dir'])
 
     rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
+
+    if config['seq_compressed'] == True:
+        rst_script = rst_script + " --gzip"
+        
     try:
 #        subprocess.check_call(rst_script + " --partial --submit --threads " + str(config['threads']) + " --queue " + str(config['jobQ']) + " Sample_*", shell=True)
         subprocess.check_call(
@@ -313,18 +317,34 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
     print "files: '%s'" % files
 
     try:
-        os.mkdir('DEA')
+        os.mkdir(config['working_DEA_dir'])
     except OSError as e:
-        print "can't create DEA directory: %(ecode)s" % { "ecode": e.strerror }
-        sys.exit(13)
+        print "can't create directory '%(dirname)s'." % { "dirname": config['working_DEA_dir'] }
+        print e.errno
+        print e
+        sys.exit()
 
-    os.chdir('DEA')
+    try:
+        os.chdir(config['working_DEA_dir'])
+    except OSError as e:
+        print "can't chdir into '%(dirname)s'." % { "dirname": config['working_DEA_dir'] }
+        print e.errno
+        print e
+
+#    try:
+#        os.mkdir('DEA')
+#    except OSError as e:
+#        print "can't create DEA directory: %(ecode)s" % { "ecode": e.strerror }
+#        sys.exit(13)
+#
+#    os.chdir('DEA')
 
     for filename in files:
         fmatch=re.match("Sample_", filename)
         if (fmatch):
             print "Creating symlink to '%(filename)s'" % { 'filename': filename }
-            os.symlink("../align/" + str(filename), str(filename))
+#            os.symlink("../align/" + str(filename), str(filename))
+            os.symlink("../" + config['working_alignment_dir'] + "/" + str(filename), str(filename))
             os.chdir(filename)
 #            rst_script=os.path.join(config['rst_path'], 'bin', 'STAR_merge_gene_counts.py')
 #
@@ -340,7 +360,8 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
 #                except OSError as e:
 #                    print "can't run %(scriptname)s --seonly" % { 'scriptname': rst_script }
 
-            os.chdir(os.path.join(curdir, 'DEA'))
+#            os.chdir(os.path.join(curdir, 'DEA'))
+            os.chdir(os.path.join(curdir, config['working_DEA_dir']))
 #
 #   copy & run make_gene_cnts_per_sample.sh script from rst directory to curdir
 #
@@ -376,7 +397,7 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
         subprocess.check_call(deseq2_script + " " + "--numberOfControls " + str(clength) + \
                 " --numberOfExperimentals " + str(elength) + " --datafile " + datafilename + \
                 " --org " + config['org'] + " --gProfilerkey " + config['gProfilerkey'] + \
-                " --dbkey " + config['dbkey'] + " --strand " + str(strand) + \
+                " --dbkey " + config['dbkey'] + " --strand " + str(strand) + " --aligndir " + config['working_alignment_dir'] + \
                 " > DESeq2.Rscript", \
                 shell=True)
     except OSError as e:
@@ -388,11 +409,11 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
     qstat -u $USER
 
     Once the alignment jobs finish, your data is ready for a Differential Expression (DE) analysis.
-    A file named DESeq2.Rscript has been created in the DEA directory (path = DEA/DESeq2.Rscript).
+    A file named DESeq2.Rscript has been created in the DEA directory (path = %(DEAdir)s/DESeq2.Rscript).
     This file can be directly submitted to a PBS cluster using this command:
     qsub DESeq2.Rscript
     To run that specific command, you must cd into the DEA directory:
-    cd DEA
+    cd %(DEAdir)s
     For the analysis to run to completion, you must have R in your path and several R
     libraries need to be installed:
     tidyverse
@@ -413,5 +434,5 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
     the bbc R module:
     module load bbc/R/R-3.6.0
 
-    """)
+    """) % { 'DEAdir': config['working_DEA_dir'] }
 

@@ -15,6 +15,7 @@ library($orgdb)
 #library(dplyr)
 library(vegan)
 library(pheatmap)
+library(gprofiler2)
 
 # Thanks Stephen Turner (see https://gist.github.com/stephenturner/4a599dbf120f380d38e7#file-volcanoplot-r)
 plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
@@ -41,12 +42,12 @@ plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
 }
 
 # create the merged data object
-merged.data <- read_tsv("../align/Sample_1/PE_ReadsPerGene.out.tab", col_names=F, skip=4)[,c(1,$strand)]
+merged.data <- read_tsv(paste0("../","$aligndir","/Sample_1/PE_ReadsPerGene.out.tab"), col_names=F, skip=4)[,c(1,$strand)]
 sampnames <- c("GENEID", "Sample_1")
 eod <- $cntCont + $cntExp
 for (i in 2:eod) {
     sname <- paste0("Sample_",i)
-    fpth <- paste0("../align/", sname, "/PE_ReadsPerGene.out.tab")
+    fpth <- paste0("../", "$aligndir","/", sname, "/PE_ReadsPerGene.out.tab")
 #    sampdata <- read.delim(fpth, header=T, row.names=NULL, sep="\t", stringsAsFactors=F)
     sampnames <- append(sampnames, sname)
     sampdata <- read_tsv(fpth, col_names=F, skip=4)[,c(1,$strand)]
@@ -111,7 +112,36 @@ baseMeanControl <- rowMeans(counts(dds, normalized=TRUE)[,colData(dds)$$conditio
 res = cbind(baseMeanExp, baseMeanControl, as.data.frame(res))
 
 res$$padj[is.na(res$$padj)]  <- 1
-geneSymbol <- mapIds($orgdb, keys=row.names(res), column="SYMBOL", keytype="$dbkey", multiVals="first")
+
+#
+# wrap the call to mapIds in a tryCatch() routine to catch errors
+rslt <- tryCatch(
+                    expr = {
+                        geneSymbol <- mapIds($orgdb, keys=row.names(res), column="SYMBOL", keytype="$dbkey", multiVals="first")
+                    },
+                    error = function(e){
+                        message("mapping gene symbols with org DB generated an error")
+                        return(e)
+                    },
+                    warning = function(w){
+                        message("mapping gene symbols with org DB generated a warning")
+                        print(w)
+                    },
+                    finally = {
+                        message("finished mapping gene symbols with org DB")
+                    }
+                 )
+
+#
+# if mapIds() generated an error, try to get gene names using the gprofiler2 function gconvert
+if (inherits(rslt, 'simpleError')) {
+    message("because of error using org DB, now try gprofiler2 to get gene symbols")
+    gcrslt <- gconvert(row.names(res), organism="$gProfilerkey")
+    geneSymbol <- gcrslt$$name
+}
+
+#
+# let's assume that if we've got this far that geneSymbol contains gene names
 bestGeneDescriptor <- gsub("'","_",geneSymbol)
 bestGeneDescriptor[ is.na(bestGeneDescriptor) ] <- row.names(res)[ is.na(bestGeneDescriptor) ]
 
@@ -119,40 +149,51 @@ res <- cbind(GeneSymbol=geneSymbol, as.data.frame(res))
 res <- cbind(Gene=row.names(res), as.data.frame(res))
 res <- cbind(BestGeneDescriptor=bestGeneDescriptor, as.data.frame(res))
 
-#write.table(as.data.frame(res[order(res$$pvalue),]), file='DESeq2_DE_results.txt', sep="\t", na="", row.names=FALSE,quote=FALSE)
+#
+# write DE results and count matrix to separate files
 write.table(as.data.frame(res[order(res$$pvalue),]), file=paste0("$prefix", "_DESeq2_DE_results.txt"), sep="\t", na="", row.names=FALSE,quote=FALSE)
 write.table(rnaseqMatrix, file=paste0("$prefix", "_DESeq2_count_matrix.txt"), sep="\t", na="", row.names=FALSE,quote=FALSE)
 
+#
+# generate a volcano plot as a PDF file
 pdf(paste0("$prefix", "_Volcano.pdf"))
 plot_Volcano(paste0("$prefix", "_DESeq2_DE_results.txt"))
 dev.off()
 
+#
+# generate a volcano plot as a SVG file
 svg(paste0("$prefix", "_Volcano.svg"))
 plot_Volcano(paste0("$prefix", "_DESeq2_DE_results.txt"))
 dev.off()
 
+#
 # calcluate statistical significance of clustering in PCA analysis
 vsd <- vst(dds, blind=F)
 vsd.df.t <- t(as.data.frame(assay(vsd)))
 vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutations=10000)
 
+#
+# output adonis() results to text file
 sink(paste0("$prefix","_adonis.txt"))
 vsd.adonis
 sink()
 
 # make heatmap plots
+
+# pdf file
 select <- order(rowMeans(counts(dds, normalized=T)), decreasing=T)[1:1000]
 pdf(paste0("$prefix", "_Heatmap.pdf"))
 pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition)
 dev.off()
 
+# svg file
 svg(paste0("$prefix", "_Heatmap.svg"))
 pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition)
 dev.off()
 
 # do pathway analysis
 #library(gProfileR)
-library(gprofiler2)
+#library(gprofiler2)
 BGD.05 <- as.character(dplyr::select(dplyr::filter(dplyr::arrange(res, padj), padj < 0.05), BestGeneDescriptor)$$BestGeneDescriptor)
 #gprofile_Ordered <- gprofiler(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='analytical', sort_by_structure=T, significant=T)
 gprofile_Ordered <- gost(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='gSCS', significant=T)
@@ -162,5 +203,7 @@ gprofile_Ordered$$result$$parents <- paste(gprofile_Ordered$$result$$parents, co
 # write the gprofiler output to a file
 write.table(gprofile_Ordered['result'], file=paste0("$prefix","_gProfileR.txt"), sep="\t", quote=F, row.name=F, col.name=T)
 
+#
+# save image file
 save.image(file=paste0("$prefix", "_RData"))
 

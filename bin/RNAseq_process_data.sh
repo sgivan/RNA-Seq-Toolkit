@@ -67,6 +67,7 @@ function help_messg () {
             echo "-F | --nofilter do not do sequence similarity filtering"
             echo "-G | --notrim do not do sequence trimming/filtering based on base quality values"
             echo "-x | --memory amount of memory to allocate [50gb]"
+            echo "-z | --gzip input files are gzip compressed"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -108,6 +109,7 @@ function help_messg () {
             echo "-F | --nofilter do not do sequence similarity filtering"
             echo "-G | --notrim do not do sequence trimming/filtering based on base quality values"
             echo "-x | --memory amount of memory to allocate [50gb]"
+            echo "-z | --gzip input files are gzip compressed"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h [print this help message]"
             echo "" ;;
@@ -142,6 +144,7 @@ function help_messg () {
             echo "-F | --nofilter do not do sequence similarity filtering"
             echo "-G | --notrim do not do sequence trimming/filtering based on base quality values"
             echo "-x | --memory amount of memory to allocate [50gb]"
+            echo "-z | --gzip input files are gzip compressed"
 #            echo "-J | --ignore_single_exons ignore single exon transfrags (& reference transcripts) when combining from multiple GTF files"
             echo "-h | --help [print this help message]"
             echo "" ;;
@@ -181,6 +184,7 @@ cufflinks_compatible=0
 nofilter=0
 notrim=0
 memory='50gb'
+gzip=0
 
 # edit this variable to be the path to RNAseq toolkit an you won't need to use the --toolpath command line flag
 toolpath='.'
@@ -190,11 +194,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFG --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,queue:,wait,ignore_single_exons,nofilter,notrim,memory: -- "$@"`
+        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFGz --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,queue:,wait,ignore_single_exons,nofilter,notrim,memory:,gzip -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pfhr:i:I:jH:l:ueA:P:T:Rm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFG $*`
+        TEMP=`getopt pfhr:i:I:jH:l:ueA:P:T:Rm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFGz $*`
         ;;
 
     *)
@@ -240,6 +244,7 @@ while true ; do
         -F|--nofilter) nofilter=1 ; shift ;;
         -G|--notrim) notrim=1 ; shift ;;
         -x|--memory) memory=$2 ; shift 2 ;;
+        -z|--gzip) gzip=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -306,6 +311,11 @@ fi
 if [[ $notrim -ne 0 ]]
 then
     flags="$flags -N"
+fi
+
+if [[ $gzip -eq 1 ]]
+then
+    flags="$flags -z"
 fi
 #echo "flags: '$flags'"
 #exit
@@ -405,10 +415,10 @@ do
             if [[ $batch -eq 1 ]]
             then
 #                OUTPUT="$(sbatch --time=0 -J $dir cmd)"
-                OUTPUT="$(qsub -q $queue -N $dir ./cmd)"
+                OUTPUT="$(qsub -V -q $queue -N $dir ./cmd)"
             else
 #                OUTPUT="$(sbatch --time=0  --mem=${memory} --depend=afterok:${job_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
-                OUTPUT="$(qsub -l depend=afterok:${job_id},mem-${memory},nodes=1,ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir \
+                OUTPUT="$(qsub -V -l depend=afterok:${job_id},mem-${memory},nodes=1,ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir \
                     -q $queue ./cmd)"
             fi
 
@@ -416,13 +426,13 @@ do
             if [[ $batch -eq 1 ]]
             then
 #                OUTPUT="$(sbatch --time=0 -J ${dir} cmd)"
-                OUTPUT="$(qsub -q $queue -N ${dir} cmd)"
+                OUTPUT="$(qsub -V -q $queue -N ${dir} cmd)"
                 job_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
                 #echo "subsequent jobs will wait for job JOB ID: '"$job_id"'"
             else
 
 #                OUTPUT="$(sbatch --time=0 --mem=${memory} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads --wrap='sh cmd')"
-                OUTPUT="$(qsub -l mem=${memory},nodes=1,ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir \
+                OUTPUT="$(qsub -V -l mem=${memory},nodes=1,ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir \
                     -q $queue ./cmd)"
                 job_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
                 #echo "subsequent jobs will wait for job JOB ID: '"$job_id"'"

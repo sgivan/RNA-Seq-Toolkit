@@ -20,10 +20,15 @@ original_datadir: data/original_files
 # and will contain working copies of the original
 # input files.
 working_datadir: data/working
+# are the input file gzip compressed [True/False]?
+seq_compressed: False
 # working_alignment_dir will be created for you and
 # will contain the results of alignging the input
 # reads to the reference genome.
 working_alignment_dir: align
+# working_DEA_dir will be the directory
+# containing the Differential Expression Analysis (DEA)
+working_DEA_dir: DEA
 #
 # full path to index directory is the path to the STAR
 # index for the reference genome you are using.
@@ -60,7 +65,7 @@ diff_expression: True
 # the name of the cluster job queue to submit the jobs
 jobQ: bbc
 # max number of threads to use per job
-threads: 4
+threads: 8
 #
 # Options related to the data files and analysis
 #

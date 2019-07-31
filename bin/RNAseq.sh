@@ -96,21 +96,22 @@ STARcmd="STAR"
 nofilter=0
 notrim=0
 queue='shortQ'
+gzip=0
 #
 # command line option parsing adpated from /usr/share/doc/util-linux-2.13/getopt-parse.bash
 #
 case "$osname" in
 
     Linux)
-            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBCKFGw: --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter,notrim,queue: -- "$@"`
+            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBCKFGw:z --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter,notrim,queue:,gzip -- "$@"`
             ;;
 
     Darwin)
-            TEMP=`getopt et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBCKFGw: $*`
+            TEMP=`getopt et:pfhr:i:I:P:aA:ROm:c:S:g:vbL:M:q:n:E:QdNoBCKFGw:z $*`
             ;;
 
         *)
-            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:q:n:E:QdNoBCKFGw: --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter,notrim,queue: -- "$@"`
+            TEMP=`getopt -o et:pfhr:i:I:P:aA:ROm:c:S:g:q:n:E:QdNoBCKFGw:z --long full,partial,mate_inner_distance:,min_intron_length:,max_intron_length:,procs:,indexpath:,refseq:,seonly,adapter_seq:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,oldid,solexa_p13,leave_temp,nofilter,notrim,queue:,gzip -- "$@"`
             ;;
 esac
 
@@ -142,7 +143,8 @@ function help_messg () {
         -N|--oldid) oldid=1 ; shift ;;
         -F|--nofilter) nofilter=1 ; shift ;;
         -G|--notrim) notrim=1 ; shift ;;
-        -w|--queue) queue=1 ; shift 2 ;;
+        -w|--queue) queue=$2 ; shift 2 ;;
+        -z|--gzip) gzip=1 ; shift ;;
 
         "
 }
@@ -174,7 +176,8 @@ while true ; do
         -N|--oldid) oldid=1 ; shift ;;
         -F|--nofilter) nofilter=1 ; shift ;;
         -G|--notrim) notrim=1 ; shift ;;
-        -w|--queue) queue=1 ; shift 2 ;;
+        -w|--queue) queue=$2 ; shift 2 ;;
+        -z|--gzip) gzip=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -395,10 +398,20 @@ then
 #                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I"
 #                $(create_STAR_cmd_sbatch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t --minIntronLength $min_intron_length_i \
 #                    --maxIntronLength $max_intron_length_I > cmd)
-                echo "creating STAR batch file with these options: create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmd.t \
-                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r --queue $queue"
-                $(create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmd.t --minIntronLength $min_intron_length_i \
-                    --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r --queue $queue > cmd)
+                starcmd="create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmd.t --minIntronLength $min_intron_length_i \
+                    --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r --queue $queue"
+
+                if [[ $gzip -eq 1 ]]
+                then
+                    starcmd="$starcmd --gzip"
+                fi
+
+#                echo "creating STAR batch file with these options: create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmd.t \
+#                --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r --queue $queue"
+#                $(create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmd.t --minIntronLength $min_intron_length_i \
+#                    --maxIntronLength $max_intron_length_I --alignGapMax $mate_inner_distance_r --queue $queue > cmd)
+                echo $starcmd
+                $(${starcmd} > cmd)
             else
                 echo "creating STAR batch file with these options: create_STAR_cmd_batch_file.py --index $INDEXES --threads $procs --template STARcmdSE.t \
                 --minIntronLength $min_intron_length_i --maxIntronLength $max_intron_length_I --queue $queue"
