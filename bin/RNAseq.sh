@@ -204,6 +204,12 @@ then
 fi
 
 preprocess_flags="-i $INDEXES -t $procs -Q $min_qual -L $min_length -H $percent_high_quality"
+
+if [[ $gzip -eq 1 ]]
+then
+    preprocess_flags="$preprocess_flags -z"
+fi
+
 if [[ $qualscores -eq 1 ]]
 then
     preprocess_flags="$preprocess_flags -s"

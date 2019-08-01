@@ -42,6 +42,8 @@ index_datadir: /secondary/projects/bbc/RST/yaml/genome/STAR
 # and symlinks? This should usually be True if this
 # is a new project
 setup_files: True
+# do preprocessing?
+preprocess: True
 # Align the reads to the reference? True or False
 align: True
 # Number of processors or threads to devote to pipeline
@@ -65,7 +67,8 @@ diff_expression: True
 # the name of the cluster job queue to submit the jobs
 jobQ: bbc
 # max number of threads to use per job
-threads: 8
+# deprecated - see procs, above
+#threads: 8
 #
 # Options related to the data files and analysis
 #

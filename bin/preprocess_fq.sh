@@ -40,6 +40,7 @@ notrim=0
 leave_temp=0
 qualscores='NULL'
 seonly=0
+gzip=0
 #
 function help_messg {
     echo "invoke script like this:"
@@ -63,6 +64,7 @@ function help_messg {
         -H|--percent_high_quality # this must be a duplicate -> see -p option, above
         -s|--solexa Use old Solexa fastq quality scale 
         -e|--seonly Sequence data is not paired end
+        -z|--gzip sequence data is compressed with gzip
         -h|--help
         -C|--leave_temp Leave temporary files in place [default behavior is to remove them]
         "
@@ -73,15 +75,15 @@ function help_messg {
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o q:l:p:t:hi:f:CQ:L:H:sen --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly,nofilter -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:CQ:L:H:senNz --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly,nofilter,notrim,gzip -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt q:l:p:t:hi:f:CQ:L:H:sen $*`
+        TEMP=`getopt q:l:p:t:hi:f:CQ:L:H:senNz $*`
         ;;
 
     *)
-        TEMP=`getopt -o q:l:p:t:hi:f:CQ:L:H:sen --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly,nofilter -- "$@"`
+        TEMP=`getopt -o q:l:p:t:hi:f:CQ:L:H:senNz --long min_qual:,min_length:,percent_high_quality:,bowtie_threads:,indexpath:,filter:,leave_temp,min_qual:,min_length:,percent_high_quality:,solexa,seonly,nofilter,notrim,gzip -- "$@"`
         ;;
 esac
 
@@ -107,6 +109,7 @@ while true ; do
         -e|--seonly) seonly=1 ; shift ;;
         -h|--help) help_messg ; exit ;;
         -C|--leave_temp) leave_temp=1; shift ;;
+        -z|--gzip) gzip=1 ; shift ;;
 #        --) shift ; break ;;
         *) break ;;
     esac
@@ -215,14 +218,29 @@ else
     echo "first data file ..."
     #echo "bowtie -q --solexa1.3-quals --un set1_qt_qf_sf.fq --threads $bowtie_threads $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
     echo "$bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
-    $bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+
+    if [[ $gzip -eq 1 ]]
+    then
+        echo "zcat set1_qt_qf.fq | $bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter - > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
+        zcat set1_qt_qf.fq | $bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter - > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+    else
+        echo "$bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log"
+        $bowtie_cmd $bowtie_flags --un set1_qt_qf_sf.fq $filter set1_qt_qf.fq > set1_qt_qf_filter_matched.sam 2> set1_qt_qf_bwt.log
+    fi
+
     cat set1_qt_qf_bwt.log
 
     if [[ -e set2_qt_qf.fq ]]
     then
         echo "second data file"
-        echo "$bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log"
-        $bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log
+        if [[ $gzip -eq 1 ]]
+        then
+            echo "zcat set2_qt_qf.fq | $bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter - > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log"
+            zcat set2_qt_qf.fq | $bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter - > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log
+        else
+            echo "$bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log"
+            $bowtie_cmd $bowtie_flags --un set2_qt_qf_sf.fq $filter set2_qt_qf.fq > set2_qt_qf_filter_matched.sam 2> set2_qt_qf_bwt.log
+        fi
         cat set2_qt_qf_bwt.log
     fi
 fi

@@ -115,19 +115,33 @@ def monitor_cluster_jobs(jobs):
     while wait:
         wait=0
 
+        print "looping through job id's"
         for jobid in jobs:
+            if args.verbose:
+                print "checking job #%(id)s" % { 'id': jobid }
 
             rtn=0
             try:
-                rtn=subprocess.check_output("squeue -o %T --noheader -j " + jobid, shell=True)
+#                rtn=subprocess.check_output("qstat -f " + jobid + " | grep job_state | cut -f 2 -d '=' | sed 's/ //g'", shell=True)
+                #rtn=subprocess.check_output("tracejob -a -l -m " + jobid + " | grep Exit_status", shell=True)
+                rtn=subprocess.check_output("tracejob -a -l -m " + jobid, shell=True)
+#                rtn = rtn.rstrip()
+                if args.verbose:
+                    print "rtn value: '%(val)s'" % { 'val': rtn }
+
             except subprocess.CalledProcessError as e:
-                print "can't call squeue with jobid %(jobid)i: %(ecode)i" % { "jobid": jobid, "ecode": e.returncode }
+                print "can't call tracejob with jobid %(jobid)i: %(ecode)i" % { "jobid": jobid, "ecode": e.returncode }
                 sys.exit(15)
   
-            if rtn:
+#            if rtn != 'C':
+            if re.search(r'Exit_status',rtn):
+                if args.verbose: print "job " + jobid + " finished"
+                continue
+            else:
                 wait=1
                 if args.verbose: print "waiting for job " + jobid
                 time.sleep(5)
+                break
             
 #
 # end of functions
@@ -214,6 +228,123 @@ if 'setup_files' in config.keys() and config['setup_files'] != False:
     if args.verbose: print str(sample_number) + ' samples'
     print "Input file setup finished."
 
+# 
+# do preprocessing
+# typically, this is removing reads that match rRNA genes and/or mt genome
+#
+if 'preprocess' in config.keys() and config['preprocess'] != False:
+    print '\n\n pre-process the input data.'
+
+    try:
+        os.mkdir(config['working_alignment_dir'])
+    except OSError as e:
+        print "can't create directory '%(dirname)s'." % { "dirname": config['working_alignment_dir'] }
+        print e.errno
+        print e
+
+    try:
+        os.chdir(config['working_alignment_dir'])
+    except OSError as e:
+        print "can't chdir into '%(dirname)s'." % { "dirname": config['working_alignment_dir'] }
+        print e.errno
+        print e
+
+
+    print "creating symlnks to preprocess and alignment index files in " + config['working_alignment_dir']
+
+    if os.access('index.preprocess', os.F_OK):
+        print "Will not overwrite current 'index.preprocess' symlink.\nPlease remove it."
+        sys.exit(6)
+
+    try:
+        os.symlink(config['filter_datadir'], 'index.preprocess')
+    except OSError as e:
+        print "can't create index.preprocess symlink pointing to '%(dirname)s.'" % { 'dirname': config['filter_datadir'] }
+        print e.errno
+        print e.filename
+#        print e.strerr
+
+    if os.access('index.align', os.F_OK):
+        print "Will now overwrite current 'index.align' symlink.\nPlease remove it."
+        sys.exit(7)
+
+    try:
+        os.symlink(config['index_datadir'], 'index.align')
+    except OSError as e:
+        print "can't create index.align symlink pointing to '%(dirname)s.'" % { 'dirname': config['index_datadir'] }
+        print e.errno
+        print e.filename
+#        print e.strerr
+
+    if os.access('index', os.F_OK):
+        print "Will now overwrite current 'index' symlink.\nPlease remove it."
+        sys.exit(8)
+
+    try:
+        os.symlink('index.preprocess', 'index')
+    except OSError as e:
+        print "can't create index symlink pointing to index.preproces"
+        print e.errno
+        print e.filename
+#        print e.strerr
+
+    if args.verbose: print "preprocess and align symlinks created in " + curdir
+
+    setup_script=os.path.join(config['rst_path'], 'bin', 'setup.sh')
+    if args.verbose: print "calling setup script '%(scriptname)s'." % { "scriptname": setup_script }
+    try:
+#        out=subprocess.check_call(setup_script, shell=True)
+        dpth = os.path.join("..", config['working_datadir'])
+        print "will symlink Sample_* directories in %(dirpath)s." % { "dirpath": dpth }
+        out=subprocess.check_call(setup_script + " " + dpth, shell=True)
+    except subprocess.CalledProcessError as e:
+        print "call to symlink failed"
+        print "error code: %(ecode)i" % { "ecode": e.returncode }
+        sys.exit(9)
+
+    if args.verbose: print "running RST preprocessing routines"
+
+    rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
+
+    out=""
+    scriptargs = " --preprocess_only --notrim --submit --threads " + str(config['procs']) + " --queue " + str(config['jobQ'])
+    if config['seq_compressed'] == True:
+        scriptargs += " --gzip"
+
+    scriptargs += " Sample_*"
+
+    if args.verbose:
+        print "scriptargs: '%(argstring)s'" % { 'argstring': scriptargs }
+
+    try:
+#        out=subprocess.check_output(rst_script + "--preprocess_only --notrim --submit --threads " + str(config['procs']) + " Sample_*", shell=True)
+        out=subprocess.check_output(rst_script + " " + scriptargs, shell=True)
+    except subprocess.CalledProcessError as e:
+        print "call to %(rst)s failed with error code %(ecode)i" % { "rst": rst_script, "ecode": e.returncode }
+        sys.exit(10)
+    if args.verbose:
+        print "script output: '%(output)s'" % { 'output': out }
+
+    os.chdir(curdir)
+#   the preprocessing scripts will decompress the fastq files,
+#   so set this config setting to False
+    config['seq_compressed'] = False
+
+# [07/31/19 16:11:21] submit DEA_MI/$ qsub DESeq2.Rscript
+# 579648.master.cm.cluster
+#
+    slurmjobs = []
+    for line in str.splitlines(out):
+        match = re.search("master\.cm\.cluster", line)
+        if match:
+#            words = str.split(line)
+            words = line.split(".")
+            id = words[0]
+            slurmjobs.append(id)
+
+    monitor_cluster_jobs(slurmjobs)
+
+
 if 'align' in config.keys() and config['align'] != False:
     print "\n\n setting up alignment directory"
 
@@ -223,7 +354,7 @@ if 'align' in config.keys() and config['align'] != False:
         print "can't create directory '%(dirname)s'." % { "dirname": config['working_alignment_dir'] }
         print e.errno
         print e
-        sys.exit()
+#        sys.exit()
 
     try:
         os.chdir(config['working_alignment_dir'])
@@ -237,7 +368,7 @@ if 'align' in config.keys() and config['align'] != False:
 
     if os.access('index.align', os.F_OK):
         print "Will not overwrite current 'index.align' symlink.\nPlease remove it."
-        sys.exit(7)
+#        sys.exit(7)
 
     try:
         os.symlink(config['index_datadir'], 'index.align')
@@ -248,7 +379,7 @@ if 'align' in config.keys() and config['align'] != False:
 
     if os.access('index', os.F_OK):
         print "Will not overwrite current 'index' symlink.\nPlease remove it."
-        sys.exit(8)
+#        sys.exit(8)
 
     try:
         os.symlink('index.align', 'index')
@@ -268,7 +399,7 @@ if 'align' in config.keys() and config['align'] != False:
     except subprocess.CalledProcessError as e:
         print "call to symlink failed"
         print "error code: %(ecode)i" % { "ecode": e.returncode }
-        sys.exit(9)
+#        sys.exit(9)
 
     os.chdir(curdir)
 
@@ -282,10 +413,9 @@ if 'align' in config.keys() and config['align'] != False:
         rst_script = rst_script + " --gzip"
         
     try:
-#        subprocess.check_call(rst_script + " --partial --submit --threads " + str(config['threads']) + " --queue " + str(config['jobQ']) + " Sample_*", shell=True)
         subprocess.check_call(
-                rst_script + " --partial --submit --threads " + str(config['threads']) + \
-                " --queue " + str(config['jobQ']) + " --threads " + str(config['procs']) + \
+                rst_script + " --partial --submit --threads " + str(config['procs']) + \
+                " --queue " + str(config['jobQ']) + \
                 " --min_intron_length " + str(config['min_intron_length']) + " --max_intron_length " + str(config['max_intron_length']) + \
                 " Sample_*",
                 shell=True

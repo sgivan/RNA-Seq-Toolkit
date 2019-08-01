@@ -24,6 +24,7 @@ osname='Linux'
 export PATH=".:$wd:$wd/bin:$HOME/bin:$PATH"
 script=`which RNAseq.sh`
 echo "script \"$script\""
+
 if [[ -z "$script" ]]; then
 #    echo $0
     echo "setting path of RNAseq.sh to the same as RNAseq_process_data.sh"
@@ -174,7 +175,7 @@ dev=0
 oldid=0
 RNAseq_script='NULL'
 bsub=0
-queue='shortQ'
+queue='shortq'
 no_new_txpts='NULL'
 leave_temp=0
 ignore_single_exons=0
@@ -194,11 +195,11 @@ toolpath='.'
 case "$osname" in
 
     Linux)
-        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFGz --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,queue:,wait,ignore_single_exons,nofilter,notrim,memory:,gzip -- "$@"`
+        TEMP=`getopt -o pfhr:i:I:jH:l:ueA:P:T:ROm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFGzD: --long help,full,partial,min_intron_length:,max_intron_length:,agg_junctions,threads:,library_type:,use_aggregates,seonly,adapter:,indexpath:,toolpath:,preprocess,preprocess_only,min_qual:,min_length:,percent_high_quality:,solexa,dev,leave_temp,oldid,phred33,phred64,submit,queue:,wait,ignore_single_exons,nofilter,notrim,memory:,gzip -- "$@"`
         ;;
 
     Darwin)
-        TEMP=`getopt pfhr:i:I:jH:l:ueA:P:T:Rm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFGz $*`
+        TEMP=`getopt pfhr:i:I:jH:l:ueA:P:T:Rm:c:S:g:vbM:q:n:E:QdCNXx:YoB:wJFGzD: $*`
         ;;
 
     *)
@@ -310,7 +311,8 @@ fi
 
 if [[ $notrim -ne 0 ]]
 then
-    flags="$flags -N"
+#    flags="$flags -N"
+    flags="$flags -G"
 fi
 
 if [[ $gzip -eq 1 ]]
@@ -415,10 +417,10 @@ do
             if [[ $batch -eq 1 ]]
             then
 #                OUTPUT="$(sbatch --time=0 -J $dir cmd)"
-                OUTPUT="$(qsub -V -q $queue -N $dir ./cmd)"
+                OUTPUT="$(qsub -d ./ -V -q $queue -N $dir ./cmd)"
             else
 #                OUTPUT="$(sbatch --time=0  --mem=${memory} --depend=afterok:${job_id} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads   --wrap='sh cmd')"
-                OUTPUT="$(qsub -V -l depend=afterok:${job_id},mem-${memory},nodes=1,ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir \
+                OUTPUT="$(qsub -d ./ -V -l depend=afterok:${job_id},mem-${memory},nodes=1:ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir \
                     -q $queue ./cmd)"
             fi
 
@@ -426,20 +428,21 @@ do
             if [[ $batch -eq 1 ]]
             then
 #                OUTPUT="$(sbatch --time=0 -J ${dir} cmd)"
-                OUTPUT="$(qsub -V -q $queue -N ${dir} cmd)"
+                OUTPUT="$(qsub -d ./ -V -q $queue -N ${dir} cmd)"
                 job_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
                 #echo "subsequent jobs will wait for job JOB ID: '"$job_id"'"
             else
 
 #                OUTPUT="$(sbatch --time=0 --mem=${memory} -o ./${dir}.o -e ./${dir}.e -J $dir  --partition $queue --ntasks=1 --cpus-per-task $threads --wrap='sh cmd')"
-                OUTPUT="$(qsub -V -l mem=${memory},nodes=1,ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir \
-                    -q $queue ./cmd)"
+                echo "qsub -d ./ -V -l mem=${memory},nodes=1:ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir -q $queue ./cmd"
+                OUTPUT="$(qsub -d ./ -V -l mem=${memory},nodes=1:ppn=${threads} -o ./${dir}.o -e ./${dir}.e -N $dir -q $queue ./cmd)"
                 job_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
                 #echo "subsequent jobs will wait for job JOB ID: '"$job_id"'"
             fi
         fi
     fi
-    echo "OUTPUT: "$OUTPUT 
+#    echo "RNAseq_process_data.sh OUTPUT: "$OUTPUT 
+    echo $OUTPUT
 #    job_id=$(echo $OUTPUT | sed 's/Submitted batch job //')
 #    echo "JOB ID: '"$job_id"'"
 
