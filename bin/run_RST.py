@@ -122,10 +122,7 @@ def monitor_cluster_jobs(jobs):
 
             rtn=0
             try:
-#                rtn=subprocess.check_output("qstat -f " + jobid + " | grep job_state | cut -f 2 -d '=' | sed 's/ //g'", shell=True)
-                #rtn=subprocess.check_output("tracejob -a -l -m " + jobid + " | grep Exit_status", shell=True)
                 rtn=subprocess.check_output("tracejob -a -l -m " + jobid, shell=True)
-#                rtn = rtn.rstrip()
                 if args.verbose:
                     print "rtn value: '%(val)s'" % { 'val': rtn }
 
@@ -133,23 +130,41 @@ def monitor_cluster_jobs(jobs):
                 print "can't call tracejob with jobid %(jobid)i: %(ecode)i" % { "jobid": jobid, "ecode": e.returncode }
                 sys.exit(15)
   
-#            if rtn != 'C':
             if re.search(r'Exit_status',rtn):
                 if args.verbose: print "job " + jobid + " finished"
                 continue
             else:
                 wait=1
-                if args.verbose: print "waiting for job " + jobid
+#                if args.verbose: print "waiting for job " + jobid
+                print "waiting for job " + jobid
                 time.sleep(5)
                 break
+
+def check_compressed_files():
+
+    rtn = ''
+    try:
+        rtn = subprocess.check_output("file -L " + config['working_alignment_dir'] + "/Sample_1/read_1", shell=True)
+    except subprocess.CalledProcessError as e:
+        print "can't call file to test if file is compressed"
+        sys.exit(16)
+
+    compressed = 0
+    if re.search(r'gzip', rtn):
+        compressed = 1
+    else:
+        compressed = -1
+
+    return compressed
+    
             
 #
 # end of functions
 #
 
 #
-# create new working directory
-# fail if the directory already exists
+# Begin running RNA-Seq Toolkit pipeline
+# based on configuration in yaml file
 #
 jobs=[]
 filemap={}
@@ -223,7 +238,7 @@ if 'setup_files' in config.keys() and config['setup_files'] != False:
     yaml.dump(filemap, mapfile)
     mapfile.close()
 
-# End of yaml file map
+# End of creating yaml file map
 
     if args.verbose: print str(sample_number) + ' samples'
     print "Input file setup finished."
@@ -235,6 +250,10 @@ if 'setup_files' in config.keys() and config['setup_files'] != False:
 if 'preprocess' in config.keys() and config['preprocess'] != False:
     print '\n\n pre-process the input data.'
 
+#
+# create working directory
+# warn if it's already present
+# #
     try:
         os.mkdir(config['working_alignment_dir'])
     except OSError as e:
@@ -242,52 +261,82 @@ if 'preprocess' in config.keys() and config['preprocess'] != False:
         print e.errno
         print e
 
+#
+# cd into working directory
+# exit if error
+#
     try:
         os.chdir(config['working_alignment_dir'])
     except OSError as e:
         print "can't chdir into '%(dirname)s'." % { "dirname": config['working_alignment_dir'] }
         print e.errno
         print e
+        sys.exit(50)
 
-
+# create symlinks to index directories
+#
     print "creating symlnks to preprocess and alignment index files in " + config['working_alignment_dir']
 
+# Create symlink to directory containing
+# bowtie1 index files of filter sequences.
+# Filter sequences are the ones we don't
+# want in the input files
+# First, check if it already exists. If it does, exit.
     if os.access('index.preprocess', os.F_OK):
         print "Will not overwrite current 'index.preprocess' symlink.\nPlease remove it."
         sys.exit(6)
 
+# Create symlink
+# fail if error
     try:
         os.symlink(config['filter_datadir'], 'index.preprocess')
     except OSError as e:
         print "can't create index.preprocess symlink pointing to '%(dirname)s.'" % { 'dirname': config['filter_datadir'] }
         print e.errno
         print e.filename
-#        print e.strerr
+        sys.exit(60)
 
+#
+# Check if symlink already exists to alignment indices.
+# These are the STAR indices of the reference transcriptome.
+# Exit if it already exists.
     if os.access('index.align', os.F_OK):
         print "Will now overwrite current 'index.align' symlink.\nPlease remove it."
         sys.exit(7)
 
+#
+# Create symlink to STAR index files.
+# Exit if error.
     try:
         os.symlink(config['index_datadir'], 'index.align')
     except OSError as e:
         print "can't create index.align symlink pointing to '%(dirname)s.'" % { 'dirname': config['index_datadir'] }
         print e.errno
         print e.filename
+        sys.exit(70)
 #        print e.strerr
 
+# Check if a current symlink exists named "index".
+# Exit if it already exists.
     if os.access('index', os.F_OK):
         print "Will now overwrite current 'index' symlink.\nPlease remove it."
         sys.exit(8)
 
+#
+# Create the "index" symlink.
+# At this point, point the index symlink to the filter indices.
+# Exit if error.
     try:
         os.symlink('index.preprocess', 'index')
     except OSError as e:
         print "can't create index symlink pointing to index.preproces"
         print e.errno
         print e.filename
+        sys.exit(80)
 #        print e.strerr
 
+# Now that directory structure is created,
+# move on to running pre-processing routines.
     if args.verbose: print "preprocess and align symlinks created in " + curdir
 
     setup_script=os.path.join(config['rst_path'], 'bin', 'setup.sh')
@@ -317,7 +366,6 @@ if 'preprocess' in config.keys() and config['preprocess'] != False:
         print "scriptargs: '%(argstring)s'" % { 'argstring': scriptargs }
 
     try:
-#        out=subprocess.check_output(rst_script + "--preprocess_only --notrim --submit --threads " + str(config['procs']) + " Sample_*", shell=True)
         out=subprocess.check_output(rst_script + " " + scriptargs, shell=True)
     except subprocess.CalledProcessError as e:
         print "call to %(rst)s failed with error code %(ecode)i" % { "rst": rst_script, "ecode": e.returncode }
@@ -327,17 +375,15 @@ if 'preprocess' in config.keys() and config['preprocess'] != False:
 
     os.chdir(curdir)
 #   the preprocessing scripts will decompress the fastq files,
-#   so set this config setting to False
+#   so set the seq_compressed config setting to False
     config['seq_compressed'] = False
 
-# [07/31/19 16:11:21] submit DEA_MI/$ qsub DESeq2.Rscript
-# 579648.master.cm.cluster
-#
+# Monitor cluster jobs and wait for them to finish
+# before exiting ending this section of the pipeline
     slurmjobs = []
     for line in str.splitlines(out):
         match = re.search("master\.cm\.cluster", line)
         if match:
-#            words = str.split(line)
             words = line.split(".")
             id = words[0]
             slurmjobs.append(id)
@@ -348,6 +394,11 @@ if 'preprocess' in config.keys() and config['preprocess'] != False:
 if 'align' in config.keys() and config['align'] != False:
     print "\n\n setting up alignment directory"
 
+#
+# We may or may not be working with a pre-made directory structure.
+# So, we must check if the expected directories, symlinks and files already exist.
+# In general, don't die if they already exist (as we do in the setup section, above)
+#
     try:
         os.mkdir(config['working_alignment_dir'])
     except OSError as e:
@@ -362,24 +413,33 @@ if 'align' in config.keys() and config['align'] != False:
         print "can't chdir into '%(dirname)s'." % { "dirname": config['working_alignment_dir'] }
         print e.errno
         print e
+        sys.exit(90)
 
 
     print "creating symlnks to alignment index files in " + config['working_alignment_dir']
 
     if os.access('index.align', os.F_OK):
-        print "Will not overwrite current 'index.align' symlink.\nPlease remove it."
-#        sys.exit(7)
+        print "Will not overwrite current 'index.align' symlink."
+    else:
 
-    try:
-        os.symlink(config['index_datadir'], 'index.align')
-    except OSError as e:
-        print "can't create index.align symlink pointing to '%(dirname)s.'" % { 'dirname': config['index_datadir'] }
-        print e.errno
-        print e.filename
+        try:
+            os.symlink(config['index_datadir'], 'index.align')
+        except OSError as e:
+            print "can't create index.align symlink pointing to '%(dirname)s.'" % { 'dirname': config['index_datadir'] }
+            print e.errno
+            print e.filename
 
     if os.access('index', os.F_OK):
-        print "Will not overwrite current 'index' symlink.\nPlease remove it."
-#        sys.exit(8)
+#        print "Will not overwrite current 'index' symlink in the %(dirname)s directory.\nPlease remove it." % { 'dirname': config['working_alignment_dir'] }
+        print "An 'index' link currently exists in %(dirname)s.\nIt will be removed and replaced with a new one." % { 'dirname': config['working_alignment_dir'] }
+
+        try:
+            os.remove('index')
+        except OSError as e:
+            print "can't remove index symlink in directory %(dirname)s.\nPlease remove it manually." % { 'dirname': config['working_alignment_dir'] }
+            print e.errno
+            print e
+            sys.exit(91)
 
     try:
         os.symlink('index.align', 'index')
@@ -387,6 +447,7 @@ if 'align' in config.keys() and config['align'] != False:
         print "can't create index symlink pointing to index.align"
         print e.errno
         print e.filename
+        sys.exit(92)
 
     if args.verbose: print "align symlink created in " + curdir
 
@@ -410,7 +471,9 @@ if 'align' in config.keys() and config['align'] != False:
     rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
 
     if config['seq_compressed'] == True:
-        rst_script = rst_script + " --gzip"
+        chk = check_compressed_files()
+        if chk > 0:
+            rst_script = rst_script + " --gzip"
         
     try:
         subprocess.check_call(
@@ -427,6 +490,15 @@ if 'align' in config.keys() and config['align'] != False:
 #
 #   I need to monitor jobs here and not continue until last job is finished
 #
+    print('''
+
+    The sequence alignment jobs have been submitted to the cluster. You can monitor their progress using
+    the qstat command:
+    qstat -u $USER
+
+    ''')
+
+    time.sleep(5)
 
 if 'diff_expression' in config.keys() and config['diff_expression'] != False:
 
@@ -534,12 +606,13 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
         print "can't run %(scriptname)s : %(errorstr)s" % { "scriptname": deseq2_script, "errorstr": e.strerror }
 
     print("""
-    The sequence alignment jobs have been submitted to the cluster. You can monitor their progress using
-    the qstat command:
+
+    A file named DESeq2.Rscript has been created in the DEA directory (path = %(DEAdir)s/DESeq2.Rscript).
+
+    Before you can proceed, please make sure all alignment jobs have finished. Use this command:
+
     qstat -u $USER
 
-    Once the alignment jobs finish, your data is ready for a Differential Expression (DE) analysis.
-    A file named DESeq2.Rscript has been created in the DEA directory (path = %(DEAdir)s/DESeq2.Rscript).
     This file can be directly submitted to a PBS cluster using this command:
     qsub DESeq2.Rscript
     To run that specific command, you must cd into the DEA directory:
