@@ -142,17 +142,27 @@ def monitor_cluster_jobs(jobs):
 
 def check_compressed_files():
 
+    if args.verbose:
+        print "checking to see if %(dirname)s/%(morepath)s is compressed" % {
+                'dirname': config['working_alignment_dir'],
+                'morepath': "/Sample_1/read_1",
+                }
     rtn = ''
     try:
-        rtn = subprocess.check_output("file -L " + config['working_alignment_dir'] + "/Sample_1/read_1", shell=True)
+        rtn = subprocess.check_output("file -L " + curdir + "/" + config['working_alignment_dir'] + "/Sample_1/read_1", shell=True)
     except subprocess.CalledProcessError as e:
         print "can't call file to test if file is compressed"
         sys.exit(16)
 
+    if args.verbose:
+        print "rtn: " + rtn
+
     compressed = 0
     if re.search(r'gzip', rtn):
+        if args.verbose: "input files are compressed"
         compressed = 1
     else:
+        if args.verbose: "input files are not compressed"
         compressed = -1
 
     return compressed
@@ -470,10 +480,10 @@ if 'align' in config.keys() and config['align'] != False:
 
     rst_script=os.path.join(config['rst_path'], 'bin', 'RNAseq_process_data.sh')
 
-    if config['seq_compressed'] == True:
-        chk = check_compressed_files()
-        if chk > 0:
-            rst_script = rst_script + " --gzip"
+    if args.verbose: print "checking to see if input files are compressed with gzip"
+    chk = check_compressed_files()
+    if chk > 0:
+        rst_script = rst_script + " --gzip"
         
     try:
         subprocess.check_call(

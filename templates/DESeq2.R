@@ -174,9 +174,10 @@ vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutatio
 
 #
 # output adonis() results to text file
-sink(paste0("$prefix","_adonis.txt"))
-vsd.adonis
-sink()
+#sink(paste0("$prefix","_adonis.txt"))
+capture.output(vsd.adonis, file=paste0("$prefix","_adonis.txt"))
+#vsd.adonis
+#sink()
 
 # make heatmap plots
 
@@ -195,19 +196,35 @@ dev.off()
 #library(gProfileR)
 #library(gprofiler2)
 BGD.05 <- as.character(dplyr::select(dplyr::filter(dplyr::arrange(res, padj), padj < 0.05), BestGeneDescriptor)$$BestGeneDescriptor)
-#gprofile_Ordered <- gprofiler(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='analytical', sort_by_structure=T, significant=T)
-gprofile_Ordered <- gost(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='gSCS', significant=T)
+rslt <- tryCatch(
+        expr = {
+            gprofile_Ordered <- gost(BGD.05, organism="$gProfilerkey", ordered_query=T, correction_method='gSCS', significant=T)
+        },
+        error = function(e){
+            message("call to gost() generated an error")
+            return(e)
+        },
+        warning = function(w){
+            message("call to gost() generated a warning")
+            return(w)
+        },
+        finally = {
+            message("exiting attempt to call gprofiler2::gost()")
+        }
+)
 #
+if (! inherits(rslt, 'simpleError')) {
 # what we want to output contains a list, so collapse it
-gprofile_Ordered$$result$$parents <- paste(gprofile_Ordered$$result$$parents, collapse=',')
+    gprofile_Ordered$$result$$parents <- paste(gprofile_Ordered$$result$$parents, collapse=',')
 # write the gprofiler output to a file
-write.table(gprofile_Ordered['result'], file=paste0("$prefix","_gProfileR.txt"), sep="\t", quote=F, row.name=F, col.name=T)
-
+    write.table(gprofile_Ordered['result'], file=paste0("$prefix","_gProfileR.txt"), sep="\t", quote=F, row.name=F, col.name=T)
+}
 #
 # save image file
 save.image(file=paste0("$prefix", "_RData"))
 
-sink(paste0("$prefix","_sessionInfo.txt"))
-sessionInfo()
-sink()
+#sink(paste0("$prefix","_sessionInfo.txt"))
+#sessionInfo()
+capture.output(sessionInfo(), paste0("$prefix","_sessionInfo.txt"))
+#sink()
 
