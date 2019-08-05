@@ -13,6 +13,7 @@ argparser = argparse.ArgumentParser(description="Parse tab-delimited file")
 # infile is the yaml file
 argparser.add_argument("--infile", type=str,  help="yaml file to parse", default="file")
 argparser.add_argument("--verbose", action="store_true", help="verbose messages to terminal")
+argparser.add_argument("--rmd", action="store_true", help="generate an Rmd file instead of Rscript file")
 
 args = argparser.parse_args()
 
@@ -604,26 +605,32 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
 
     datafilename='C_v_E.txt'
     deseq2_script=os.path.join(config["rst_path"], "bin", "create_DESeq2_cmd_batch_file.py")
+    DESeq2_runfile="DESeq2.Rscript"
+
+    if (args.rmd):
+        deseq2_script += " --template DESeq2.Rmd "
+        DESeq2_runfile = "DESeq2.Rmd"
+
     strand = config['strand'] + 2
     try:
         subprocess.check_call(deseq2_script + " " + "--numberOfControls " + str(clength) + \
                 " --numberOfExperimentals " + str(elength) + " --datafile " + datafilename + \
                 " --org " + config['org'] + " --gProfilerkey " + config['gProfilerkey'] + \
                 " --dbkey " + config['dbkey'] + " --strand " + str(strand) + " --aligndir " + config['working_alignment_dir'] + \
-                " > DESeq2.Rscript", \
+                " > " + DESeq2_runfile, \
                 shell=True)
     except OSError as e:
         print "can't run %(scriptname)s : %(errorstr)s" % { "scriptname": deseq2_script, "errorstr": e.strerror }
 
     print("""
 
-    A file named DESeq2.Rscript has been created in the DEA directory (path = %(DEAdir)s/DESeq2.Rscript).
+    A file named %(runfile)s has been created in the DEA directory (path = %(DEAdir)s/%(runfile)s).
 
     Before you can proceed, please make sure all alignment jobs have finished. Use this command:
 
     qstat -u $USER
 
-    This file can be directly submitted to a PBS cluster using this command:
+    The Rscript file can be directly submitted to a PBS cluster using this command:
     qsub DESeq2.Rscript
     To run that specific command, you must cd into the DEA directory:
     cd %(DEAdir)s
@@ -638,6 +645,8 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
     pheatmap
     gprofiler2
 
+    An easy way use the Rmarkdown file is to load it in Rstudio.
+
     Finally, the organism-specific R annotation database for your organism of interest must be installed.
     You can find a list of databases here: https://www.bioconductor.org/packages/release/BiocViews.html#___Organism.
     Search that table for databases that start with "org." There are also some settings in the YAML configuration
@@ -647,5 +656,5 @@ if 'diff_expression' in config.keys() and config['diff_expression'] != False:
     the bbc R module:
     module load bbc/R/R-3.6.0
 
-    """) % { 'DEAdir': config['working_DEA_dir'] }
+    """) % { 'DEAdir': config['working_DEA_dir'], 'runfile': DESeq2_runfile }
 
