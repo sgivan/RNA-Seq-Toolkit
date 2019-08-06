@@ -110,6 +110,14 @@ dev.off()
 
 [svg PCA plot](./DESeq2_PCA.svg)
 
+## calcluate statistical significance of clustering in PCA analysis
+```{r adonis}
+vsd <- vst(dds, blind=F)
+vsd.df.t <- t(as.data.frame(assay(vsd)))
+vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutations=10000)
+vsd.adonis
+
+#
 ## Set up contrast and generate DE results
 ```{r set up contrast, message=FALSE, warning=FALSE}
 contrast=c("condition","Exp","Cont")
@@ -195,20 +203,6 @@ dev.off()
 
 [svg volcano plot](./DESeq2_Volcano.svg)
 
-#
-## calcluate statistical significance of clustering in PCA analysis
-```{r adonis, message=FALSE, warning=FALSE}
-vsd <- vst(dds, blind=F)
-vsd.df.t <- t(as.data.frame(assay(vsd)))
-vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutations=10000)
-#
-#
-# output adonis() results to text file
-
-capture.output(vsd.adonis, file=paste0("$prefix","_adonis.txt"))
-```
-[adonis result](./DESeq2_adonis.txt)
-
 ## make heatmap plots
 ```{r heatmap, include=FALSE}
 # png file
@@ -259,10 +253,9 @@ if (! inherits(rslt, 'simpleError')) {
 ## save R data image file and session info
 ```{r save data image, include=FALSE}
 save.image(file=paste0("$prefix", "_RData"))
-
-capture.output(sessionInfo(), paste0("$prefix","_sessionInfo.txt"))
 ```
 
-[session info](./DESeq2_sessionInfo.txt)
-
+```{r save sessionInfo, echo=FALSE}
+sessionInfo()
+```
 
