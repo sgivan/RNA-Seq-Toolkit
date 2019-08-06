@@ -204,18 +204,17 @@ dev.off()
 [svg volcano plot](./DESeq2_Volcano.svg)
 
 ## make heatmap plots
-```{r heatmap, include=FALSE}
+```{r heatmap}
 # png file
 select <- order(rowMeans(counts(dds, normalized=T)), decreasing=T)[1:1000]
 pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition, filename=paste0("$prefix", "_Heatmap.png"))
+knitr::include_graphics(paste0("$prefix", "_Heatmap.png"))
 
 # svg file
 svg(paste0("$prefix", "_Heatmap.svg"))
 pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition)
 dev.off()
 ```
-![heatmap](./DESeq2_Heatmap.png)
-
 [svg heatmap](./DESeq2_Heatmap.svg)
 
 ## do pathway analysis
