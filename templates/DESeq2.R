@@ -113,6 +113,7 @@ res = cbind(baseMeanExp, baseMeanControl, as.data.frame(res))
 
 res$$padj[is.na(res$$padj)]  <- 1
 
+geneSymbol <- row.names(res)
 #
 # wrap the call to mapIds in a tryCatch() routine to catch errors
 rslt <- tryCatch(
@@ -136,8 +137,24 @@ rslt <- tryCatch(
 # if mapIds() generated an error, try to get gene names using the gprofiler2 function gconvert
 if (inherits(rslt, 'simpleError')) {
     message("because of error using org DB, now try gprofiler2 to get gene symbols")
-    gcrslt <- gconvert(row.names(res), organism="$gProfilerkey")
-    geneSymbol <- gcrslt$$name
+#   sometimes this fails to, so also wrap it in a tryCatch
+    rslt <- tryCatch(
+                     expr = {
+                        gcrslt <- gconvert(row.names(res), organism="$gProfilerkey")
+                        geneSymbol <- gcrslt$$name
+                     },
+                     error = function(e){
+                         message("gconvert also failed. Will create report without common gene names")
+                         return(e)
+                     },
+                     warning = function(w){
+                         message("gconvert generated a warning")
+                         return(w)
+                     },
+                     finally = {
+                         message("moving on")
+                     }
+                     )
 }
 
 #
@@ -193,8 +210,7 @@ pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F,
 dev.off()
 
 # do pathway analysis
-#library(gProfileR)
-#library(gprofiler2)
+#
 BGD.05 <- as.character(dplyr::select(dplyr::filter(dplyr::arrange(res, padj), padj < 0.05), BestGeneDescriptor)$$BestGeneDescriptor)
 rslt <- tryCatch(
         expr = {

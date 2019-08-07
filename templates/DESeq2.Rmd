@@ -140,7 +140,9 @@ res$$padj[is.na(res$$padj)]  <- 1
 wrap the call to mapIds() in a tryCatch() routine to catch errors
 if mapIds fails, use gprofiler2::gconvert()
 
-```{r get gene symbols via mapIds, message=FALSE, warning=FALSE}
+```{r get gene symbols}
+geneSymbol <- row.names(res)
+
 rslt <- tryCatch(
                     expr = {
                         geneSymbol <- mapIds($orgdb, keys=row.names(res), column="SYMBOL", keytype="$dbkey", multiVals="first")
@@ -154,7 +156,7 @@ rslt <- tryCatch(
                         print(w)
                     },
                     finally = {
-                        message("finished mapping gene symbols with org DB")
+                        message("moving on")
                     }
                  )
 
@@ -162,8 +164,24 @@ rslt <- tryCatch(
 # if mapIds() generated an error, try to get gene names using the gprofiler2 function gconvert
 if (inherits(rslt, 'simpleError')) {
     message("because of error using org DB, now try gprofiler2 to get gene symbols")
-    gcrslt <- gconvert(row.names(res), organism="$gProfilerkey")
-    geneSymbol <- gcrslt$$name
+# sometimes this fails to, so wrap in tryCatch()
+    rslt <- tryCatch(
+                     expr = {
+                        gcrslt <- gconvert(row.names(res), organism="$gProfilerkey")
+                        geneSymbol <- gcrslt$$name
+                     },
+                     error = function(e){
+                         message("gconvert also failed. Will create report without common gene names")
+                         return(e)
+                     },
+                     warning = function(w){
+                         message("gconvert generated a warning")
+                         return(w)
+                     },
+                     finally = {
+                         message("moving on")
+                     }
+                     )
 }
 
 #
@@ -218,8 +236,9 @@ dev.off()
 [svg heatmap](./DESeq2_Heatmap.svg)
 
 ## do pathway analysis
-### sometimes it fails, so wrap it in tryCatch()
-```{r pathway analysis, message=FALSE, warning=FALSE}
+sometimes it fails, so wrap it in tryCatch()
+
+```{r pathway analysis}
 BGD.05 <- as.character(dplyr::select(dplyr::filter(dplyr::arrange(res, padj), padj < 0.05), BestGeneDescriptor)$$BestGeneDescriptor)
 rslt <- tryCatch(
         expr = {
@@ -234,7 +253,7 @@ rslt <- tryCatch(
             return(w)
         },
         finally = {
-            message("exiting attempt to call gprofiler2::gost()")
+            message("moving on")
         }
 )
 #
@@ -243,6 +262,8 @@ if (! inherits(rslt, 'simpleError')) {
     gprofile_Ordered$$result$$parents <- paste(gprofile_Ordered$$result$$parents, collapse=',')
 # write the gprofiler output to a file
     write.table(gprofile_Ordered['result'], file=paste0("$prefix","_gProfileR.txt"), sep="\t", quote=F, row.name=F, col.name=T)
+} else {
+    message("Since the pathway analysis generated an error, do not create output file.")
 }
 ```
 
