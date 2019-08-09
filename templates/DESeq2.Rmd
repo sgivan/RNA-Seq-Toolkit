@@ -6,6 +6,7 @@ output:
         toc_depth: 2
         keep_md: true
         fic_caption: true
+        extension: pipe_tables
 ---
 ```{r load libraries, message=FALSE, warning=FALSE }
 
@@ -44,7 +45,7 @@ plot_Volcano <- function(DE_results_filename,labelPoints=FALSE) {
 }
 ```
 
-## create the merged data object
+## Create the merged data object
 ```{r merge data, message=FALSE, warning=FALSE}
 merged.data <- read_tsv(paste0("../","$aligndir","/Sample_1/PE_ReadsPerGene.out.tab"), col_names=F, skip=4)[,c(1,$strand)]
 sampnames <- c("GENEID", "Sample_1")
@@ -94,7 +95,7 @@ ddsFullCountTable <- DESeqDataSetFromMatrix(
     design = ~ condition)
 dds = DESeq(ddsFullCountTable)
 ```
-## calcluate statistical significance of clustering in PCA analysis
+## Calcluate statistical significance of clustering in PCA analysis
 ```{r adonis}
 vsd <- vst(dds, blind=F)
 vsd.df.t <- t(as.data.frame(assay(vsd)))
@@ -102,19 +103,15 @@ vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutatio
 vsd.adonis
 ```
 
-```{r make pca plot caption, echo=FALSE}
-pcaption <- paste0("A Principal Components Analysis (PCA) plot is a way to visualize the overall relationship between sample replicates based on the empirical data. In ideal situations, the points in the plot representing individual replicates for a given sample type should cluster together more closely than to the points representing a different sample type. The PERMANOVA analysis is a common statistical test to estimate whether the clustering of samples is greater than would be expected by chance. A common threshold of significance is p < 0.05. The p value for this analysis is p = ", vsd.adonis$$aov.tab$$`Pr(>F)`[1])
-```
-
 ## Plot PCA Reslts
-```{r plot PCA results, echo=FALSE, message=FALSE, fig.cap=pcaption}
+```{r plot PCA results, echo=FALSE, message=FALSE, fig.cap=pcaption, results=FALSE}
 # plotPCA can't take dds straight
 rldds <- rlog(dds)
 
-plotPCA(rldds,intgroup=c('condition')) # This will give groups, but not sample names within the group
-```
+pcaption <- paste0("A Principal Components Analysis (PCA) plot is a way to visualize the overall relationship between sample replicates based on the empirical data. In ideal situations, the points in the plot representing individual replicates for a given sample type should cluster together more closely than to the points representing a different sample type. The PERMANOVA analysis is a common statistical test to estimate whether the clustering of samples is greater than would be expected by chance. A common threshold of significance is p < 0.05. The p value for this analysis is p = ", vsd.adonis$$aov.tab$$`Pr(>F)`[1])
 
-```{r PCA plot svg, echo=FALSE, message=FALSE}
+plotPCA(rldds,intgroup=c('condition')) # This will give groups, but not sample names within the group
+
 svg(paste0("$prefix", "_PCA.svg"))
 plotPCA(rldds,intgroup=c('condition')) # This will give groups, but not sample names within the group
 dev.off()
@@ -199,18 +196,45 @@ res <- cbind(Gene=row.names(res), as.data.frame(res))
 res <- cbind(BestGeneDescriptor=bestGeneDescriptor, as.data.frame(res))
 ```
 
-## write DE results and count matrix to separate files
+## Write DE results and count matrix to separate files
+
 ```{r write DE results to file, message=FALSE, warning=FALSE}
 write.table(as.data.frame(res[order(res$$pvalue),]), file=paste0("$prefix", "_DESeq2_DE_results.txt"), sep="\t", na="", row.names=FALSE,quote=FALSE)
 write.table(rnaseqMatrix, file=paste0("$prefix", "_DESeq2_count_matrix.txt"), sep="\t", na="", row.names=FALSE,quote=FALSE)
 ```
+The DE results will be in tab-delimited text files that can be opened by Microsoft Excel or imported into a spreadsheet. You can download the files
+using the links, below. The columns in the DE_results file are as indicated in the following table.
+
+| Column Header | Description of Column |
+|:-------------:|:----------------------|
+| BestGeneDescriptor | Gene _Symbol_, if it exists. Otherwise, a database ID. |
+| Gene | Database ID; ie ENSMUSG00000026640. |
+| GeneSymbol | The accepted Gene Symbol; ie, Rac1. |
+| baseMeanExp | Normalized expression level of the gene in the experimental sample type, expressed as counts. |
+| baseMeanControl | Normalized expression level of the gene in the control sample type, expressed as counts. |
+| experimental | The name of the experimental sample type. |
+| control | The name of the control sample type. |
+| baseMean | The average normalized expression level of the gene across both sample types. |
+| log2FoldChange | The log2-transformed ratio of (baseMeanExp)/(baseMeanControl). |
+| lfcSE | The standard error associated with the calculation of the log2 ratio. |
+| stat | An internal statistic used by [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html). |
+| pvalue | The p-value associated with the log2FoldChange occurring by chance within this data set. |
+| padj | The False Discovery Rate corrected p-value. |
+
+### Download Links
 
 [DE results (tab-delimited text)](./DESeq2_DESeq2_DE_results.txt)
 [count matrix (tab-delimited text)](./DESeq2_DESeq2_count_matrix.txt)
 
 
-## generate volcano plots
-```{r create volcano plots, echo=FALSE}
+## Generate volcano plots
+```{r create volcano plots, echo=FALSE, fig.cap=volcaption, message=FALSE, results=FALSE}
+
+volcaption <- paste("A Volcano plot is a way to visualize the distribution of expression ratios (X-axis) and p-values (Y-axis) for a single data set. \
+It is a summary plot, so not a lot of detail can be inferred. However, you should see a relatively broad distribution of points across the plot and \
+the lowest p-values (plotted higher on the Y-axis) should spread fairly evenly across a range of expression ratios. In the plot, orange points \
+represent expression ratios greater than 2X (either up or down), red points represent genes whose FDR-corrected p-values are < 0.05 and green points \
+are genes where both properties occur (fold-change > +/- 2X and FDR < 0.05).")
 
 plot_Volcano(paste0("$prefix", "_DESeq2_DE_results.txt"))
 
@@ -223,9 +247,18 @@ dev.off()
 
 [svg volcano plot](./DESeq2_Volcano.svg)
 
-## make heatmap plots
-```{r heatmap}
+## Create heatmap plots
+```{r heatmap, echo=FALSE, fig.cap=hmcap}
+
+hmcap <- paste("A Heatmap is a way to visualize the expression of individual genes across sample types. Each column represents a sample replicate and \
+each row represents a gene. The colored cells in the plot at the intersection of each row & column represents the relative expression level of the \
+gene in the sample. An additional layer of processing clusters samples and genes by their similarity to each other. So, genes with similar expression \
+patterns across the samples cluster together (visualized by the dendrogram along the left side of the plot) \
+and samples with overall similarity cluster together (visualized by the dendrogram across the top of the plot). \
+The coloring represents relative expression level. Red is high expression & blue is low expression.")
+
 select <- order(rowMeans(counts(dds, normalized=T)), decreasing=T)[1:1000]
+
 pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition)
 
 # tiff file
@@ -233,8 +266,7 @@ pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F,
 ```
 [tiff heatmap](./DESeq2_Heatmap.tiff)
 
-## do pathway analysis
-sometimes it fails, so wrap it in tryCatch()
+## Do pathway analysis
 
 ```{r pathway analysis}
 BGD.05 <- as.character(dplyr::select(dplyr::filter(dplyr::arrange(res, padj), padj < 0.05), BestGeneDescriptor)$$BestGeneDescriptor)
@@ -265,10 +297,28 @@ if (! inherits(rslt, 'simpleError')) {
 }
 ```
 
+To do a pathway analysis, all the genes that satisfy a certain significance threshold are collected and subjected to g:GOSt Gene Group Functional
+Profiling as implemented by [g:Profiler](https://academic.oup.com/nar/article/44/W1/W83/2499292). Typically, the threshold to include genes is that the
+[DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) FDR-corrected p-value < 0.05.
+All the tests are run using R on the command-line to have access to the latest algorithms and
+databases. The default output of these efforts is a spreadsheet of data that includes the results of looking for pathways with a disproportionately
+large number of genes from this experiment. The databases used in this analysis are:
+
+
+* [KEGG](https://academic.oup.com/nar/article/42/D1/D199/1047899)
+* [Reactome](https://academic.oup.com/nar/article/44/D1/D481/2503122)
+* GO - [Gene Ontology](https://academic.oup.com/nar/article/43/D1/D1049/2439067)
+* HP - [Human Phenotype Ontology](https://academic.oup.com/nar/article/42/D1/D966/1042793)
+* COR - [CORUM](https://academic.oup.com/nar/article/38/suppl_1/D497/3112260) the comprehensive resource of mammalian protein complexes
+* TF - [TRANSFAC](https://academic.oup.com/bib/article/9/4/326/266917) database of TRANS-acting FACtors
+
+
+Each of these have been split out to their own tab in the following spreadsheet:
+
 [pathway analysis results (tab-delimited text)](./DESeq2_gProfileR.txt)
 
 
-## save R data image file and session info
+## Save R data image file and session info
 ```{r save data image, include=FALSE}
 save.image(file=paste0("$prefix", "_RData"))
 ```
