@@ -1,6 +1,11 @@
 ---
 title: "DESeq2 DE Analysis"
-output: html_document
+output:
+    html_document:
+        toc: true
+        toc_depth: 2
+        keep_md: true
+        fic_caption: true
 ---
 ```{r load libraries, message=FALSE, warning=FALSE }
 
@@ -8,8 +13,6 @@ library(tidyverse)
 library(edgeR)
 library(DESeq2)
 library($orgdb)
-#library(ggplot2)
-#library(dplyr)
 library(vegan)
 library(pheatmap)
 library(gprofiler2)
@@ -91,33 +94,35 @@ ddsFullCountTable <- DESeqDataSetFromMatrix(
     design = ~ condition)
 dds = DESeq(ddsFullCountTable)
 ```
-
-## Plot PCA Reslts
-```{r plot PCA results, include=FALSE}
-# plotPCA can't take dds straight
-rldds <- rlog(dds)
-
-png(paste0("$prefix", "_PCA.png"))
-plotPCA(rldds,intgroup=c('condition')) # This will give groups, but not sample names within the group
-dev.off()
-
-svg(paste0("$prefix", "_PCA.svg"))
-plotPCA(rldds,intgroup=c('condition')) # This will give groups, but not sample names within the group
-dev.off()
-```
-
-![PCA plot](./DESeq2_PCA.png)
-
-[svg PCA plot](./DESeq2_PCA.svg)
-
 ## calcluate statistical significance of clustering in PCA analysis
 ```{r adonis}
 vsd <- vst(dds, blind=F)
 vsd.df.t <- t(as.data.frame(assay(vsd)))
-vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutations=10000)
+vsd.adonis <- adonis(vsd.df.t ~ colData(dds)$$condition, method="eu", permutations=9999)
 vsd.adonis
+```
 
-#
+```{r make pca plot caption, echo=FALSE}
+pcaption <- paste0("A Principal Components Analysis (PCA) plot is a way to visualize the overall relationship between sample replicates based on the empirical data. In ideal situations, the points in the plot representing individual replicates for a given sample type should cluster together more closely than to the points representing a different sample type. The PERMANOVA analysis is a common statistical test to estimate whether the clustering of samples is greater than would be expected by chance. A common threshold of significance is p < 0.05. The p value for this analysis is p = ", vsd.adonis$$aov.tab$$`Pr(>F)`[1])
+```
+
+## Plot PCA Reslts
+```{r plot PCA results, echo=FALSE, message=FALSE, fig.cap=pcaption}
+# plotPCA can't take dds straight
+rldds <- rlog(dds)
+
+plotPCA(rldds,intgroup=c('condition')) # This will give groups, but not sample names within the group
+```
+
+```{r PCA plot svg, echo=FALSE, message=FALSE}
+svg(paste0("$prefix", "_PCA.svg"))
+plotPCA(rldds,intgroup=c('condition')) # This will give groups, but not sample names within the group
+dev.off()
+
+```
+
+[svg PCA plot](./DESeq2_PCA.svg)
+
 ## Set up contrast and generate DE results
 ```{r set up contrast, message=FALSE, warning=FALSE}
 contrast=c("condition","Exp","Cont")
@@ -135,7 +140,7 @@ res = cbind(baseMeanExp, baseMeanControl, as.data.frame(res))
 
 res$$padj[is.na(res$$padj)]  <- 1
 ```
-# 
+
 ## Map gene ID's to common gene names
 wrap the call to mapIds() in a tryCatch() routine to catch errors
 if mapIds fails, use gprofiler2::gconvert()
@@ -193,7 +198,7 @@ res <- cbind(GeneSymbol=geneSymbol, as.data.frame(res))
 res <- cbind(Gene=row.names(res), as.data.frame(res))
 res <- cbind(BestGeneDescriptor=bestGeneDescriptor, as.data.frame(res))
 ```
-#
+
 ## write DE results and count matrix to separate files
 ```{r write DE results to file, message=FALSE, warning=FALSE}
 write.table(as.data.frame(res[order(res$$pvalue),]), file=paste0("$prefix", "_DESeq2_DE_results.txt"), sep="\t", na="", row.names=FALSE,quote=FALSE)
@@ -203,37 +208,30 @@ write.table(rnaseqMatrix, file=paste0("$prefix", "_DESeq2_count_matrix.txt"), se
 [DE results (tab-delimited text)](./DESeq2_DESeq2_DE_results.txt)
 [count matrix (tab-delimited text)](./DESeq2_DESeq2_count_matrix.txt)
 
-#
+
 ## generate volcano plots
-```{r create volcano plots, include=FALSE}
-# png file
-png(paste0("$prefix", "_Volcano.png"))
+```{r create volcano plots, echo=FALSE}
+
 plot_Volcano(paste0("$prefix", "_DESeq2_DE_results.txt"))
-dev.off()
-#
+
 # svg file
 svg(paste0("$prefix", "_Volcano.svg"))
 plot_Volcano(paste0("$prefix", "_DESeq2_DE_results.txt"))
 dev.off()
-```
 
-![volcano plot](./DESeq2_Volcano.png)
+```
 
 [svg volcano plot](./DESeq2_Volcano.svg)
 
 ## make heatmap plots
 ```{r heatmap}
-# png file
 select <- order(rowMeans(counts(dds, normalized=T)), decreasing=T)[1:1000]
-pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition, filename=paste0("$prefix", "_Heatmap.png"))
-knitr::include_graphics(paste0("$prefix", "_Heatmap.png"))
-
-# svg file
-svg(paste0("$prefix", "_Heatmap.svg"))
 pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition)
-dev.off()
+
+# tiff file
+pheatmap(assay(rldds)[select,], cluster_rows=T, cluster_cols=T, show_rownames=F, annotation_col=condition, filename=paste("$prefix", "_Heatmap.tiff"))
 ```
-[svg heatmap](./DESeq2_Heatmap.svg)
+[tiff heatmap](./DESeq2_Heatmap.tiff)
 
 ## do pathway analysis
 sometimes it fails, so wrap it in tryCatch()
@@ -269,7 +267,7 @@ if (! inherits(rslt, 'simpleError')) {
 
 [pathway analysis results (tab-delimited text)](./DESeq2_gProfileR.txt)
 
-#
+
 ## save R data image file and session info
 ```{r save data image, include=FALSE}
 save.image(file=paste0("$prefix", "_RData"))
