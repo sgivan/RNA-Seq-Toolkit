@@ -6,3 +6,5 @@ TestData_3: non paired-end Illumina GA2x data with base 64 quality values.
 All tests now require that bowtie2 be in your $PATH.
 
 08/29/2019: Note that most of these tests are seriously outdated.
+
+tSG
