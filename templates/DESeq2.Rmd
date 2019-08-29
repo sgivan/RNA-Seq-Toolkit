@@ -5,8 +5,9 @@ output:
         toc: true
         toc_depth: 2
         keep_md: true
-        fic_caption: true
+        fig_caption: true
         extension: pipe_tables
+        self_contained: true
 ---
 ```{r load libraries, message=FALSE, warning=FALSE }
 
@@ -143,11 +144,11 @@ wrap the call to mapIds() in a tryCatch() routine to catch errors
 if mapIds fails, use gprofiler2::gconvert()
 
 ```{r get gene symbols}
-geneSymbol <- row.names(res)
+geneSymbols <- gsub("\..+","",row.names(res))
 
 rslt <- tryCatch(
                     expr = {
-                        geneSymbol <- mapIds($orgdb, keys=row.names(res), column="SYMBOL", keytype="$dbkey", multiVals="first")
+                        geneSymbol <- mapIds($orgdb, keys=geneSymbols, column="SYMBOL", keytype="$dbkey", multiVals="first")
                     },
                     error = function(e){
                         message("mapping gene symbols with org DB generated an error")
@@ -309,8 +310,10 @@ large number of genes from this experiment. The databases used in this analysis 
 * [Reactome](https://academic.oup.com/nar/article/44/D1/D481/2503122)
 * GO - [Gene Ontology](https://academic.oup.com/nar/article/43/D1/D1049/2439067)
 * HP - [Human Phenotype Ontology](https://academic.oup.com/nar/article/42/D1/D966/1042793)
+* HPA - [Human Protein Atlas](https://www.proteinatlas.org/)
 * COR - [CORUM](https://academic.oup.com/nar/article/38/suppl_1/D497/3112260) the comprehensive resource of mammalian protein complexes
 * TF - [TRANSFAC](https://academic.oup.com/bib/article/9/4/326/266917) database of TRANS-acting FACtors
+* WP - [WikiPathways](https://www.wikipathways.org/index.php/WikiPathways)
 
 
 Each of these have been split out to their own tab in the following spreadsheet:

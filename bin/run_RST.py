@@ -27,7 +27,11 @@ config = yaml.load(f_yaml, Loader=yaml.FullLoader)
 curdir=os.getcwd()
 if args.verbose: print "current working directory: '%(workdir)s'" % { "workdir": curdir }
 
+# set path to RST
 os.environ['PATH']=config['rst_path'] + "/bin" + ":" + os.environ['PATH']
+
+# set path to STAR
+os.environ['PATH']=config['path_to_STAR'] + ":" + os.environ['PATH']
 
 clength=len(config['input']['control'])
 elength=len(config['input']['experimental'])

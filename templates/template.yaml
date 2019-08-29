@@ -35,6 +35,7 @@ working_DEA_dir: DEA
 # See documentation here: https://github.com/sgivan/RNA-Seq-Toolkit/wiki/2.-Create-a-Genome-Reference-Index
 index_datadir: /secondary/projects/bbc/RST/yaml/genome/STAR
 #    
+filter_datadir:
 #
 # Settings related to pipeline functionality
 #
