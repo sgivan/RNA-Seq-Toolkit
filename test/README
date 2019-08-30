@@ -7,5 +7,4 @@ All tests now require that bowtie2 be in your $PATH.
 
 08/29/2019: Note that most of these tests are seriously outdated.
 
-tSG
-8292019
+08/30/2019: Used bfg (https://rtyley.github.io/bfg-repo-cleaner/) to delete many of the files in this directory path.
